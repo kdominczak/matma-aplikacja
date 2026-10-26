@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-nunito);
+}
+
+@theme {
+  --animate-shake: shake 0.4s ease-in-out;
+  --animate-slide-up: slide-up 0.25s ease-out;
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+}
+
+body {
+  background: #ffffff;
+  color: #1e293b;
+  /* w aplikacji mobilnej bez podświetlenia przy tapnięciu i „gumowego” przewijania */
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
