@@ -17,3 +17,12 @@ export async function hapticError() {
     navigator.vibrate?.([60, 40, 60]);
   }
 }
+
+/** Krótkie „kliknięcie” przy tapnięciu w element nawigacji. */
+export async function hapticTap() {
+  if (Capacitor.isNativePlatform()) {
+    await Haptics.impact({ style: ImpactStyle.Medium });
+  } else {
+    navigator.vibrate?.(15);
+  }
+}
