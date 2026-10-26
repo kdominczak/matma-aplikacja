@@ -42,6 +42,11 @@ const content: TopicContent = {
     { label: "Funkcja malejąca", tex: "x_1 < x_2 \\Rightarrow f(x_1) > f(x_2)" },
     { label: "Punkt wykresu", tex: "(x, y) \\in \\text{wykres } f \\iff y = f(x)" },
   ],
+  traps: [
+    "Dziedzina – oś $OX$, zbiór wartości – oś $OY$.",
+    "Monotoniczność podajesz dla argumentów $x$, nie dla wartości.",
+    "Puste kółko = punkt nie należy, więc nawias okrągły.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -50,8 +55,12 @@ const content: TopicContent = {
         figure: f,
         options: { A: "$2$", B: "$0$", C: "$-3$", D: "$1$" },
         correct: "A",
-        hint: "Znajdź punkt wykresu leżący na osi $OY$, czyli dla $x = 0$.",
+        hints: [
+          "Znajdź punkt wykresu leżący na osi $OY$, czyli dla $x = 0$.",
+          "Oś $OY$ to pionowa linia w $x = 0$. Na jakiej wysokości przecina ją wykres?",
+        ],
         explanation: "Dla $x = 0$ wykres jest na wysokości $y = 2$.",
+        trap: "$f(0)$ to wartość dla $x = 0$, a nie miejsce zerowe. Miejsce zerowe to $x$, dla którego $f(x) = 0$.",
       },
       {
         id: "wf-p2",
@@ -64,8 +73,12 @@ const content: TopicContent = {
           D: "$\\langle -3, 4 \\rangle$",
         },
         correct: "A",
-        hint: "Dziedzinę odczytujesz z osi $OX$. Kółka na końcach są pełne.",
+        hints: [
+          "Dziedzinę odczytujesz z osi $OX$. Kółka na końcach są pełne.",
+          "Wykres zaczyna się w $x = -4$ i kończy w $x = 5$. Kółka są zamalowane, więc końce należą.",
+        ],
         explanation: "Wykres zaczyna się w $x = -4$ i kończy w $x = 5$; oba końce należą do wykresu.",
+        trap: "Dziedzina to oś $OX$, zbiór wartości – oś $OY$. Zamiana osi to klasyczny błąd za darmo.",
       },
       {
         id: "wf-p3",
@@ -73,7 +86,10 @@ const content: TopicContent = {
         figure: f,
         options: { A: "$3$", B: "$2$", C: "$1$", D: "$4$" },
         correct: "A",
-        hint: "Policz, ile razy wykres przecina oś $OX$.",
+        hints: [
+          "Policz, ile razy wykres przecina oś $OX$.",
+          "Wypisz punkty przecięcia z osią $OX$: jeden po lewej i dwa po prawej stronie.",
+        ],
         explanation: "Wykres przecina oś $OX$ w punktach $-3$, $2$ i $4$.",
       },
     ],
@@ -103,6 +119,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Między $x = 1$ a $x = 3$ wykres opada z $2$ do $-2$.",
+        trap: "Przedziały monotoniczności podajesz na osi $OX$. $\\langle -2, 2 \\rangle$ kusi, bo to wartości – ale to nie te przedziały.",
       },
       {
         id: "wf-s3",
@@ -116,6 +133,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Na całym odcinku $\\langle -2, 1 \\rangle$ funkcja ma wartość $2$ – to nieskończenie wiele argumentów.",
+        trap: "Poziomy odcinek na wysokości $2$ to NIESKOŃCZENIE wiele argumentów, a nie jeden.",
       },
     ],
     zaawansowany: [
@@ -131,6 +149,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Nad osią $OX$ wykres jest dla $x \\in (-3, 2)$ oraz $x \\in (4, 5\\rangle$ – punkt $(5, 2)$ należy do wykresu.",
+        trap: "Pilnuj końców: punkt $(5, 2)$ należy do wykresu, więc przy $5$ nawias jest ostry. W miejscach zerowych $f(x) = 0$, więc tam nawiasy są otwarte.",
       },
       {
         id: "wf-z2",

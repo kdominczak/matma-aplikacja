@@ -9,6 +9,7 @@ Gamifikowana aplikacja mobilna (klimat Duolingo): krótkie sesje, serie dni, XP.
 - Capacitor 8 (Android/iOS) – pakuje folder `out/`
 - KaTeX do wzorów – w treści pytań LaTeX w `$...$`, renderowany przez `src/components/ui/MathText.tsx`
 - Backend (planowany): Supabase
+- AI (korepetytor, wyjaśnienia, podpowiedzi): Groq wołany bezpośrednio z aplikacji (`src/lib/ai.ts`, prompty w `src/lib/ai-prompts.ts`). Uczeń wkleja własny klucz Groq w aplikacji (`src/lib/ai-settings.ts`, zapis na urządzeniu); `NEXT_PUBLIC_GROQ_API_KEY` z `.env.local` działa tylko w `npm run dev` – nigdy nie wkompilowuj wspólnego klucza do buildu
 
 ## Ważne ograniczenie
 `next.config.ts` ma `output: "export"`. Aplikacja działa bez serwera, więc NIE używamy:

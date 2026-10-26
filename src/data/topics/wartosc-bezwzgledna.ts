@@ -30,6 +30,11 @@ const content: TopicContent = {
     { label: "Nierówność „mniejsze”", tex: "|x - a| < r \\iff a - r < x < a + r" },
     { label: "Nierówność „większe”", tex: "|x - a| > r \\iff x < a - r \\ \\lor \\ x > a + r" },
   ],
+  traps: [
+    "$|x - a| < r$ to przedział w środku, $|x - a| > r$ – dwa kawałki na zewnątrz.",
+    "$|x + 3|$ to odległość od $-3$ – znak w środku odwracasz.",
+    "$|x| = -2$ nie ma rozwiązań. Nie licz, tylko skreśl.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -37,24 +42,36 @@ const content: TopicContent = {
         prompt: "Wartość wyrażenia $|-7| + |3|$ jest równa:",
         options: { A: "$10$", B: "$-4$", C: "$4$", D: "$-10$" },
         correct: "A",
-        hint: "Wartość bezwzględna liczby ujemnej to liczba do niej przeciwna.",
+        hints: [
+          "Wartość bezwzględna liczby ujemnej to liczba do niej przeciwna.",
+          "$|-7| = 7$. Teraz dodaj $|3|$.",
+        ],
         explanation: "$|-7| = 7$, $|3| = 3$, więc suma to $10$.",
+        trap: "Wartość bezwzględna „zjada” minus: $|-7| = 7$, nie $-7$.",
       },
       {
         id: "abs-p2",
         prompt: "Liczba $|1 - \\sqrt{2}|$ jest równa:",
         options: { A: "$\\sqrt{2} - 1$", B: "$1 - \\sqrt{2}$", C: "$1 + \\sqrt{2}$", D: "$-1 - \\sqrt{2}$" },
         correct: "A",
-        hint: "Sprawdź, czy $1 - \\sqrt{2}$ jest dodatnie, czy ujemne ($\\sqrt{2} \\approx 1{,}41$).",
+        hints: [
+          "Sprawdź, czy $1 - \\sqrt{2}$ jest dodatnie, czy ujemne ($\\sqrt{2} \\approx 1{,}41$).",
+          "$1 - 1{,}41 < 0$, więc wynik to liczba przeciwna: $-(1 - \\sqrt{2})$.",
+        ],
         explanation: "$1 - \\sqrt{2} < 0$, więc zmieniamy znak: $\\sqrt{2} - 1$.",
+        trap: "Nie przepisuj na ślepo: $|1 - \\sqrt{2}| \\neq 1 - \\sqrt{2}$, bo wynik nie może być ujemny.",
       },
       {
         id: "abs-p3",
         prompt: "Rozwiązaniami równania $|x| = 4$ są liczby:",
         options: { A: "$-4$ i $4$", B: "tylko $4$", C: "tylko $-4$", D: "brak rozwiązań" },
         correct: "A",
-        hint: "Które liczby leżą w odległości 4 od zera?",
+        hints: [
+          "Które liczby leżą w odległości 4 od zera?",
+          "Na osi liczbowej idziesz 4 kroki od zera – w prawo albo w lewo.",
+        ],
         explanation: "Odległość 4 od zera mają liczby $-4$ i $4$.",
+        trap: "$|x| = 4$ ma DWA rozwiązania. Zgubiony ujemny wynik to najczęściej tracony punkt.",
       },
     ],
     sredni: [
@@ -76,6 +93,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "$|x - (-1)| < 3$ – liczby odległe od $-1$ o mniej niż 3: $-4 < x < 2$.",
+        trap: "$|x + 1|$ to odległość od $-1$, nie od $1$. Znak w środku się odwraca!",
       },
       {
         id: "abs-s3",
@@ -88,6 +106,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Wartość bezwzględna nigdy nie jest ujemna, więc równanie jest sprzeczne.",
+        trap: "Wartość bezwzględna nigdy nie jest ujemna – $|\\ldots| = -1$ jest sprzeczne od razu, bez liczenia.",
       },
     ],
     zaawansowany: [
@@ -102,6 +121,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "$|2x - 4| = 2|x - 2| \\ge 6$, czyli $|x - 2| \\ge 3$: $x \\le -1$ lub $x \\ge 5$.",
+        trap: "Przy „$\\ge$” rozwiązanie to dwa kawałki osi NA ZEWNĄTRZ, z domkniętymi nawiasami. Przedział w środku to odpowiedź dla „$\\le$”.",
       },
       {
         id: "abs-z2",

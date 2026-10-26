@@ -17,8 +17,17 @@ const EMPTY_PROGRESS: Progress = {
   xpByDay: {},
   tests: {},
   target: 30,
-  stats: { answered: 0, correct: 0, perfectTests: 0, dailyChallenges: 0, nightSessions: 0, earlySessions: 0 },
+  stats: {
+    answered: 0,
+    correct: 0,
+    perfectTests: 0,
+    dailyChallenges: 0,
+    nightSessions: 0,
+    earlySessions: 0,
+    mistakesBeaten: 0,
+  },
   achievements: {},
+  mistakes: {},
 };
 
 /** Wynik zapisu sesji – nowy stan i odznaki zdobyte właśnie teraz. */
@@ -81,11 +90,28 @@ async function update(change: (progress: Progress) => Progress): Promise<SaveOut
 
 // ── Zapis sesji ──
 
-/** XP do dziennego licznika + statystyki wspólne dla testów i wyzwań. */
+/** Pomyłki trafiają do pudełka, poprawna odpowiedź na zadanie z pudełka je stamtąd wyjmuje. */
+function updateMistakes(progress: Progress, result: QuizResult) {
+  const mistakes = { ...progress.mistakes };
+  let beaten = 0;
+  for (const answer of result.answers) {
+    const existing = mistakes[answer.questionId];
+    if (!answer.correct) {
+      mistakes[answer.questionId] = { lastWrong: dayKey(), count: (existing?.count ?? 0) + 1, chosen: answer.chosen };
+    } else if (existing) {
+      delete mistakes[answer.questionId];
+      beaten++;
+    }
+  }
+  return { mistakes, beaten };
+}
+
+/** XP do dziennego licznika, pudełko porażek i statystyki wspólne dla wszystkich sesji. */
 function recordSession(progress: Progress, result: QuizResult): Progress {
   const today = dayKey();
   const hour = new Date().getHours();
   const { stats } = progress;
+  const { mistakes, beaten } = updateMistakes(progress, result);
   return {
     ...progress,
     xp: progress.xp + result.xp,
@@ -97,7 +123,9 @@ function recordSession(progress: Progress, result: QuizResult): Progress {
       perfectTests: stats.perfectTests + (result.correct === result.total ? 1 : 0),
       nightSessions: stats.nightSessions + (hour >= 22 || hour < 4 ? 1 : 0),
       earlySessions: stats.earlySessions + (hour >= 4 && hour < 7 ? 1 : 0),
+      mistakesBeaten: stats.mistakesBeaten + beaten,
     },
+    mistakes,
   };
 }
 
@@ -127,6 +155,11 @@ export function saveDailyResult(result: QuizResult) {
     }
     return next;
   });
+}
+
+/** Trening z „Pudełka porażek” – liczy się jak każda sesja (XP, seria, wyjmowanie błędów). */
+export function saveMistakeTraining(result: QuizResult) {
+  return update((progress) => recordSession(progress, result));
 }
 
 export async function setTarget(target: Target) {

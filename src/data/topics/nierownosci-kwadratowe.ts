@@ -36,6 +36,11 @@ const content: TopicContent = {
     { label: "Postać iloczynowa", tex: "f(x) = a(x - x_1)(x - x_2)" },
     { label: "Wierzchołek paraboli", tex: "p = \\frac{-b}{2a}, \\quad q = \\frac{-\\Delta}{4a}" },
   ],
+  traps: [
+    "$\\Delta < 0$ nie oznacza automatycznie zbioru pustego – patrz na ramiona i znak nierówności.",
+    "Nie dziel przez $x$ – wyłącz go przed nawias.",
+    "Ujemne $a$ odwraca obrazek: ramiona idą w dół.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -48,8 +53,12 @@ const content: TopicContent = {
           D: "$\\langle -2, 2 \\rangle$",
         },
         correct: "A",
-        hint: "Miejsca zerowe to $-2$ i $2$, a ramiona paraboli są skierowane w górę.",
+        hints: [
+          "Miejsca zerowe to $-2$ i $2$, a ramiona paraboli są skierowane w górę.",
+          "Ramiona w górę – wykres jest POD osią między miejscami zerowymi. Nierówność ostra, więc nawiasy okrągłe.",
+        ],
         explanation: "Parabola z ramionami w górę jest pod osią między miejscami zerowymi: $(-2, 2)$.",
+        trap: "„$< 0$” przy ramionach w górę to przedział MIĘDZY pierwiastkami. Suma przedziałów to rozwiązanie dla „$> 0$”.",
       },
       {
         id: "nk-p2",
@@ -61,16 +70,24 @@ const content: TopicContent = {
           D: "$(-\\infty, -5\\rangle \\cup \\langle -1, +\\infty)$",
         },
         correct: "A",
-        hint: "Miejsca zerowe odczytasz od razu: $1$ i $5$. Gdzie parabola z ramionami w górę jest nad osią?",
+        hints: [
+          "Miejsca zerowe odczytasz od razu: $1$ i $5$. Gdzie parabola z ramionami w górę jest nad osią?",
+          "Szukasz miejsc nad osią lub na niej ($\\ge$) – to dwa kawałki na zewnątrz, z domkniętymi końcami.",
+        ],
         explanation: "Nad osią (lub na niej) poza przedziałem między pierwiastkami, z końcami włącznie.",
+        trap: "$(x - 1)(x - 5)$ ma pierwiastki $1$ i $5$, a nie $-1$ i $-5$. Znak się odwraca!",
       },
       {
         id: "nk-p3",
         prompt: "Wyróżnik $\\Delta$ trójmianu $x^2 + 4x + 5$ jest równy:",
         options: { A: "$-4$", B: "$36$", C: "$4$", D: "$21$" },
         correct: "A",
-        hint: "$\\Delta = b^2 - 4ac$, gdzie $a = 1$, $b = 4$, $c = 5$.",
+        hints: [
+          "$\\Delta = b^2 - 4ac$, gdzie $a = 1$, $b = 4$, $c = 5$.",
+          "$\\Delta = 4^2 - 4 \\cdot 1 \\cdot 5$.",
+        ],
         explanation: "$\\Delta = 16 - 20 = -4$.",
+        trap: "$b^2 = 16$, a $4ac = 20$. Kolejność odejmowania ma znaczenie – $\\Delta$ może wyjść ujemna.",
       },
     ],
     sredni: [
@@ -97,6 +114,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "$x^2 - 3x > 0 \\Rightarrow x(x - 3) > 0$. Nie dzielimy przez $x$ – tracilibyśmy rozwiązania ujemne.",
+        trap: "Nie dziel przez $x$! Nie wiesz, czy jest dodatni – zgubisz połowę rozwiązań. Wyłącz $x$ przed nawias.",
       },
       {
         id: "nk-s3",
@@ -109,6 +127,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Miejsca zerowe: $-2$ i $4$. Ramiona w dół, więc nad osią między pierwiastkami.",
+        trap: "Współczynnik przy $x^2$ jest ujemny – ramiona w dół, więc „$> 0$” to przedział MIĘDZY pierwiastkami.",
       },
     ],
     zaawansowany: [
@@ -123,6 +142,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "$(x + 3)^2 \\le 0$ – kwadrat nie jest ujemny, więc musi być równy zero: $x = -3$.",
+        trap: "Kwadrat nigdy nie jest ujemny. $(x + 3)^2 \\le 0$ działa tylko wtedy, gdy kwadrat jest równy zero.",
       },
       {
         id: "nk-z2",
@@ -130,6 +150,7 @@ const content: TopicContent = {
         options: { A: "$\\mathbb{R}$", B: "$\\emptyset$", C: "$(-1, 0)$", D: "$(0, +\\infty)$" },
         correct: "A",
         explanation: "$\\Delta = -3 < 0$ i ramiona w górę – cała parabola leży nad osią.",
+        trap: "$\\Delta < 0$ nie znaczy „brak rozwiązań”! Przy ramionach w górę cała parabola jest nad osią – „$> 0$” spełnia KAŻDA liczba.",
       },
       {
         id: "nk-z3",

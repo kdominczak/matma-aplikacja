@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Countdown from "@/components/layout/Countdown";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { ThemeSwitcher } from "@/components/ui/ThemeToggle";
 import { useProgress, userLevel, XP_PER_LEVEL } from "@/lib/progress";
@@ -10,13 +11,15 @@ import { useProgress, userLevel, XP_PER_LEVEL } from "@/lib/progress";
 const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/", label: "Ucz się", icon: "home" },
   { href: "/wzory", label: "Wzory", icon: "book" },
+  { href: "/korepetytor", label: "Korepetytor", icon: "sparkles" },
   { href: "/postepy", label: "Postępy", icon: "chart" },
   { href: "/odznaki", label: "Odznaki", icon: "medal" },
 ];
 
 function useActiveHref() {
-  // trailingSlash: true → ścieżki mogą kończyć się „/”; ekrany działów należą do „Ucz się”
+  // trailingSlash: true → ścieżki mogą kończyć się „/”; działy należą do „Ucz się”, pudełko porażek do „Postępów”
   const pathname = usePathname().replace(/(.)\/$/, "$1");
+  if (pathname.startsWith("/bledy")) return "/postepy";
   return NAV.find((item) => item.href !== "/" && pathname.startsWith(item.href))?.href ?? "/";
 }
 
@@ -77,19 +80,24 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-10 lg:pl-72">{children}</div>
+      <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-10 lg:pl-72">
+        <div className="bg-navy pt-[env(safe-area-inset-top)]">
+          <Countdown />
+        </div>
+        {children}
+      </div>
 
       <nav
         className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
         aria-label="Główna nawigacja"
       >
-        <ul className="mx-auto grid max-w-xl grid-cols-4">
+        <ul className="mx-auto grid max-w-xl grid-cols-5">
           {NAV.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}
                 aria-current={active === item.href ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors ${
+                className={`flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors sm:text-[11px] ${
                   active === item.href ? "text-brand" : "text-faint"
                 }`}
               >
@@ -109,7 +117,7 @@ export function Page({ children, width = "wide" }: { children: ReactNode; width?
   const max = width === "wide" ? "max-w-6xl" : "max-w-3xl";
   return (
     <div
-      className={`mx-auto flex w-full ${max} animate-fade-in flex-col gap-6 px-4 pt-[calc(env(safe-area-inset-top)+1rem)] sm:px-6 lg:px-10 lg:pt-10`}
+      className={`mx-auto flex w-full ${max} animate-fade-in flex-col gap-6 px-4 pt-5 sm:px-6 lg:px-10 lg:pt-10`}
     >
       {children}
     </div>

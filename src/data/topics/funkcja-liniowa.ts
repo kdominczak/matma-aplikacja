@@ -39,6 +39,11 @@ const content: TopicContent = {
     { label: "Proste równoległe", tex: "a_1 = a_2" },
     { label: "Proste prostopadłe", tex: "a_1 \\cdot a_2 = -1" },
   ],
+  traps: [
+    "Proste prostopadłe: $a_1 \\cdot a_2 = -1$ – odwrotność i zmiana znaku naraz.",
+    "Monotoniczność zależy tylko od $a$.",
+    "Współczynnik kierunkowy to różnica $y$ przez różnicę $x$ – w tej samej kolejności punktów.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -46,24 +51,36 @@ const content: TopicContent = {
         prompt: "Miejscem zerowym funkcji $f(x) = 2x - 6$ jest:",
         options: { A: "$-6$", B: "$-3$", C: "$2$", D: "$3$" },
         correct: "D",
-        hint: "Rozwiąż równanie $2x - 6 = 0$.",
+        hints: [
+          "Rozwiąż równanie $2x - 6 = 0$.",
+          "Przenieś $-6$ na drugą stronę: $2x = 6$.",
+        ],
         explanation: "$2x - 6 = 0$, więc $x = 3$.",
+        trap: "Miejsce zerowe to $x$, a nie $b$. $-6$ to punkt na osi $OY$, nie miejsce zerowe.",
       },
       {
         id: "fl-p2",
         prompt: "Funkcja $f(x) = -3x + 2$ jest:",
         options: { A: "rosnąca", B: "malejąca", C: "stała", D: "rosnąca tylko dla $x > 0$" },
         correct: "B",
-        hint: "Spójrz na znak współczynnika przy $x$.",
+        hints: [
+          "Spójrz na znak współczynnika przy $x$.",
+          "Współczynnik kierunkowy to liczba przy $x$, tutaj $-3$. Co oznacza ujemny?",
+        ],
         explanation: "$a = -3 < 0$, więc funkcja jest malejąca.",
+        trap: "O monotoniczności decyduje $a$ (liczba przy $x$), a nie wyraz wolny. Dodatnie $2$ nic tu nie zmienia.",
       },
       {
         id: "fl-p3",
         prompt: "Wykres funkcji $f(x) = 4x - 5$ przecina oś $OY$ w punkcie:",
         options: { A: "$(0, -5)$", B: "$(-5, 0)$", C: "$(0, 4)$", D: "$\\left(\\frac{5}{4}, 0\\right)$" },
         correct: "A",
-        hint: "Na osi $OY$ mamy $x = 0$ – oblicz $f(0)$.",
+        hints: [
+          "Na osi $OY$ mamy $x = 0$ – oblicz $f(0)$.",
+          "$f(0) = 4 \\cdot 0 - 5$.",
+        ],
         explanation: "$f(0) = -5$, więc punkt $(0, -5)$.",
+        trap: "Punkt na osi $OY$ ma $x = 0$, więc zapisujesz go jako $(0, y)$, a nie $(y, 0)$.",
       },
     ],
     sredni: [
@@ -73,6 +90,7 @@ const content: TopicContent = {
         options: { A: "$-2$", B: "$\\frac{1}{2}$", C: "$2$", D: "$4$" },
         correct: "C",
         explanation: "$a = \\frac{5 - 1}{2 - 0} = 2$.",
+        trap: "W liczniku różnica $y$, w mianowniku różnica $x$. Odwrócenie daje $\\frac{1}{2}$ – prezent dla CKE.",
       },
       {
         id: "fl-s2",
@@ -101,6 +119,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "$a = -\\frac{1}{3}$. Z punktu $(3, 2)$: $2 = -1 + b$, więc $b = 3$.",
+        trap: "Prostopadła to odwrotność Z PRZECIWNYM ZNAKIEM: $3 \\to -\\frac{1}{3}$. Samo odwrócenie albo sama zmiana znaku to błąd.",
       },
       {
         id: "fl-z2",
@@ -108,6 +127,7 @@ const content: TopicContent = {
         options: { A: "$m < 2$", B: "$m > 2$", C: "$m = 2$", D: "$m < -2$" },
         correct: "A",
         explanation: "Malejąca, gdy $2m - 4 < 0$, czyli $m < 2$.",
+        trap: "Funkcja maleje, gdy CAŁY współczynnik $2m - 4$ jest ujemny – nie samo $m$.",
       },
       {
         id: "fl-z3",

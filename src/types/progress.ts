@@ -1,3 +1,4 @@
+import type { OptionKey } from "@/types/quiz";
 import type { Target } from "@/types/topic";
 
 export type Stars = 1 | 2 | 3;
@@ -18,6 +19,15 @@ export interface Stats {
   dailyChallenges: number;
   nightSessions: number;
   earlySessions: number;
+  /** Zadania wyjęte z „Pudełka porażek” poprawną odpowiedzią. */
+  mistakesBeaten: number;
+}
+
+/** Zadanie, w którym uczeń się pomylił – czeka w „Pudełku porażek”. */
+export interface Mistake {
+  lastWrong: string;
+  count: number;
+  chosen: OptionKey;
 }
 
 export interface Progress {
@@ -32,4 +42,6 @@ export interface Progress {
   stats: Stats;
   /** Zdobyte odznaki: id → dzień zdobycia. */
   achievements: Record<string, string>;
+  /** Pudełko porażek: id pytania → ostatnia pomyłka. Poprawna odpowiedź usuwa wpis. */
+  mistakes: Record<string, Mistake>;
 }

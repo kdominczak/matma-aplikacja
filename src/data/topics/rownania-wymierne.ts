@@ -28,6 +28,11 @@ const content: TopicContent = {
     { label: "Mnożenie na krzyż", tex: "\\frac{a}{b} = \\frac{c}{d} \\Rightarrow ad = bc \\quad (b, d \\neq 0)" },
     { label: "Dodawanie ułamków", tex: "\\frac{a}{b} + \\frac{c}{d} = \\frac{ad + bc}{bd}" },
   ],
+  traps: [
+    "Uwaga! Zapomniałeś o dziedzinie? Zawsze zaczynaj od niej – CKE celowo daje „rozwiązania”, które ją łamią.",
+    "Ułamek jest równy $0$ tylko wtedy, gdy licznik jest równy $0$.",
+    "Na koniec porównaj wynik z dziedziną – to najczęściej tracony punkt.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -40,24 +45,36 @@ const content: TopicContent = {
           D: "$\\mathbb{R}$",
         },
         correct: "A",
-        hint: "Mianownik nie może być zerem. Dla jakiego $x$ mamy $x - 2 = 0$?",
+        hints: [
+          "Mianownik nie może być zerem. Dla jakiego $x$ mamy $x - 2 = 0$?",
+          "$x - 2 = 0$ dla $x = 2$ – tę liczbę wyrzucasz z dziedziny.",
+        ],
         explanation: "$x - 2 \\neq 0$, czyli $x \\neq 2$.",
+        trap: "Dziedzinę wyznacza MIANOWNIK. Licznik (tu $5$) nie ma tu nic do gadania.",
       },
       {
         id: "rw-p2",
         prompt: "Rozwiązaniem równania $\\frac{x + 1}{x - 3} = 2$ jest:",
         options: { A: "$x = 7$", B: "$x = 3$", C: "$x = -7$", D: "$x = 5$" },
         correct: "A",
-        hint: "Pomnóż obie strony przez $(x - 3)$.",
+        hints: [
+          "Pomnóż obie strony przez $(x - 3)$.",
+          "$x + 1 = 2(x - 3)$. Wymnóż nawias i zbierz $x$ po jednej stronie.",
+        ],
         explanation: "$x + 1 = 2x - 6$, więc $x = 7$ (i $7 \\neq 3$, więc należy do dziedziny).",
+        trap: "Mnożąc przez $(x - 3)$, mnożysz całą prawą stronę: $2(x - 3) = 2x - 6$, nie $2x - 3$.",
       },
       {
         id: "rw-p3",
         prompt: "Rozwiązaniem równania $\\frac{x - 4}{x + 1} = 0$ jest:",
         options: { A: "$x = 4$", B: "$x = -1$", C: "$x = 4$ lub $x = -1$", D: "brak rozwiązań" },
         correct: "A",
-        hint: "Ułamek jest równy zero, gdy jego licznik jest równy zero.",
+        hints: [
+          "Ułamek jest równy zero, gdy jego licznik jest równy zero.",
+          "$x - 4 = 0$. Sprawdź jeszcze, czy mianownik nie zeruje się dla tej liczby.",
+        ],
         explanation: "$x - 4 = 0$, czyli $x = 4$; mianownik $4 + 1 \\neq 0$.",
+        trap: "Zerowanie mianownika NIE daje rozwiązania – wyklucza liczbę z dziedziny. $x = -1$ to pułapka.",
       },
     ],
     sredni: [
@@ -72,6 +89,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Licznik zeruje się dla $\\pm 3$, ale $x = 3$ wypada z dziedziny.",
+        trap: "Uwaga! Zapomniałeś o dziedzinie? $x = 3$ zeruje mianownik, więc wylatuje, chociaż zeruje też licznik.",
       },
       {
         id: "rw-s2",
@@ -91,6 +109,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "$x + 2 = x - 2$ prowadzi do $2 = -2$ – sprzeczność.",
+        trap: "Gdy $x$ się skraca i zostaje fałsz typu $2 = -2$, równanie jest sprzeczne – nie szukaj rozwiązania na siłę.",
       },
     ],
     zaawansowany: [
@@ -100,6 +119,7 @@ const content: TopicContent = {
         options: { A: "$0$", B: "$2$", C: "$-2$", D: "$4$" },
         correct: "B",
         explanation: "Licznik: $x = \\pm 2$. Dziedzina wyklucza $0$ i $-2$, więc zostaje tylko $x = 2$.",
+        trap: "$x = -2$ zeruje licznik, ale też mianownik. Bez dziedziny wyjdzie Ci suma $0$ i punkt przepada.",
       },
       {
         id: "rw-z2",
@@ -107,6 +127,7 @@ const content: TopicContent = {
         options: { A: "brak rozwiązań", B: "$x = 1$", C: "$x = -1$", D: "$x = \\frac{5}{3}$" },
         correct: "A",
         explanation: "Mnożymy przez $x^2 - 1$: $2(x + 1) + (x - 1) = 4$, czyli $x = 1$ – ale $1$ jest poza dziedziną.",
+        trap: "Wyszło $x = 1$? Zerknij do dziedziny: $x^2 - 1 \\neq 0$. Jedyny kandydat odpada, więc rozwiązań brak.",
       },
       {
         id: "rw-z3",

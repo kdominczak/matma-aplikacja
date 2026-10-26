@@ -2,8 +2,10 @@
 
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page, PageHeader } from "@/components/layout/AppShell";
+import MistakesCard from "@/components/mistakes/MistakesCard";
 import EstimateChart from "@/components/progress/EstimateChart";
 import TopicCard from "@/components/topic/TopicCard";
+import AiSettingsCard from "@/components/tutor/AiSettingsCard";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { ThemeSwitcher } from "@/components/ui/ThemeToggle";
 import { topics } from "@/data/topics";
@@ -72,6 +74,8 @@ export default function ProgressView() {
         </div>
       </div>
 
+      <MistakesCard progress={progress} />
+
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <WeekStreak progress={progress} />
         <section className="rounded-3xl border border-line bg-card p-5 shadow-card">
@@ -79,6 +83,10 @@ export default function ProgressView() {
           <p className="mb-3 text-sm text-muted">Motyw jasny, ciemny lub zgodny z ustawieniami telefonu.</p>
           <ThemeSwitcher />
         </section>
+      </div>
+
+      <div id="ustawienia-ai" className="scroll-mt-6">
+        <AiSettingsCard />
       </div>
 
       <section className="flex flex-col gap-3">

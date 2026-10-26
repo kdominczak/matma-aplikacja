@@ -1,22 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import ExplainSheet, { TypingDots } from "@/components/quiz/ExplainSheet";
 import QuizSummary from "@/components/quiz/QuizSummary";
 import type { ScratchTemplate } from "@/components/quiz/ScratchBackground";
-import Scratchpad, { type Stroke } from "@/components/quiz/Scratchpad";
+import Scratchpad, { type ScratchItem } from "@/components/quiz/Scratchpad";
 import FormulaList from "@/components/topic/FormulaList";
 import BottomSheet from "@/components/ui/BottomSheet";
+import TrapCard from "@/components/quiz/TrapCard";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
+import RichText from "@/components/ui/RichText";
+import { streamAi, toAiQuestion } from "@/lib/ai";
+import { useAiReady } from "@/lib/ai-settings";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import type { SaveOutcome } from "@/lib/progress";
-import type { OptionKey, QuizQuestion, QuizResult } from "@/types/quiz";
+import type { OptionKey, QuizAnswer, QuizQuestion, QuizResult } from "@/types/quiz";
 import type { FormulaGroup } from "@/types/topic";
 
 const KEYS: OptionKey[] = ["A", "B", "C", "D"];
 const MAX_HEARTS = 3;
+/** Ile stopni podpowiedzi maksymalnie (z klucza, a dalej generowane przez AI). */
+const MAX_HINT_STEPS = 3;
 
 type Props = {
   questions: QuizQuestion[];
@@ -25,26 +32,32 @@ type Props = {
   /** Nadtytuł ekranu sukcesu, np. „Test – poziom średni”. */
   kicker: string;
   formulaGroups: FormulaGroup[];
+  /** Czy wolno korzystać z podpowiedzi (każda podpowiedź obniża XP za zadanie o połowę). */
   hints: boolean;
   xpPerCorrect: number;
   exitHref: string;
   onFinish: (result: QuizResult) => Promise<SaveOutcome>;
 };
 
-type Panel = "formulas" | "scratchpad" | null;
+type Panel = "formulas" | "scratchpad" | "explain" | null;
 
 export default function QuizScreen(props: Props) {
   const { questions, formulaGroups, hints, xpPerCorrect, exitHref, onFinish } = props;
+  const aiReady = useAiReady();
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<OptionKey | null>(null);
   const [checked, setChecked] = useState(false);
-  const [hintShown, setHintShown] = useState(false);
+  const [hintsShown, setHintsShown] = useState<string[]>([]);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintError, setHintError] = useState(false);
+  const hintAbort = useRef<AbortController | null>(null);
+  const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [correct, setCorrect] = useState(0);
   const [xp, setXp] = useState(0);
   const [hearts, setHearts] = useState(MAX_HEARTS);
   const [panel, setPanel] = useState<Panel>(null);
-  const [notes, setNotes] = useState<Record<string, Stroke[]>>({});
+  const [notes, setNotes] = useState<Record<string, ScratchItem[]>>({});
   const [template, setTemplate] = useState<ScratchTemplate>("grid");
   const [result, setResult] = useState<QuizResult | null>(null);
   const [outcome, setOutcome] = useState<SaveOutcome | null>(null);
@@ -55,13 +68,57 @@ export default function QuizScreen(props: Props) {
   const progressPercent = ((index + (checked ? 1 : 0)) / questions.length) * 100;
   const questionNotes = notes[question.id] ?? [];
 
+  // Podpowiedzi: najpierw te z klucza, potem (jeśli działa AI) kolejne stopnie generowane na żywo.
+  const authoredHints = question.hints ?? [];
+  const maxHints = aiReady ? Math.max(authoredHints.length, MAX_HINT_STEPS) : authoredHints.length;
+  const canHint = hints && !checked && !hintLoading && hintsShown.length < maxHints;
+
+  async function handleHint() {
+    hapticTap();
+    setHintError(false);
+    const step = hintsShown.length;
+    if (step < authoredHints.length) {
+      setHintsShown([...hintsShown, authoredHints[step]]);
+      return;
+    }
+    const controller = new AbortController();
+    hintAbort.current = controller;
+    setHintLoading(true);
+    setHintsShown([...hintsShown, ""]);
+    try {
+      await streamAi(
+        { mode: "hint", question: toAiQuestion(question), level: Math.min(step + 1, MAX_HINT_STEPS), previousHints: hintsShown },
+        (text) => setHintsShown((h) => [...h.slice(0, -1), text]),
+        controller.signal,
+      );
+    } catch {
+      if (!controller.signal.aborted) {
+        setHintsShown((h) => h.slice(0, -1));
+        setHintError(true);
+      }
+    } finally {
+      setHintLoading(false);
+    }
+  }
+
+  function resetQuestionState() {
+    hintAbort.current?.abort();
+    setSelected(null);
+    setChecked(false);
+    setHintsShown([]);
+    setHintLoading(false);
+    setHintError(false);
+  }
+
   function handleCheck() {
     if (!selected) return;
+    hintAbort.current?.abort();
     setChecked(true);
+    setAnswers((a) => [...a, { questionId: question.id, chosen: selected, correct: selected === question.correct }]);
     if (selected === question.correct) {
       setCorrect((c) => c + 1);
       // podpowiedź obniża nagrodę o połowę
-      setXp((x) => x + (hintShown ? Math.round(xpPerCorrect / 2) : xpPerCorrect));
+      setXp((x) => x + (hintsShown.length > 0 ? Math.round(xpPerCorrect / 2) : xpPerCorrect));
       hapticSuccess();
     } else {
       setHearts((h) => h - 1);
@@ -71,22 +128,19 @@ export default function QuizScreen(props: Props) {
 
   async function handleNext() {
     if (isLast || hearts === 0) {
-      const final: QuizResult = { correct, total: questions.length, answered: index + 1, xp, heartsLeft: hearts };
+      const final: QuizResult = { correct, total: questions.length, answered: index + 1, xp, heartsLeft: hearts, answers };
       setResult(final);
       setOutcome(await onFinish(final));
       return;
     }
     setIndex((i) => i + 1);
-    setSelected(null);
-    setChecked(false);
-    setHintShown(false);
+    resetQuestionState();
   }
 
   function handleRetry() {
     setIndex(0);
-    setSelected(null);
-    setChecked(false);
-    setHintShown(false);
+    resetQuestionState();
+    setAnswers([]);
     setCorrect(0);
     setXp(0);
     setHearts(MAX_HEARTS);
@@ -194,13 +248,16 @@ export default function QuizScreen(props: Props) {
               </div>
             )}
             <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-              {hints && question.hint && !hintShown && !checked && (
+              {canHint && (
                 <button
-                  onClick={() => setHintShown(true)}
-                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 dark:text-amber-400"
+                  onClick={handleHint}
+                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
                 >
                   <Icon name="bulb" className="h-4 w-4" />
-                  Podpowiedź
+                  {hintsShown.length === 0 ? "Podpowiedź" : "Kolejna podpowiedź"}
+                  <span className="rounded-md bg-amber-500/15 px-1.5 text-xs">
+                    {hintsShown.length + 1}/{maxHints}
+                  </span>
                 </button>
               )}
               <button
@@ -217,16 +274,28 @@ export default function QuizScreen(props: Props) {
                 )}
               </button>
             </div>
-            {hintShown && (
-              <div className="mt-3 flex animate-fade-in gap-2 rounded-2xl bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
-                <Icon name="bulb" className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                <div>
-                  <MathText text={question.hint!} />
-                  <p className="mt-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    Za to zadanie dostaniesz połowę XP.
-                  </p>
-                </div>
-              </div>
+            {hintsShown.length > 0 && (
+              <ol className="mt-3 flex flex-col gap-2">
+                {hintsShown.map((hint, i) => (
+                  <li
+                    key={i}
+                    className="flex animate-fade-in gap-2.5 rounded-2xl bg-amber-500/10 p-3 text-sm text-amber-950 dark:text-amber-100"
+                  >
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-extrabold text-white">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      {hint ? <RichText text={hint} /> : <TypingDots />}
+                    </div>
+                  </li>
+                ))}
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  Z podpowiedzią dostaniesz za to zadanie połowę XP.
+                </p>
+              </ol>
+            )}
+            {hintError && (
+              <p className="mt-2 text-xs font-semibold text-rose-500">Nie udało się pobrać podpowiedzi – spróbuj ponownie.</p>
             )}
           </section>
         </div>
@@ -258,10 +327,11 @@ export default function QuizScreen(props: Props) {
               : "animate-slide-up border-rose-500/30 bg-rose-50/95 dark:bg-rose-950/90"
         }`}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+        <div className="mx-auto flex max-h-[60dvh] max-w-6xl flex-col gap-3 overflow-y-auto lg:max-h-none lg:flex-row lg:items-center lg:justify-between lg:gap-10">
           {checked ? (
             <>
-              <div className="min-w-0">
+              <div className="flex min-w-0 flex-col gap-3">
+                <div>
                 <p
                   className={`flex items-center gap-2 text-lg font-extrabold ${
                     isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
@@ -276,15 +346,28 @@ export default function QuizScreen(props: Props) {
                 {hearts === 0 && (
                   <p className="mt-2 text-sm font-bold text-rose-600 dark:text-rose-400">Skończyły się serca – spróbuj jeszcze raz.</p>
                 )}
+                </div>
+                {!isCorrect && question.trap && <TrapCard text={question.trap} compact />}
               </div>
-              <button
-                onClick={handleNext}
-                className={`w-full shrink-0 rounded-2xl py-4 text-base font-bold text-white lg:w-64 ${
-                  isCorrect ? "bg-emerald-500 active:bg-emerald-600" : "bg-rose-500 active:bg-rose-600"
-                }`}
-              >
-                {isLast || hearts === 0 ? "Zobacz wynik" : "Dalej"}
-              </button>
+              <div className="flex shrink-0 flex-col gap-2 lg:w-64">
+                {!isCorrect && (
+                  <button
+                    onClick={() => setPanel("explain")}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-rose-500/30 bg-card py-3 text-sm font-bold text-rose-600 transition-colors hover:border-rose-500/60 dark:text-rose-300"
+                  >
+                    <Icon name="sparkles" className="h-4 w-4" />
+                    Wyjaśnij mi to zadanie
+                  </button>
+                )}
+                <button
+                  onClick={handleNext}
+                  className={`w-full rounded-2xl py-4 text-base font-bold text-white ${
+                    isCorrect ? "bg-emerald-500 active:bg-emerald-600" : "bg-rose-500 active:bg-rose-600"
+                  }`}
+                >
+                  {isLast || hearts === 0 ? "Zobacz wynik" : "Dalej"}
+                </button>
+              </div>
             </>
           ) : (
             <>
@@ -315,11 +398,15 @@ export default function QuizScreen(props: Props) {
         </BottomSheet>
       )}
 
+      {panel === "explain" && selected && (
+        <ExplainSheet question={question} chosen={selected} onClose={() => setPanel(null)} />
+      )}
+
       {panel === "scratchpad" && (
         <Scratchpad
           prompt={question.prompt}
-          strokes={questionNotes}
-          onChange={(strokes) => setNotes((n) => ({ ...n, [question.id]: strokes }))}
+          items={questionNotes}
+          onChange={(items) => setNotes((n) => ({ ...n, [question.id]: items }))}
           template={template}
           onTemplateChange={setTemplate}
           onClose={() => setPanel(null)}

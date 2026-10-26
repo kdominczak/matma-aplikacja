@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import CategoryTile from "@/components/topic/CategoryTile";
+import { TRAPS_LABEL } from "@/components/quiz/TrapCard";
 import FormulaList from "@/components/topic/FormulaList";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
@@ -47,7 +48,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
 
   return (
     <div className="mx-auto w-full max-w-6xl animate-fade-in px-4 sm:px-6 lg:px-10">
-      <div className="flex items-center gap-2 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-2 lg:pt-8">
+      <div className="flex items-center gap-2 pt-3 pb-2 lg:pt-8">
         <Link href="/" aria-label="Wróć do planu" className="-ml-2 flex items-center gap-1 rounded-full p-2 font-bold text-muted hover:bg-card hover:text-ink">
           <Icon name="back" className="h-5 w-5" />
           <span className="text-sm">Plan nauki</span>
@@ -61,7 +62,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
         </aside>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <div className="sticky top-0 z-20 -mx-4 bg-surface/90 px-4 pt-[env(safe-area-inset-top)] pb-3 backdrop-blur-lg sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 lg:pt-3">
+          <div className="sticky top-0 z-20 -mx-4 bg-surface/90 px-4 pt-3 pb-3 backdrop-blur-lg sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
             <div className="grid max-w-md grid-cols-3 rounded-2xl border border-line bg-card p-1 shadow-card" role="tablist">
               {TABS.map((t) => (
                 <button
@@ -111,6 +112,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
                     )}
                   </article>
                 ))}
+                <TopicTraps traps={content.traps} />
                 <NextStep label="Przejdź do wzorów" onClick={() => setTab("wzory")} />
               </>
             )}
@@ -178,6 +180,31 @@ function LevelSummary({ topic, progress, onOpen }: { topic: Topic; progress: Pro
         );
       })}
     </button>
+  );
+}
+
+/** Najczęstsze haczyki CKE w dziale – stylizowana sekcja na końcu teorii. */
+function TopicTraps({ traps }: { traps: string[] }) {
+  if (traps.length === 0) return null;
+  return (
+    <section className="relative overflow-hidden rounded-3xl border-2 border-dashed border-fuchsia-500/40 bg-fuchsia-500/5 p-5 lg:p-7">
+      <div aria-hidden className="pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-fuchsia-500/20 blur-2xl" />
+      <p className="relative flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-fuchsia-600 dark:text-fuchsia-300">
+        <Icon name="alert" className="h-4 w-4" />
+        {TRAPS_LABEL}
+      </p>
+      <h2 className="relative mt-1 text-xl font-extrabold text-ink">Tu CKE lubi zastawiać sidła</h2>
+      <ul className="relative mt-3 flex flex-col gap-2.5">
+        {traps.map((trap) => (
+          <li key={trap} className="flex gap-2.5 rounded-2xl bg-card p-3 text-sm font-semibold text-ink shadow-card">
+            <span aria-hidden className="mt-0.5 text-fuchsia-500">⚠</span>
+            <span>
+              <MathText text={trap} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

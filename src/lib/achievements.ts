@@ -110,6 +110,15 @@ export const ACHIEVEMENTS: Achievement[] = [
     current: (p) => basicTopics.filter((t) => passedLevels(p, t.id) > 0).length,
   },
   {
+    id: "pogromca-bledow",
+    title: "Pogromca błędów",
+    description: "Wyjmij 10 zadań z Pudełka porażek",
+    icon: "archive",
+    tone: "violet",
+    goal: 10,
+    current: (p) => p.stats.mistakesBeaten,
+  },
+  {
     id: "setka",
     title: "Setka",
     description: "Udziel 100 poprawnych odpowiedzi",

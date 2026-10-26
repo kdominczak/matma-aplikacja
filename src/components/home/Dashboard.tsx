@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BadgeIcon } from "@/components/achievements/Badge";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Logo, Page } from "@/components/layout/AppShell";
+import MistakesCard from "@/components/mistakes/MistakesCard";
 import EstimateCard from "@/components/progress/EstimateCard";
 import TopicCard from "@/components/topic/TopicCard";
 import Icon, { type IconName } from "@/components/ui/Icon";
@@ -112,6 +113,7 @@ export default function Dashboard() {
           <QuickStats progress={progress} className="hidden lg:grid" />
           {progress && <EstimateCard progress={progress} />}
           {progress && <WeekStreak progress={progress} />}
+          {progress && Object.keys(progress.mistakes).length > 0 && <MistakesCard progress={progress} />}
           {progress && <NextBadges progress={progress} />}
         </aside>
       </div>

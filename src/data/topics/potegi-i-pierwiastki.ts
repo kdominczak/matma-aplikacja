@@ -45,6 +45,11 @@ const content: TopicContent = {
     { label: "Pierwiastek iloczynu", tex: "\\sqrt{a \\cdot b} = \\sqrt{a} \\cdot \\sqrt{b}" },
     { label: "Pierwiastek z kwadratu", tex: "\\sqrt{a^2} = |a|" },
   ],
+  traps: [
+    "Minus w wykładniku to odwrotność, nie liczba ujemna: $2^{-3} = \\frac{1}{8}$.",
+    "Pierwiastków nie dodajesz „w środku”: $\\sqrt{9} + \\sqrt{16} = 7$, a nie $\\sqrt{25} = 5$.",
+    "$\\sqrt{a^2} = |a|$ – jeśli w środku siedzi coś ujemnego, wynik zmienia znak.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -52,24 +57,36 @@ const content: TopicContent = {
         prompt: "Liczba $2^5 \\cdot 2^3$ jest równa:",
         options: { A: "$2^8$", B: "$2^{15}$", C: "$4^8$", D: "$4^{15}$" },
         correct: "A",
-        hint: "Podstawy są takie same – co robimy z wykładnikami przy mnożeniu?",
+        hints: [
+          "Podstawy są takie same – co robimy z wykładnikami przy mnożeniu?",
+          "$a^m \\cdot a^n = a^{m+n}$, więc wykładnik wyniku to $5 + 3$.",
+        ],
         explanation: "Przy mnożeniu potęg o tej samej podstawie dodajemy wykładniki: $5 + 3 = 8$.",
+        trap: "Klasyk: mnożysz wykładniki ($2^{15}$) albo podstawy ($4^8$). Przy mnożeniu potęg podstawa zostaje, wykładniki się dodają.",
       },
       {
         id: "pot-p2",
         prompt: "Liczba $5^{-2}$ jest równa:",
         options: { A: "$-25$", B: "$-\\frac{1}{25}$", C: "$\\frac{1}{25}$", D: "$\\frac{1}{10}$" },
         correct: "C",
-        hint: "Ujemny wykładnik zamienia liczbę na jej odwrotność – znak liczby się nie zmienia.",
+        hints: [
+          "Ujemny wykładnik zamienia liczbę na jej odwrotność – znak liczby się nie zmienia.",
+          "$5^{-2} = \\frac{1}{5^2}$ – policz mianownik.",
+        ],
         explanation: "$5^{-2} = \\frac{1}{5^2} = \\frac{1}{25}$.",
+        trap: "Minus w wykładniku NIE robi liczby ujemnej. To tylko „odwróć ułamek”, a nie „dopisz minus”.",
       },
       {
         id: "pot-p3",
         prompt: "Liczba $\\sqrt{50} - \\sqrt{8}$ jest równa:",
         options: { A: "$\\sqrt{42}$", B: "$3\\sqrt{2}$", C: "$7\\sqrt{2}$", D: "$2\\sqrt{3}$" },
         correct: "B",
-        hint: "Rozłóż $50 = 25 \\cdot 2$ oraz $8 = 4 \\cdot 2$ i wyłącz czynnik przed pierwiastek.",
+        hints: [
+          "Rozłóż $50 = 25 \\cdot 2$ oraz $8 = 4 \\cdot 2$ i wyłącz czynnik przed pierwiastek.",
+          "$\\sqrt{50} = 5\\sqrt{2}$. Zrób to samo z $\\sqrt{8}$ i odejmij jak wyrazy podobne.",
+        ],
         explanation: "$\\sqrt{50} = 5\\sqrt{2}$ oraz $\\sqrt{8} = 2\\sqrt{2}$, więc różnica to $3\\sqrt{2}$.",
+        trap: "Nie odejmuj pod pierwiastkiem: $\\sqrt{50} - \\sqrt{8} \\neq \\sqrt{42}$. Odejmujesz dopiero pierwiastki z tą samą liczbą w środku.",
       },
     ],
     sredni: [
@@ -79,6 +96,7 @@ const content: TopicContent = {
         options: { A: "$3$", B: "$9$", C: "$27$", D: "$\\frac{1}{3}$" },
         correct: "B",
         explanation: "$\\frac{3^{10} \\cdot 3^4}{3^{12}} = 3^{14 - 12} = 3^2 = 9$.",
+        trap: "Najpierw zamień $9$ i $27$ na potęgi trójki – inaczej utkniesz w liczeniu ogromnych liczb.",
       },
       {
         id: "pot-s2",
@@ -116,6 +134,7 @@ const content: TopicContent = {
         options: { A: "$2 - \\sqrt{5}$", B: "$\\sqrt{5} - 2$", C: "$\\sqrt{5} + 2$", D: "$-2 - \\sqrt{5}$" },
         correct: "B",
         explanation: "$\\sqrt{a^2} = |a|$. Ponieważ $2 < \\sqrt{5}$, mamy $|2 - \\sqrt{5}| = \\sqrt{5} - 2$.",
+        trap: "$\\sqrt{a^2} = |a|$, a nie $a$. CKE podsuwa $2 - \\sqrt{5}$, czyli liczbę ujemną – a pierwiastek nigdy nie jest ujemny.",
       },
     ],
   },

@@ -3,7 +3,7 @@ import type { Plot } from "@/types/plot";
 export type OptionKey = "A" | "B" | "C" | "D";
 
 /**
- * Tekst w `prompt`, `options`, `explanation` i `hint` może zawierać wzory LaTeX
+ * Tekst w `prompt`, `options`, `explanation`, `hints` i `trap` może zawierać wzory LaTeX
  * w znacznikach $...$, np. "Oblicz $\\sqrt{16}$".
  */
 export interface Question {
@@ -12,8 +12,10 @@ export interface Question {
   options: Record<OptionKey, string>;
   correct: OptionKey;
   explanation: string;
-  /** Podpowiedź – pokazywana tylko na poziomie podstawowym. */
-  hint?: string;
+  /** Stopniowe podpowiedzi (od kierunku myślenia do konkretnego wzoru), bez podawania wyniku. */
+  hints?: string[];
+  /** Haczyk CKE: typowa pułapka w tym zadaniu, pokazywana po błędnej odpowiedzi. */
+  trap?: string;
   /** Wykres pod treścią zadania. */
   figure?: Plot;
 }
@@ -30,4 +32,12 @@ export interface QuizResult {
   answered: number;
   xp: number;
   heartsLeft: number;
+  /** Odpowiedzi na kolejne zadania – z nich zasilamy „Pudełko porażek”. */
+  answers: QuizAnswer[];
+}
+
+export interface QuizAnswer {
+  questionId: string;
+  chosen: OptionKey;
+  correct: boolean;
 }

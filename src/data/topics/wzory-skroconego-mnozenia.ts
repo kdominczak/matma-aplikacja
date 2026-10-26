@@ -32,6 +32,11 @@ const content: TopicContent = {
     { label: "Suma sześcianów", tex: "a^3 + b^3 = (a + b)(a^2 - ab + b^2)" },
     { label: "Różnica sześcianów", tex: "a^3 - b^3 = (a - b)(a^2 + ab + b^2)" },
   ],
+  traps: [
+    "$(a + b)^2 \\neq a^2 + b^2$ – zawsze pamiętaj o $2ab$.",
+    "$(-a - b)^2 = (a + b)^2$ – minus w kwadracie znika.",
+    "Przy $(2x)^2$ do kwadratu idzie też współczynnik: $4x^2$.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -39,24 +44,36 @@ const content: TopicContent = {
         prompt: "Wyrażenie $(x + 3)^2$ jest równe:",
         options: { A: "$x^2 + 6x + 9$", B: "$x^2 + 9$", C: "$x^2 + 3x + 9$", D: "$x^2 + 6x + 6$" },
         correct: "A",
-        hint: "Użyj wzoru $(a + b)^2 = a^2 + 2ab + b^2$ dla $a = x$ i $b = 3$.",
+        hints: [
+          "Użyj wzoru $(a + b)^2 = a^2 + 2ab + b^2$ dla $a = x$ i $b = 3$.",
+          "$a^2 = x^2$, $2ab = 2 \\cdot x \\cdot 3$, $b^2 = 9$. Dodaj te trzy części.",
+        ],
         explanation: "$x^2 + 2 \\cdot x \\cdot 3 + 3^2 = x^2 + 6x + 9$.",
+        trap: "$(x + 3)^2 \\neq x^2 + 9$! Bez wyrazu $2ab$ robisz najpopularniejszy błąd w historii matur.",
       },
       {
         id: "wsm-p2",
         prompt: "Wyrażenie $x^2 - 25$ można zapisać w postaci:",
         options: { A: "$(x - 5)(x + 5)$", B: "$(x - 5)^2$", C: "$(x - 25)(x + 25)$", D: "$(x + 5)^2$" },
         correct: "A",
-        hint: "To różnica kwadratów, bo $25 = 5^2$.",
+        hints: [
+          "To różnica kwadratów, bo $25 = 5^2$.",
+          "$a^2 - b^2 = (a - b)(a + b)$, gdzie $a = x$ i $b = 5$.",
+        ],
         explanation: "$x^2 - 5^2 = (x - 5)(x + 5)$.",
+        trap: "Różnica kwadratów to iloczyn RÓŻNICY i SUMY, a nie kwadrat różnicy: $(x - 5)^2 = x^2 - 10x + 25$.",
       },
       {
         id: "wsm-p3",
         prompt: "Wyrażenie $(2a - 1)^2$ jest równe:",
         options: { A: "$4a^2 - 4a + 1$", B: "$4a^2 + 1$", C: "$2a^2 - 4a + 1$", D: "$4a^2 - 2a + 1$" },
         correct: "A",
-        hint: "Pierwszym składnikiem jest $2a$, więc jego kwadrat to $4a^2$.",
+        hints: [
+          "Pierwszym składnikiem jest $2a$, więc jego kwadrat to $4a^2$.",
+          "$(2a)^2 = 4a^2$ oraz $2 \\cdot 2a \\cdot 1 = 4a$.",
+        ],
         explanation: "$(2a)^2 - 2 \\cdot 2a \\cdot 1 + 1^2 = 4a^2 - 4a + 1$.",
+        trap: "Do kwadratu idzie CAŁE $2a$: $(2a)^2 = 4a^2$, a nie $2a^2$.",
       },
     ],
     sredni: [
@@ -80,6 +97,7 @@ const content: TopicContent = {
         options: { A: "$-8x$", B: "$0$", C: "$-8$", D: "$2x^2 + 8$" },
         correct: "A",
         explanation: "$(x^2 - 4x + 4) - (x^2 + 4x + 4) = -8x$.",
+        trap: "Minus przed nawiasem zmienia znaki WSZYSTKICH wyrazów drugiego kwadratu – łącznie z $4$.",
       },
     ],
     zaawansowany: [
@@ -94,6 +112,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "$\\frac{2(\\sqrt{5} + \\sqrt{3})}{5 - 3} = \\sqrt{5} + \\sqrt{3}$.",
+        trap: "Mnożysz licznik i mianownik przez sprzężenie $\\sqrt{5} + \\sqrt{3}$. W mianowniku zostaje $5 - 3 = 2$.",
       },
       {
         id: "wsm-z2",

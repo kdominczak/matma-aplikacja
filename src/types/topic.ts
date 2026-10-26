@@ -33,6 +33,8 @@ export interface TheorySection {
 export interface TopicContent {
   theory: TheorySection[];
   formulas: Formula[];
+  /** Najczęstsze haczyki CKE w dziale – luźnym językiem. */
+  traps: string[];
   tests: Record<Difficulty, Question[]>;
 }
 

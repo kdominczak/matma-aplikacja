@@ -53,8 +53,8 @@ export const DIFFICULTIES: {
   description: string;
   xpPerCorrect: number;
 }[] = [
-  { id: "podstawowy", label: "Podstawowy", description: "Łatwe zadania, możesz skorzystać z podpowiedzi", xpPerCorrect: 10 },
-  { id: "sredni", label: "Średni", description: "Typowe zadania maturalne, bez podpowiedzi", xpPerCorrect: 15 },
+  { id: "podstawowy", label: "Podstawowy", description: "Łatwe zadania, z podpowiedziami krok po kroku", xpPerCorrect: 10 },
+  { id: "sredni", label: "Średni", description: "Typowe zadania maturalne", xpPerCorrect: 15 },
   { id: "zaawansowany", label: "Zaawansowany", description: "Trudniejsze zadania i maturalne pułapki", xpPerCorrect: 20 },
 ];
 
@@ -78,4 +78,21 @@ export function formulaGroup(topic: Topic): FormulaGroup {
 export function testQuestions(topic: Topic, difficulty: Difficulty): QuizQuestion[] {
   const label = `${topic.title} · ${getDifficulty(difficulty).label}`;
   return (topic.content?.tests[difficulty] ?? []).map((q) => ({ ...q, label }));
+}
+
+export interface QuestionRef {
+  question: QuizQuestion;
+  topic: Topic;
+  difficulty: Difficulty;
+}
+
+// Indeks pytań po id – „Pudełko porażek” przechowuje tylko identyfikatory.
+const questionIndex = new Map<string, QuestionRef>(
+  topics.flatMap((topic) =>
+    DIFFICULTIES.flatMap((d) => testQuestions(topic, d.id).map((question) => [question.id, { question, topic, difficulty: d.id }] as const)),
+  ),
+);
+
+export function findQuestion(id: string): QuestionRef | undefined {
+  return questionIndex.get(id);
 }

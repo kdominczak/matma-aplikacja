@@ -31,6 +31,11 @@ const content: TopicContent = {
     { label: "Wartości szczególne", tex: "\\log_a 1 = 0, \\quad \\log_a a = 1" },
     { label: "Potęga logarytmu", tex: "a^{\\log_a b} = b" },
   ],
+  traps: [
+    "$\\log_a x + \\log_a y = \\log_a (xy)$, a NIE $\\log_a (x + y)$.",
+    "Logarytm z zera albo liczby ujemnej nie istnieje – sprawdzaj dziedzinę.",
+    "Brak zapisanej podstawy = podstawa $10$.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -38,15 +43,22 @@ const content: TopicContent = {
         prompt: "Wartość wyrażenia $\\log_2 32$ jest równa:",
         options: { A: "$4$", B: "$5$", C: "$16$", D: "$64$" },
         correct: "B",
-        hint: "Do jakiej potęgi trzeba podnieść 2, aby otrzymać 32?",
+        hints: [
+          "Do jakiej potęgi trzeba podnieść 2, aby otrzymać 32?",
+          "Wypisz kolejne potęgi dwójki: $2, 4, 8, 16, 32$ – który to wykładnik?",
+        ],
         explanation: "$2^5 = 32$, więc $\\log_2 32 = 5$.",
+        trap: "Logarytm to wykładnik, nie wynik dzielenia: $\\log_2 32 \\neq 16$.",
       },
       {
         id: "log-p2",
         prompt: "Wartość wyrażenia $\\log_3 1$ jest równa:",
         options: { A: "$0$", B: "$1$", C: "$3$", D: "$\\frac{1}{3}$" },
         correct: "A",
-        hint: "Każda liczba różna od zera podniesiona do potęgi zerowej daje 1.",
+        hints: [
+          "Każda liczba różna od zera podniesiona do potęgi zerowej daje 1.",
+          "Szukasz takiego $c$, że $3^c = 1$.",
+        ],
         explanation: "$3^0 = 1$, więc $\\log_3 1 = 0$.",
       },
       {
@@ -54,7 +66,10 @@ const content: TopicContent = {
         prompt: "Wartość wyrażenia $\\log 1000$ jest równa:",
         options: { A: "$2$", B: "$3$", C: "$100$", D: "$30$" },
         correct: "B",
-        hint: "Brak zapisanej podstawy oznacza podstawę 10.",
+        hints: [
+          "Brak zapisanej podstawy oznacza podstawę 10.",
+          "10 do jakiej potęgi daje 1000? Policz zera.",
+        ],
         explanation: "$10^3 = 1000$, więc $\\log 1000 = 3$.",
       },
     ],
@@ -65,6 +80,7 @@ const content: TopicContent = {
         options: { A: "$\\log_6 13$", B: "$1$", C: "$2$", D: "$36$" },
         correct: "C",
         explanation: "Suma logarytmów to logarytm iloczynu: $\\log_6 36 = 2$.",
+        trap: "Suma logarytmów to logarytm ILOCZYNU ($4 \\cdot 9$), nie sumy ($4 + 9$). $\\log_6 13$ czeka tu specjalnie na Ciebie.",
       },
       {
         id: "log-s2",
@@ -79,6 +95,7 @@ const content: TopicContent = {
         options: { A: "$3$", B: "$52$", C: "$\\log_3 52$", D: "$27$" },
         correct: "A",
         explanation: "Różnica logarytmów to logarytm ilorazu: $\\log_3 27 = 3$.",
+        trap: "Różnica logarytmów to logarytm ilorazu: $54 : 2$, a nie $54 - 2$.",
       },
     ],
     zaawansowany: [
@@ -88,6 +105,7 @@ const content: TopicContent = {
         options: { A: "$2$", B: "$1$", C: "$\\log_5 16$", D: "$5$" },
         correct: "A",
         explanation: "$2\\log_5 10 = \\log_5 100$, więc $\\log_5 \\frac{100}{4} = \\log_5 25 = 2$.",
+        trap: "Dwójkę sprzed logarytmu wciągasz do potęgi: $2\\log_5 10 = \\log_5 100$ – dopiero potem dzielisz.",
       },
       {
         id: "log-z2",

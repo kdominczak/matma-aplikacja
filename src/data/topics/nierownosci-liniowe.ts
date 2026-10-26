@@ -29,6 +29,11 @@ const content: TopicContent = {
     { label: "Przedział otwarty", tex: "x > a \\iff x \\in (a, +\\infty)" },
     { label: "Przedział domknięty z jednej strony", tex: "x \\le a \\iff x \\in (-\\infty, a\\rangle" },
   ],
+  traps: [
+    "Mnożenie lub dzielenie przez liczbę ujemną odwraca znak nierówności.",
+    "Przy nieskończoności nawias jest zawsze okrągły.",
+    "Mnożąc przez wspólny mianownik, mnożysz każdy wyraz – także te bez ułamka.",
+  ],
   tests: {
     podstawowy: [
       {
@@ -36,24 +41,36 @@ const content: TopicContent = {
         prompt: "Zbiorem rozwiązań nierówności $2x - 4 > 0$ jest:",
         options: { A: "$(-\\infty, 2)$", B: "$(2, +\\infty)$", C: "$\\langle 2, +\\infty)$", D: "$(-2, +\\infty)$" },
         correct: "B",
-        hint: "Przenieś $-4$ na prawą stronę i podziel przez 2.",
+        hints: [
+          "Przenieś $-4$ na prawą stronę i podziel przez 2.",
+          "$2x > 4$. Dzielisz przez $2 > 0$, więc znak się nie zmienia.",
+        ],
         explanation: "$2x > 4$, więc $x > 2$. Nierówność jest ostra, dlatego nawias okrągły.",
+        trap: "Ostry znak $>$ to nawias okrągły. Nawias ostry przy $2$ znaczyłby, że $2$ też pasuje – a nie pasuje.",
       },
       {
         id: "nl-p2",
         prompt: "Rozwiązaniem nierówności $-3x \\le 9$ jest:",
         options: { A: "$x \\le -3$", B: "$x \\ge -3$", C: "$x \\le 3$", D: "$x \\ge 3$" },
         correct: "B",
-        hint: "Dzielisz przez liczbę ujemną – co dzieje się wtedy ze znakiem nierówności?",
+        hints: [
+          "Dzielisz przez liczbę ujemną – co dzieje się wtedy ze znakiem nierówności?",
+          "Podziel obie strony przez $-3$ i odwróć znak: $\\le$ zmienia się w $\\ge$.",
+        ],
         explanation: "Dzielimy przez $-3$ i zmieniamy zwrot: $x \\ge -3$.",
+        trap: "Dzielisz przez minus? Odwracasz znak. Zapomnisz – CKE ma już przygotowaną odpowiedź A specjalnie dla Ciebie.",
       },
       {
         id: "nl-p3",
         prompt: "Liczba $x = 2$ spełnia nierówność:",
         options: { A: "$3x - 1 > 5$", B: "$x + 4 < 6$", C: "$2x - 1 \\ge 3$", D: "$5 - x > 3$" },
         correct: "C",
-        hint: "Podstaw $x = 2$ do każdej nierówności i sprawdź, czy jest prawdziwa.",
+        hints: [
+          "Podstaw $x = 2$ do każdej nierówności i sprawdź, czy jest prawdziwa.",
+          "Dla odpowiedzi C: $2 \\cdot 2 - 1 = 3$. Czy $3 \\ge 3$?",
+        ],
         explanation: "$2 \\cdot 2 - 1 = 3 \\ge 3$ – prawda. W pozostałych wychodzi równość przy nierówności ostrej.",
+        trap: "Uważaj na granice: $5 > 5$ to fałsz, ale $3 \\ge 3$ to prawda.",
       },
     ],
     sredni: [
@@ -63,6 +80,7 @@ const content: TopicContent = {
         options: { A: "$2$", B: "$3$", C: "$11$", D: "$12$" },
         correct: "B",
         explanation: "$5x > 11$, czyli $x > 2{,}2$. Najmniejsza liczba całkowita to $3$.",
+        trap: "$x > 2{,}2$ – najmniejsza CAŁKOWITA to $3$. $2$ nie jest większe od $2{,}2$.",
       },
       {
         id: "nl-s2",
@@ -75,6 +93,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Po pomnożeniu przez 6: $3x - 6 \\ge 2x + 2$, więc $x \\ge 8$.",
+        trap: "Mnożąc przez 6, mnożysz KAŻDY wyraz – także samotną jedynkę: $-1 \\cdot 6 = -6$.",
       },
       {
         id: "nl-s3",
@@ -110,6 +129,7 @@ const content: TopicContent = {
         options: { A: "$a = -3$", B: "$a = 3$", C: "$a = -4$", D: "$a = 5$" },
         correct: "A",
         explanation: "$ax > 6$. Zwrot się zmienił, więc $a < 0$ i $x < \\frac{6}{a} = -2$, stąd $a = -3$.",
+        trap: "Zwrot nierówności się zmienił – to znak, że dzieliłeś przez liczbę ujemną, więc $a < 0$.",
       },
     ],
   },
