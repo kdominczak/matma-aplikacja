@@ -33,7 +33,7 @@ export function currentEstimate(progress: Progress): number {
 /** Dzienna historia szacunku – od pierwszej aktywności (min. 14 ostatnich dni) do dziś. */
 export function estimateHistory(progress: Progress): { day: string; label: string; value: number }[] {
   const activeDays = [
-    ...Object.keys(progress.xpByDay),
+    ...Object.keys(progress.activityByDay),
     ...Object.values(progress.tests).flatMap((t) => (t.passedAt ? [t.passedAt] : [])),
   ].sort();
   const today = new Date();

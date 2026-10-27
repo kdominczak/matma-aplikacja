@@ -1,5 +1,5 @@
 import type { Plot } from "@/types/plot";
-import type { Question } from "@/types/quiz";
+import type { OpenQuestion, Question } from "@/types/quiz";
 
 export type Difficulty = "podstawowy" | "sredni" | "zaawansowany";
 
@@ -36,6 +36,15 @@ export interface TopicContent {
   /** Najczęstsze haczyki CKE w dziale – luźnym językiem. */
   traps: string[];
   tests: Record<Difficulty, Question[]>;
+  /** Zadania otwarte do zakładki „Zadania” (z poziomem trudności jak w testach). */
+  openTasks: (OpenQuestion & { difficulty: Difficulty })[];
+}
+
+/** Same zadania (bez teorii) – dla działów, których lekcja jeszcze powstaje. Wystarczą do zakładki „Zadania”. */
+export interface PracticeContent {
+  formulas: Formula[];
+  closed: (Question & { difficulty: Difficulty })[];
+  open: (OpenQuestion & { difficulty: Difficulty })[];
 }
 
 export interface Topic {
@@ -52,6 +61,8 @@ export interface Topic {
   /** Ile punktów (z 46) daje zwykle temat w arkuszu, gdy się pojawi. */
   points: number;
   studyHours: number;
-  /** Brak treści = dział „Wkrótce”. */
+  /** Brak treści = lekcja (teoria, testy) „Wkrótce”. */
   content?: TopicContent;
+  /** Zadania do zakładki „Zadania” dla działów bez pełnej lekcji. */
+  practice?: PracticeContent;
 }

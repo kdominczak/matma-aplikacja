@@ -47,6 +47,34 @@ const content: TopicContent = {
     "Monotoniczność podajesz dla argumentów $x$, nie dla wartości.",
     "Puste kółko = punkt nie należy, więc nawias okrągły.",
   ],
+  openTasks: [
+    {
+      id: "wf-o1",
+      difficulty: "podstawowy",
+      points: 2,
+      prompt: "Na rysunku przedstawiono wykres funkcji $f$. Oblicz $f(-3) + f(3)$.",
+      figure: f,
+      answers: ["-2"],
+      hints: ["Odczytaj wysokość wykresu nad punktami $x = -3$ i $x = 3$."],
+      solution: [
+        { step: "Odczytanie: $f(-3) = 0$ (miejsce zerowe), $f(3) = -2$.", points: 1 },
+        { step: "Obliczenie: $0 + (-2) = -2$.", points: 1 },
+      ],
+    },
+    {
+      id: "wf-o2",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Na rysunku przedstawiono wykres funkcji $f$. Ile rozwiązań ma równanie $f(x) = -1$?",
+      figure: f,
+      answers: ["3"],
+      hints: ["Narysuj w brudnopisie poziomą prostą $y = -1$ i policz punkty wspólne z wykresem."],
+      solution: [
+        { step: "Narysowanie prostej $y = -1$.", points: 1 },
+        { step: "Policzenie punktów przecięcia z wykresem: $3$.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

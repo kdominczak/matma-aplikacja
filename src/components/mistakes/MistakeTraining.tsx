@@ -9,8 +9,6 @@ import { mistakeEntries, trainingSet } from "@/lib/mistakes";
 import { saveMistakeTraining, useProgress } from "@/lib/progress";
 import type { Progress } from "@/types/progress";
 
-const XP_PER_CORRECT = 15;
-
 /** „Przećwicz swoje błędy” – quiz z zadań z Pudełka porażek. */
 export default function MistakeTraining() {
   const progress = useProgress();
@@ -46,7 +44,6 @@ function Session({ progress }: { progress: Progress }) {
       kicker="Trening błędów"
       formulaGroups={set.formulaGroups}
       hints={aiReady || questions.some((q) => q.hints?.length)}
-      xpPerCorrect={XP_PER_CORRECT}
       exitHref="/bledy"
       onFinish={saveMistakeTraining}
     />

@@ -1,8 +1,13 @@
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
+import { appSettings } from "@/lib/app-settings";
+
+// Wibracje można wyłączyć w Ustawieniach.
+const enabled = () => appSettings().haptics;
 
 /** Wibracja w aplikacji natywnej; w przeglądarce fallback na navigator.vibrate. */
 export async function hapticSuccess() {
+  if (!enabled()) return;
   if (Capacitor.isNativePlatform()) {
     await Haptics.impact({ style: ImpactStyle.Light });
   } else {
@@ -11,6 +16,7 @@ export async function hapticSuccess() {
 }
 
 export async function hapticError() {
+  if (!enabled()) return;
   if (Capacitor.isNativePlatform()) {
     await Haptics.notification({ type: NotificationType.Error });
   } else {
@@ -20,6 +26,7 @@ export async function hapticError() {
 
 /** Krótkie „kliknięcie” przy tapnięciu w element nawigacji. */
 export async function hapticTap() {
+  if (!enabled()) return;
   if (Capacitor.isNativePlatform()) {
     await Haptics.impact({ style: ImpactStyle.Medium });
   } else {

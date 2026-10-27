@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import confetti from "canvas-confetti";
 import { BadgeIcon } from "@/components/achievements/Badge";
 import WeekStreak from "@/components/home/WeekStreak";
 import Icon from "@/components/ui/Icon";
+import { celebrate } from "@/lib/celebrate";
 import Stars from "@/components/ui/Stars";
 import type { SaveOutcome } from "@/lib/progress";
 import { isPassed, starsFor } from "@/lib/stats";
@@ -28,12 +28,12 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
   const earned = outcome?.earned ?? [];
 
   useEffect(() => {
-    if (passed) confetti({ particleCount: 120, spread: 80, origin: { y: 0.35 } });
+    if (passed) celebrate({ particleCount: 120, spread: 80, origin: { y: 0.35 } });
   }, [passed]);
 
   useEffect(() => {
     // druga salwa konfetti dla nowej odznaki
-    if (earned.length > 0) confetti({ particleCount: 80, spread: 100, origin: { y: 0.6 }, colors: ["#fbbf24", "#f97316", "#a855f7"] });
+    if (earned.length > 0) celebrate({ particleCount: 80, spread: 100, origin: { y: 0.6 }, colors: ["#fbbf24", "#f97316", "#a855f7"] });
   }, [earned.length]);
 
   return (
@@ -97,11 +97,11 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
         <div className="mt-3 grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-line bg-card p-4 shadow-card">
             <p className="flex items-center gap-1 text-xs font-bold uppercase text-brand">
-              <Icon name="bolt" className="h-3.5 w-3.5" />
-              Zdobyte XP
+              <Icon name="layers" className="h-3.5 w-3.5" />
+              Rozwiązane łącznie
             </p>
-            <p className="mt-1 text-3xl font-extrabold text-brand">+{result.xp}</p>
-            <p className="text-xs text-faint">{outcome ? `Łącznie ${outcome.progress.xp} XP` : "Zapisywanie…"}</p>
+            <p className="mt-1 text-3xl font-extrabold text-brand">{outcome ? outcome.progress.stats.answered : "–"}</p>
+            <p className="text-xs text-faint">{outcome ? `w tym ${outcome.progress.stats.correct} poprawnie` : "Zapisywanie…"}</p>
           </div>
           <div className="rounded-2xl border border-line bg-card p-4 shadow-card">
             <p className="flex items-center gap-1 text-xs font-bold uppercase text-muted">

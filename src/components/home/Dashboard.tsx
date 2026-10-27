@@ -3,18 +3,19 @@
 import Link from "next/link";
 import { BadgeIcon } from "@/components/achievements/Badge";
 import WeekStreak from "@/components/home/WeekStreak";
-import { Logo, Page } from "@/components/layout/AppShell";
+import { Page } from "@/components/layout/AppShell";
 import MistakesCard from "@/components/mistakes/MistakesCard";
+import PlacementIntro from "@/components/placement/PlacementIntro";
 import EstimateCard from "@/components/progress/EstimateCard";
 import TopicCard from "@/components/topic/TopicCard";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { DIFFICULTIES, TARGETS, topicsForTarget } from "@/data/topics";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { DAILY_QUESTION_COUNT } from "@/lib/daily";
+import { needsPlacement } from "@/lib/placement";
 import { hapticTap } from "@/lib/haptics";
-import { dayKey, passedLevels, setTarget, streak, useProgress, userLevel, weekXp } from "@/lib/progress";
+import { dayKey, passedLevels, streak, useProgress, weekSolved } from "@/lib/progress";
 import type { Progress } from "@/types/progress";
 import type { Target } from "@/types/topic";
 
@@ -27,48 +28,13 @@ export default function Dashboard() {
 
   return (
     <Page>
-      {/* Na telefonie: logo + motyw; na desktopie logo jest w panelu bocznym */}
-      <header className="flex items-center justify-between lg:hidden">
-        <Logo />
-        <div className="flex items-center gap-2">
-          <span className="rounded-full border border-line bg-card px-3 py-1.5 text-xs font-bold text-muted">
-            Poziom {userLevel(progress?.xp ?? 0)}
-          </span>
-          <ThemeToggle />
-        </div>
-      </header>
-
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="flex min-w-0 flex-col gap-6">
-          <section className="flex flex-col gap-4">
-            <div>
-              <h1 className="text-3xl leading-tight font-extrabold tracking-tight text-ink sm:text-4xl lg:text-5xl">
-                Małe kroki. <span className="text-brand">Wielkie wyniki.</span>
-              </h1>
-              <p className="mt-2 text-muted lg:text-lg">Twój następny sukces na maturze zaczyna się tu.</p>
-            </div>
-            <div
-              className="grid max-w-md grid-cols-3 rounded-2xl border border-line bg-card p-1 shadow-card"
-              role="radiogroup"
-              aria-label="Twój cel"
-            >
-              {TARGETS.map((t) => (
-                <button
-                  key={t.value}
-                  role="radio"
-                  aria-checked={target === t.value}
-                  onClick={() => {
-                    hapticTap();
-                    setTarget(t.value);
-                  }}
-                  className={`rounded-xl py-2 text-sm font-bold transition-colors ${
-                    target === t.value ? "bg-brand text-white shadow-float" : "text-muted hover:text-ink"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
+          <section>
+            <h1 className="text-3xl leading-tight font-extrabold tracking-tight text-ink sm:text-4xl lg:text-5xl">
+              Małe kroki. <span className="text-brand">Wielkie wyniki.</span>
+            </h1>
+            <p className="mt-2 text-muted lg:text-lg">Twój następny sukces na maturze zaczyna się tu.</p>
           </section>
 
           <QuickStats progress={progress} className="lg:hidden" />
@@ -78,7 +44,12 @@ export default function Dashboard() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <h2 className="text-xl font-extrabold text-ink">Twój plan na {target}%</h2>
-                <p className="text-sm text-muted">Działy ułożone według wagi na maturze</p>
+                <p className="text-sm text-muted">
+                  Działy ułożone według wagi na maturze ·{" "}
+                  <Link href="/ustawienia#cel" className="font-bold text-brand hover:underline">
+                    zmień cel
+                  </Link>
+                </p>
               </div>
               <span className="shrink-0 text-sm font-bold text-brand">
                 {planDone}/{planTotal} testów
@@ -117,6 +88,8 @@ export default function Dashboard() {
           {progress && <NextBadges progress={progress} />}
         </aside>
       </div>
+      {/* Pierwsze uruchomienie: zaproszenie do testu na start (z opcją „Pomiń”) */}
+      {progress && needsPlacement(progress) && <PlacementIntro />}
     </Page>
   );
 }
@@ -132,8 +105,8 @@ function QuickStats({ progress, className = "" }: { progress: Progress | null; c
     },
     {
       icon: "bolt",
-      value: progress ? `${weekXp(progress)} XP` : "–",
-      caption: "W tym tygodniu",
+      value: progress ? `${weekSolved(progress)} zadań` : "–",
+      caption: "Rozwiązane w tym tygodniu",
       style: "border-brand/25 bg-brand-soft text-brand",
     },
   ];

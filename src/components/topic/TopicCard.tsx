@@ -12,10 +12,12 @@ import type { Topic } from "@/types/topic";
 /** Karta działu w planie nauki: postęp na trzech poziomach + priorytet maturalny. */
 export default function TopicCard({ topic, progress }: { topic: Topic; progress: Progress | null }) {
   const ready = Boolean(topic.content);
+  // dział bez lekcji, ale z zestawem zadań – prowadzi do zakładki „Zadania”
+  const tasksOnly = !ready && Boolean(topic.practice);
 
   const body = (
     <>
-      <CategoryTile topic={topic} muted={!ready} />
+      <CategoryTile topic={topic} muted={!ready && !tasksOnly} />
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-bold uppercase tracking-wide text-faint">
           {topic.lesson} · Priorytet {topic.priority}
@@ -39,22 +41,28 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
             </span>
           </div>
         ) : (
-          <span className="mt-1.5 inline-block rounded-full bg-subtle px-2 py-0.5 text-[11px] font-bold text-muted">
-            Wkrótce
+          <span
+            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
+              tasksOnly ? "bg-brand-soft text-brand" : "bg-subtle text-muted"
+            }`}
+          >
+            {tasksOnly ? "Teoria wkrótce · zadania dostępne" : "Wkrótce"}
           </span>
         )}
       </div>
-      {ready && <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint transition-transform group-hover:translate-x-0.5" />}
+      {(ready || tasksOnly) && (
+        <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint transition-transform group-hover:translate-x-0.5" />
+      )}
     </>
   );
 
   const className = "group flex items-center gap-3 rounded-3xl border border-line bg-card p-4";
-  if (!ready) {
+  if (!ready && !tasksOnly) {
     return <div className={`${className} opacity-60`}>{body}</div>;
   }
   return (
     <Link
-      href={`/dzial/${topic.id}`}
+      href={ready ? `/dzial/${topic.id}` : `/zadania/${topic.id}`}
       onClick={() => hapticTap()}
       className={`${className} shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/40 active:scale-[0.98]`}
     >

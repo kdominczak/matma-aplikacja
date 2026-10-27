@@ -246,7 +246,7 @@ function TestLevels({ topic, progress }: { topic: Topic; progress: Progress | nu
               <p className="font-extrabold text-ink">Poziom {level.label.toLowerCase()}</p>
               <p className="text-sm text-muted">{unlocked ? level.description : "Zalicz poprzedni poziom, aby odblokować"}</p>
               <p className="mt-1 text-xs font-semibold text-faint">
-                {questionCount} {pluralTasks(questionCount)} · {level.xpPerCorrect} XP za zadanie
+                {questionCount} {pluralTasks(questionCount)}
                 {record && ` · najlepiej ${record.correct}/${record.total}`}
               </p>
             </div>

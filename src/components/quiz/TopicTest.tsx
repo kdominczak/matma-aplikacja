@@ -22,7 +22,6 @@ export default function TopicTest({ topicId, difficulty }: Props) {
       formulaGroups={[formulaGroup(topic)]}
       // podstawowy: podpowiedzi z klucza (+ AI); wyższe poziomy tylko z korepetytorem AI
       hints={difficulty === "podstawowy" || aiReady}
-      xpPerCorrect={level.xpPerCorrect}
       exitHref={`/dzial/${topic.id}#test`}
       onFinish={(result) => saveTestResult(topic.id, difficulty, result)}
     />

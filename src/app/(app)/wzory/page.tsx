@@ -1,12 +1,12 @@
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import CategoryTile from "@/components/topic/CategoryTile";
 import FormulaList from "@/components/topic/FormulaList";
-import { topics } from "@/data/topics";
+import { formulaGroup, topics } from "@/data/topics";
 
 export const metadata = { title: "Wzory – Matma" };
 
 export default function FormulasPage() {
-  const withFormulas = topics.filter((t) => t.content);
+  const withFormulas = topics.filter((t) => formulaGroup(t).formulas.length > 0);
 
   return (
     <Page>
@@ -34,7 +34,7 @@ export default function FormulasPage() {
                 <h2 className="text-lg font-extrabold text-ink">{topic.title}</h2>
               </div>
             </div>
-            <FormulaList formulas={topic.content!.formulas} />
+            <FormulaList formulas={formulaGroup(topic).formulas} />
           </section>
         ))}
       </div>

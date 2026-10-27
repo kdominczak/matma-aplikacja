@@ -12,7 +12,7 @@ export default function EstimateCard({ progress }: { progress: Progress }) {
 
   return (
     <Link
-      href="/postepy"
+      href="/profil"
       className="group block rounded-3xl border border-line bg-card p-5 shadow-card transition-transform hover:-translate-y-0.5"
     >
       <div className="flex items-start justify-between">

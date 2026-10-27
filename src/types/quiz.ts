@@ -20,6 +20,25 @@ export interface Question {
   figure?: Plot;
 }
 
+/**
+ * Zadanie otwarte (jak na maturze: uczeń zapisuje rozwiązanie, ocena wg schematu).
+ * W aplikacji: wpisuje wynik końcowy (sprawdzany automatycznie), a potem porównuje się ze schematem oceniania.
+ */
+export interface OpenQuestion {
+  id: string;
+  prompt: string;
+  figure?: Plot;
+  /** Maks. liczba punktów – suma punktów kroków w `solution`. */
+  points: number;
+  /** Akceptowane wyniki końcowe; kilka wartości oddziel średnikiem („-2;3”), dozwolone ułamki („3/2”). */
+  answers: string[];
+  /** Etykieta przed polem odpowiedzi, np. „x =”. */
+  answerLabel?: string;
+  hints?: string[];
+  /** Schemat oceniania: kolejne kroki rozwiązania z punktami (jak w zasadach oceniania CKE). */
+  solution: { step: string; points: number }[];
+}
+
 /** Pytanie gotowe do quizu – z etykietą działu i poziomu nad treścią. */
 export interface QuizQuestion extends Question {
   label: string;
@@ -30,7 +49,6 @@ export interface QuizResult {
   total: number;
   /** Ile zadań faktycznie rozwiązano (mniej niż `total`, gdy skończyły się serca). */
   answered: number;
-  xp: number;
   heartsLeft: number;
   /** Odpowiedzi na kolejne zadania – z nich zasilamy „Pudełko porażek”. */
   answers: QuizAnswer[];

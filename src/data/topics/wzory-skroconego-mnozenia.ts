@@ -37,6 +37,33 @@ const content: TopicContent = {
     "$(-a - b)^2 = (a + b)^2$ – minus w kwadracie znika.",
     "Przy $(2x)^2$ do kwadratu idzie też współczynnik: $4x^2$.",
   ],
+  openTasks: [
+    {
+      id: "wsm-o1",
+      difficulty: "podstawowy",
+      points: 2,
+      prompt: "Oblicz wartość wyrażenia $(\\sqrt{5} + 1)^2 - 2\\sqrt{5}$.",
+      answers: ["6"],
+      hints: ["Rozwiń kwadrat sumy: $(a + b)^2 = a^2 + 2ab + b^2$."],
+      solution: [
+        { step: "Rozwinięcie: $(\\sqrt{5} + 1)^2 = 5 + 2\\sqrt{5} + 1$.", points: 1 },
+        { step: "Obliczenie: $6 + 2\\sqrt{5} - 2\\sqrt{5} = 6$.", points: 1 },
+      ],
+    },
+    {
+      id: "wsm-o2",
+      difficulty: "zaawansowany",
+      points: 3,
+      prompt: "Wiadomo, że $a + b = 7$ i $ab = 10$. Oblicz $a^2 + b^2$.",
+      answers: ["29"],
+      hints: ["Zacznij od wzoru na $(a + b)^2$."],
+      solution: [
+        { step: "Zapisanie wzoru: $(a + b)^2 = a^2 + 2ab + b^2$.", points: 1 },
+        { step: "Podstawienie: $49 = a^2 + b^2 + 20$.", points: 1 },
+        { step: "Wynik: $a^2 + b^2 = 29$.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

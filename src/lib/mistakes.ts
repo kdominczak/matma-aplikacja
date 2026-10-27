@@ -22,7 +22,8 @@ export function mistakeEntries(progress: Progress): MistakeEntry[] {
 export function trainingSet(entries: MistakeEntry[]): { questionIds: string[]; formulaGroups: FormulaGroup[] } {
   const picked = entries.slice(0, TRAINING_SIZE);
   const topics = [...new Map(picked.map((e) => [e.topic.id, e.topic])).values()];
-  return { questionIds: picked.map((e) => e.question.id), formulaGroups: topics.map(formulaGroup) };
+  // działy „Wkrótce” (np. zadania z testu na start) nie mają jeszcze wzorów – pomijamy puste grupy
+  return { questionIds: picked.map((e) => e.question.id), formulaGroups: topics.filter((t) => t.content).map(formulaGroup) };
 }
 
 export function daysAgo(key: string): string {

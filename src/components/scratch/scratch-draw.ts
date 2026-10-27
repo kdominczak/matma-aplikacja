@@ -1,4 +1,5 @@
 // Rysowanie elementów brudnopisu na canvasie: kreski, bryły 3D i oznaczenia kątów.
+// Wzory przeciągnięte na kartkę (kind: "formula") nie są rysowane na canvasie – to warstwa HTML z KaTeX nad nim.
 
 export type Point = [number, number];
 export type PenColor = "ink" | "blue" | "red";
@@ -7,7 +8,9 @@ export type Solid = "cone" | "sphere" | "pyramid" | "prism";
 export type ScratchItem =
   | { kind: "stroke"; points: Point[]; color: PenColor; width: number; erase: boolean }
   | { kind: "solid"; solid: Solid; x: number; y: number; w: number; h: number; color: PenColor; width: number }
-  | { kind: "angle"; vertex: Point; a: Point; b: Point; label: string; color: PenColor };
+  | { kind: "angle"; vertex: Point; a: Point; b: Point; label: string; color: PenColor }
+  /** Wzór (LaTeX) albo wynik z kalkulatora położony na kartce; x, y = lewy górny róg w px kartki. */
+  | { kind: "formula"; tex: string; x: number; y: number };
 
 export const PALETTE: Record<PenColor, { label: string; light: string; dark: string }> = {
   ink: { label: "Czarny", light: "#0f172a", dark: "#f1f4fa" },
@@ -23,6 +26,7 @@ const DASH = [6, 5];
 const ANGLE_RADIUS = 26;
 
 export function drawItem(ctx: CanvasRenderingContext2D, item: ScratchItem, isDark: boolean) {
+  if (item.kind === "formula") return;
   const color = colorOf(item.color, isDark);
   ctx.save();
   ctx.globalCompositeOperation = item.kind === "stroke" && item.erase ? "destination-out" : "source-over";

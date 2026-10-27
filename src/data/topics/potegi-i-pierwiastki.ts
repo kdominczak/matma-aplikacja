@@ -50,6 +50,33 @@ const content: TopicContent = {
     "Pierwiastków nie dodajesz „w środku”: $\\sqrt{9} + \\sqrt{16} = 7$, a nie $\\sqrt{25} = 5$.",
     "$\\sqrt{a^2} = |a|$ – jeśli w środku siedzi coś ujemnego, wynik zmienia znak.",
   ],
+  openTasks: [
+    {
+      id: "pot-o1",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Oblicz wartość wyrażenia $\\frac{2^{10} \\cdot 4^3}{8^5}$.",
+      answers: ["2"],
+      hints: ["Zapisz $4$ i $8$ jako potęgi dwójki."],
+      solution: [
+        { step: "Zapisanie liczb jako potęg dwójki: $4^3 = 2^6$, $8^5 = 2^{15}$.", points: 1 },
+        { step: "Obliczenie: $\\frac{2^{10} \\cdot 2^6}{2^{15}} = 2^{16 - 15} = 2$.", points: 1 },
+      ],
+    },
+    {
+      id: "pot-o2",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Liczbę $\\sqrt{75} - \\sqrt{27} + \\sqrt{12}$ zapisz w postaci $a\\sqrt{3}$. Podaj liczbę $a$.",
+      answers: ["4"],
+      answerLabel: "a =",
+      hints: ["W każdym pierwiastku znajdź kwadrat liczby naturalnej, np. $75 = 25 \\cdot 3$."],
+      solution: [
+        { step: "Wyłączenie czynników: $\\sqrt{75} = 5\\sqrt{3}$, $\\sqrt{27} = 3\\sqrt{3}$, $\\sqrt{12} = 2\\sqrt{3}$.", points: 1 },
+        { step: "Redukcja: $5\\sqrt{3} - 3\\sqrt{3} + 2\\sqrt{3} = 4\\sqrt{3}$, więc $a = 4$.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

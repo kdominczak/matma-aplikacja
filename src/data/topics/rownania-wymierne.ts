@@ -33,6 +33,35 @@ const content: TopicContent = {
     "Ułamek jest równy $0$ tylko wtedy, gdy licznik jest równy $0$.",
     "Na koniec porównaj wynik z dziedziną – to najczęściej tracony punkt.",
   ],
+  openTasks: [
+    {
+      id: "rw-o1",
+      difficulty: "podstawowy",
+      points: 2,
+      prompt: "Rozwiąż równanie $\\frac{2x + 3}{x - 1} = 3$.",
+      answers: ["6"],
+      answerLabel: "x =",
+      hints: ["Zapisz dziedzinę, a potem pomnóż obie strony przez $(x - 1)$."],
+      solution: [
+        { step: "Dziedzina $x \\neq 1$ i przekształcenie: $2x + 3 = 3(x - 1)$.", points: 1 },
+        { step: "Rozwiązanie: $x = 6$, należy do dziedziny.", points: 1 },
+      ],
+    },
+    {
+      id: "rw-o2",
+      difficulty: "zaawansowany",
+      points: 3,
+      prompt: "Rozwiąż równanie $\\frac{x^2 - 4}{x + 2} = 3x$.",
+      answers: ["-1"],
+      answerLabel: "x =",
+      hints: ["Licznik to różnica kwadratów. Pamiętaj o dziedzinie."],
+      solution: [
+        { step: "Dziedzina: $x \\neq -2$.", points: 1 },
+        { step: "Skrócenie ułamka: $\\frac{(x - 2)(x + 2)}{x + 2} = x - 2$, więc $x - 2 = 3x$.", points: 1 },
+        { step: "Rozwiązanie $x = -1$ i sprawdzenie, że należy do dziedziny.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

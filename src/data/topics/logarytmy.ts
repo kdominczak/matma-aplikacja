@@ -36,6 +36,32 @@ const content: TopicContent = {
     "Logarytm z zera albo liczby ujemnej nie istnieje – sprawdzaj dziedzinę.",
     "Brak zapisanej podstawy = podstawa $10$.",
   ],
+  openTasks: [
+    {
+      id: "log-o1",
+      difficulty: "podstawowy",
+      points: 2,
+      prompt: "Oblicz $\\log_2 48 - \\log_2 3$.",
+      answers: ["4"],
+      hints: ["Różnicę logarytmów o tej samej podstawie zamień na logarytm ilorazu."],
+      solution: [
+        { step: "Zastosowanie wzoru na logarytm ilorazu: $\\log_2 \\frac{48}{3} = \\log_2 16$.", points: 1 },
+        { step: "Obliczenie: $\\log_2 16 = 4$, bo $2^4 = 16$.", points: 1 },
+      ],
+    },
+    {
+      id: "log-o2",
+      difficulty: "zaawansowany",
+      points: 2,
+      prompt: "Oblicz $\\log_3 \\sqrt{3} + \\log_3 \\frac{1}{9}$.",
+      answers: ["-3/2"],
+      hints: ["Zapisz $\\sqrt{3}$ i $\\frac{1}{9}$ jako potęgi trójki."],
+      solution: [
+        { step: "Zapisanie: $\\log_3 3^{\\frac{1}{2}} + \\log_3 3^{-2}$.", points: 1 },
+        { step: "Obliczenie: $\\frac{1}{2} + (-2) = -\\frac{3}{2}$.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

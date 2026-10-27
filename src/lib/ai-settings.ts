@@ -13,6 +13,10 @@ export const GROQ_MODELS = [
 
 export const DEFAULT_MODEL = GROQ_MODELS[0].id;
 
+/** Model czytający zdjęcia i skany – korepetytor przełącza się na niego sam, gdy wiadomość ma obrazy. */
+export const VISION_MODEL = "qwen/qwen3.8-27b";
+export const VISION_MODEL_LABEL = "Qwen 3.8 27B";
+
 export interface AiSettings {
   apiKey: string;
   model: string;

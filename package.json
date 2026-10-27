@@ -9,18 +9,22 @@
     "lint": "eslint",
     "mobile:sync": "next build && cap sync",
     "android": "npm run mobile:sync && cap open android",
-    "ios": "npm run mobile:sync && cap open ios"
+    "ios": "npm run mobile:sync && cap open ios",
+    "db:keys": "tsx --tsconfig tsconfig.json scripts/generate-question-keys.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.5.3",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/ios": "^8.5.3",
     "@capacitor/local-notifications": "^8.3.1",
     "@capacitor/preferences": "^8.0.1",
+    "@supabase/supabase-js": "^2.117.3",
     "canvas-confetti": "^1.9.4",
     "katex": "^0.19.1",
     "next": "16.4.3",
+    "pdfjs-dist": "^6.4.299",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "recharts": "^3.10.1"
@@ -36,6 +40,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

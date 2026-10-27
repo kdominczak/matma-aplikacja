@@ -44,6 +44,35 @@ const content: TopicContent = {
     "Monotoniczność zależy tylko od $a$.",
     "Współczynnik kierunkowy to różnica $y$ przez różnicę $x$ – w tej samej kolejności punktów.",
   ],
+  openTasks: [
+    {
+      id: "fl-o1",
+      difficulty: "zaawansowany",
+      points: 3,
+      prompt: "Wykres funkcji liniowej przechodzi przez punkty $A = (-2, 1)$ i $B = (4, 4)$. Wyznacz miejsce zerowe tej funkcji.",
+      answers: ["-4"],
+      answerLabel: "x =",
+      hints: ["Najpierw oblicz współczynnik kierunkowy $a = \\frac{y_B - y_A}{x_B - x_A}$."],
+      solution: [
+        { step: "Współczynnik kierunkowy: $a = \\frac{4 - 1}{4 + 2} = \\frac{1}{2}$.", points: 1 },
+        { step: "Wyraz wolny z punktu $A$: $1 = \\frac{1}{2} \\cdot (-2) + b$, więc $b = 2$.", points: 1 },
+        { step: "Miejsce zerowe: $\\frac{1}{2}x + 2 = 0 \\Rightarrow x = -4$.", points: 1 },
+      ],
+    },
+    {
+      id: "fl-o2",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Dla jakiej wartości $m$ proste $y = (2m - 1)x + 3$ i $y = 5x - 2$ są równoległe?",
+      answers: ["3"],
+      answerLabel: "m =",
+      hints: ["Proste równoległe mają równe współczynniki kierunkowe."],
+      solution: [
+        { step: "Warunek równoległości: $2m - 1 = 5$.", points: 1 },
+        { step: "Rozwiązanie: $m = 3$.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

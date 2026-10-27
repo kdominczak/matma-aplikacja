@@ -1,5 +1,6 @@
 import { explainMessage, hintMessage, SYSTEM, type QuestionPayload } from "@/lib/ai-prompts";
-import { getAiSettings } from "@/lib/ai-settings";
+import { getAiSettings, VISION_MODEL } from "@/lib/ai-settings";
+import { MAX_IMAGES } from "@/lib/attachments";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
 // Groq (API zgodne z OpenAI) wołany prosto z aplikacji – Groq zezwala na CORS z przeglądarki i WebView.
@@ -11,7 +12,16 @@ const MAX_HISTORY_CHARS = 12_000;
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  /** Zdjęcia i zeskanowane strony (data URL JPEG) – widzi je tylko model z obsługą obrazów. */
+  images?: string[];
+  /** Tekst z załączonych PDF-ów – idzie do modelu, w dymku pokazujemy tylko nazwę pliku. */
+  context?: string;
+  /** Opis załączników do dymka czatu. */
+  files?: { name: string; detail: string }[];
 }
+
+type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+type ApiMessage = { role: string; content: string | ContentPart[] };
 
 type Effort = "low" | "medium" | "high";
 
@@ -34,10 +44,11 @@ export function toAiQuestion(question: QuizQuestion, chosen?: OptionKey): Questi
 
 /** Najnowsze wiadomości mieszczące się w budżecie; rozmowa zawsze zaczyna się od ucznia. */
 function trimHistory(messages: ChatMessage[]): ChatMessage[] {
+  const size = (m: ChatMessage) => m.content.length + (m.context?.length ?? 0);
   let total = 0;
   let start = messages.length;
-  while (start > 0 && total + messages[start - 1].content.length <= MAX_HISTORY_CHARS) {
-    total += messages[start - 1].content.length;
+  while (start > 0 && total + size(messages[start - 1]) <= MAX_HISTORY_CHARS) {
+    total += size(messages[start - 1]);
     start--;
   }
   if (start === messages.length) start = messages.length - 1; // ostatnia wiadomość ucznia zawsze idzie
@@ -45,14 +56,52 @@ function trimHistory(messages: ChatMessage[]): ChatMessage[] {
   return messages.slice(start);
 }
 
-function buildRequest(request: AiRequest): { messages: { role: string; content: string }[]; effort: Effort; maxTokens: number } {
+/**
+ * Wiadomości czatu w formacie API. Groq przyjmuje najwyżej 3 obrazy na zapytanie, więc obrazy dostają
+ * najnowsze wiadomości, a starsze zdjęcia zastępujemy krótką notką.
+ */
+function tutorMessages(messages: ChatMessage[]): { messages: ApiMessage[]; images: number } {
+  let budget = MAX_IMAGES;
+  const out: ApiMessage[] = [];
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    let text = m.context ? `${m.content}
+
+${m.context}` : m.content;
+    const images = m.images ?? [];
+    const shown = images.slice(0, Math.max(0, budget));
+    budget -= shown.length;
+    if (shown.length < images.length) text += `
+
+[${images.length - shown.length} wcześniej załączone zdjęcie(-a) – już niewidoczne]`;
+    out.unshift(
+      shown.length
+        ? { role: m.role, content: [{ type: "text", text }, ...shown.map((url) => ({ type: "image_url" as const, image_url: { url } }))] }
+        : { role: m.role, content: text },
+    );
+  }
+  return { messages: out, images: MAX_IMAGES - budget };
+}
+
+interface BuiltRequest {
+  messages: ApiMessage[];
+  effort: Effort;
+  maxTokens: number;
+  vision?: boolean;
+}
+
+function buildRequest(request: AiRequest): BuiltRequest {
   switch (request.mode) {
-    case "tutor":
+    case "tutor": {
+      const { messages, images } = tutorMessages(trimHistory(request.messages));
       return {
-        messages: [{ role: "system", content: SYSTEM.tutor }, ...trimHistory(request.messages)],
+        messages: [{ role: "system", content: SYSTEM.tutor }, ...messages],
         effort: "medium",
-        maxTokens: 2048,
+        // model z obrazami najpierw „myśli” – zapas na rozumowanie
+        maxTokens: images > 0 ? 6144 : 2048,
+        vision: images > 0,
       };
+    }
     case "explain":
       return {
         messages: [
@@ -86,11 +135,17 @@ export function textFromSseLine(line: string): string {
   return content + (choice?.finish_reason === "length" ? TRUNCATED : "");
 }
 
-async function errorMessage(response: Response): Promise<string> {
+async function errorMessage(response: Response, vision = false): Promise<string> {
   const body = await response.json().catch(() => null);
   const code: string | undefined = body?.error?.code;
   if (response.status === 401) return "Klucz Groq jest nieprawidłowy – sprawdź go w ustawieniach korepetytora.";
   if (response.status === 429) return "Wyczerpałeś limit darmowego planu Groq – spróbuj za minutę (albo jutro, jeśli to limit dzienny).";
+  if (vision && (code === "model_not_found" || code === "model_decommissioned" || response.status === 404 || response.status === 403)) {
+    return "Model czytający zdjęcia (Qwen 3.8) jest niedostępny dla Twojego klucza – wyślij treść zadania tekstem.";
+  }
+  if (vision && (response.status === 400 || response.status === 413)) {
+    return "Groq nie przyjął załączników (za duże albo nieczytelne) – spróbuj mniejszego zdjęcia lub mniej stron PDF-a.";
+  }
   if (code === "model_not_found" || code === "model_decommissioned" || response.status === 404) {
     return "Ten model nie jest dostępny dla Twojego klucza – wybierz inny w ustawieniach korepetytora.";
   }
@@ -106,15 +161,17 @@ export async function streamAi(
   onText: (text: string) => void,
   signal?: AbortSignal,
 ): Promise<string> {
-  const { apiKey, model } = await getAiSettings();
-  if (!apiKey) throw new Error("Najpierw podłącz darmowy klucz Groq w ustawieniach korepetytora.");
+  const settings = await getAiSettings();
+  if (!settings.apiKey) throw new Error("Najpierw podłącz darmowy klucz Groq w ustawieniach korepetytora.");
 
-  const { messages, effort, maxTokens } = buildRequest(request);
+  const { messages, effort, maxTokens, vision } = buildRequest(request);
+  // wybrane modele nie widzą obrazów – zapytanie ze zdjęciem idzie do modelu z obsługą obrazów
+  const model = vision ? VISION_MODEL : settings.model;
   let response: Response;
   try {
     response = await fetch(`${GROQ_URL}/chat/completions`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${settings.apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
         messages,
@@ -122,6 +179,7 @@ export async function streamAi(
         max_completion_tokens: maxTokens,
         // modele gpt-oss rozumują przed odpowiedzią – ukrywamy to i dobieramy wysiłek do zadania
         ...(model.startsWith("openai/gpt-oss") ? { reasoning_effort: effort, include_reasoning: false } : {}),
+        ...(model === VISION_MODEL ? { reasoning_effort: effort, reasoning_format: "hidden" } : {}),
       }),
       signal,
     });
@@ -129,7 +187,7 @@ export async function streamAi(
     if (signal?.aborted) return "";
     throw new Error("Nie udało się połączyć z korepetytorem. Sprawdź internet i spróbuj ponownie.", { cause: error });
   }
-  if (!response.ok || !response.body) throw new Error(await errorMessage(response));
+  if (!response.ok || !response.body) throw new Error(await errorMessage(response, vision));
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();

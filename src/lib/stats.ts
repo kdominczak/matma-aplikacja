@@ -6,7 +6,6 @@ import type { Difficulty } from "@/types/topic";
 // Czyste obliczenia na postępie – bez stanu i zapisu, łatwe do użycia w każdym miejscu.
 
 const PASS_RATIO = 0.6;
-export const XP_PER_LEVEL = 100;
 
 // ── Daty ──
 
@@ -60,18 +59,27 @@ export function passedLevels(progress: Progress, topicId: string): number {
   return DIFFICULTIES.filter((d) => progress.tests[testKey(topicId, d.id)]).length;
 }
 
+/** Gwiazdki tylko za prawdziwe testy – wstępne zaliczenia z testu na start ich nie dają. */
 export function totalStars(progress: Progress): number {
-  return Object.values(progress.tests).reduce((sum, t) => sum + t.stars, 0);
+  return Object.values(progress.tests).reduce((sum, t) => sum + (t.fromPlacement ? 0 : t.stars), 0);
+}
+
+/** Poziomy zaliczone samodzielnym testem (bez wstępnych zaliczeń z testu na start) – do odznak. */
+export function earnedLevels(progress: Progress, topicId: string): number {
+  return DIFFICULTIES.filter((d) => {
+    const record = progress.tests[testKey(topicId, d.id)];
+    return record && !record.fromPlacement;
+  }).length;
 }
 
 // ── Seria i aktywność ──
 
-/** Liczba kolejnych dni z XP, licząc od dziś (albo od wczoraj, jeśli dziś jeszcze nic). */
+/** Liczba kolejnych dni z nauką, licząc od dziś (albo od wczoraj, jeśli dziś jeszcze nic). */
 export function streak(progress: Progress): number {
   let day = new Date();
-  if (!progress.xpByDay[dayKey(day)]) day = shiftDays(day, -1);
+  if (!progress.activityByDay[dayKey(day)]) day = shiftDays(day, -1);
   let count = 0;
-  while (progress.xpByDay[dayKey(day)]) {
+  while (progress.activityByDay[dayKey(day)]) {
     count++;
     day = shiftDays(day, -1);
   }
@@ -80,7 +88,7 @@ export function streak(progress: Progress): number {
 
 /** Najdłuższa seria w historii (do odznaki „Niezłomny”). */
 export function longestStreak(progress: Progress): number {
-  const days = Object.keys(progress.xpByDay).filter((k) => progress.xpByDay[k] > 0).sort();
+  const days = Object.keys(progress.activityByDay).filter((k) => progress.activityByDay[k] > 0).sort();
   let best = 0;
   let run = 0;
   let previous: string | null = null;
@@ -100,14 +108,11 @@ export function currentWeek(progress: Progress) {
   const monday = shiftDays(today, -((today.getDay() + 6) % 7));
   return WEEKDAYS.map((label, i) => {
     const key = dayKey(shiftDays(monday, i));
-    return { label, key, active: Boolean(progress.xpByDay[key]), isToday: key === dayKey(today) };
+    return { label, key, active: Boolean(progress.activityByDay[key]), isToday: key === dayKey(today) };
   });
 }
 
-export function weekXp(progress: Progress): number {
-  return currentWeek(progress).reduce((sum, day) => sum + (progress.xpByDay[day.key] ?? 0), 0);
-}
-
-export function userLevel(xp: number): number {
-  return Math.floor(xp / XP_PER_LEVEL) + 1;
+/** Zadania rozwiązane w bieżącym tygodniu (Pn–Nd). */
+export function weekSolved(progress: Progress): number {
+  return currentWeek(progress).reduce((sum, day) => sum + (progress.activityByDay[day.key] ?? 0), 0);
 }

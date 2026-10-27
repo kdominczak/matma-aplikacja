@@ -20,9 +20,9 @@ export default function MistakesView() {
 
   return (
     <Page width="reading">
-      <Link href="/postepy" className="-mb-2 flex items-center gap-1 text-sm font-bold text-muted hover:text-ink">
+      <Link href="/profil" className="-mb-2 flex items-center gap-1 text-sm font-bold text-muted hover:text-ink">
         <Icon name="back" className="h-4 w-4" />
-        Postępy
+        Profil
       </Link>
       <PageHeader
         title="Pudełko porażek"

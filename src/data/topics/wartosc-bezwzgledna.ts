@@ -35,6 +35,33 @@ const content: TopicContent = {
     "$|x + 3|$ to odległość od $-3$ – znak w środku odwracasz.",
     "$|x| = -2$ nie ma rozwiązań. Nie licz, tylko skreśl.",
   ],
+  openTasks: [
+    {
+      id: "abs-o1",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Rozwiąż równanie $|2x - 1| = 5$. Podaj oba rozwiązania (oddziel je średnikiem).",
+      answers: ["-2;3"],
+      answerLabel: "x =",
+      hints: ["Wyrażenie w środku jest równe $5$ albo $-5$."],
+      solution: [
+        { step: "Rozpisanie na dwa przypadki: $2x - 1 = 5$ lub $2x - 1 = -5$.", points: 1 },
+        { step: "Rozwiązania: $x = 3$ lub $x = -2$.", points: 1 },
+      ],
+    },
+    {
+      id: "abs-o2",
+      difficulty: "zaawansowany",
+      points: 2,
+      prompt: "Wyznacz najmniejszą liczbę całkowitą spełniającą nierówność $|x + 4| < 6$.",
+      answers: ["-9"],
+      hints: ["$|x + 4|$ to odległość liczby $x$ od $-4$."],
+      solution: [
+        { step: "Rozwiązanie nierówności: $-6 < x + 4 < 6$, czyli $x \\in (-10, 2)$.", points: 1 },
+        { step: "Najmniejsza liczba całkowita w tym przedziale to $-9$ (bo $-10$ nie należy).", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

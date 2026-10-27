@@ -2,7 +2,7 @@ import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import type { Progress } from "@/types/progress";
 
-/** Skrót „Pudełka porażek” – na Postępach i na ekranie głównym. */
+/** Skrót „Pudełka porażek” – w profilu i na ekranie głównym. */
 export default function MistakesCard({ progress }: { progress: Progress }) {
   const count = Object.keys(progress.mistakes).length;
 

@@ -41,6 +41,33 @@ const content: TopicContent = {
     "Nie dziel przez $x$ – wyłącz go przed nawias.",
     "Ujemne $a$ odwraca obrazek: ramiona idą w dół.",
   ],
+  openTasks: [
+    {
+      id: "nk-o1",
+      difficulty: "sredni",
+      points: 3,
+      prompt: "Rozwiąż nierówność $x^2 - 5x + 4 \\le 0$. Podaj sumę wszystkich liczb całkowitych, które ją spełniają.",
+      answers: ["10"],
+      hints: ["Znajdź miejsca zerowe, a potem ustal, gdzie parabola jest pod osią."],
+      solution: [
+        { step: "Miejsca zerowe: $\\Delta = 9$, $x_1 = 1$, $x_2 = 4$.", points: 1 },
+        { step: "Zbiór rozwiązań: $x \\in \\langle 1, 4 \\rangle$ (ramiona w górę).", points: 1 },
+        { step: "Suma liczb całkowitych: $1 + 2 + 3 + 4 = 10$.", points: 1 },
+      ],
+    },
+    {
+      id: "nk-o2",
+      difficulty: "zaawansowany",
+      points: 2,
+      prompt: "Rozwiąż nierówność $2x^2 \\ge 8x$. Ile liczb całkowitych NIE spełnia tej nierówności?",
+      answers: ["3"],
+      hints: ["Przenieś wszystko na jedną stronę i wyłącz $2x$ przed nawias. Nie dziel przez $x$!"],
+      solution: [
+        { step: "Rozwiązanie: $2x(x - 4) \\ge 0$, czyli $x \\in (-\\infty, 0\\rangle \\cup \\langle 4, +\\infty)$.", points: 1 },
+        { step: "Nierówności nie spełniają liczby $1, 2, 3$ – są trzy.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {

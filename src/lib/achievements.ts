@@ -1,6 +1,6 @@
 import type { IconName } from "@/components/ui/Icon";
 import { topics } from "@/data/topics";
-import { longestStreak, passedLevels, totalStars } from "@/lib/stats";
+import { earnedLevels, longestStreak, totalStars } from "@/lib/stats";
 import type { Progress } from "@/types/progress";
 
 export type BadgeTone = "amber" | "violet" | "blue" | "emerald" | "rose" | "orange" | "indigo" | "teal";
@@ -26,7 +26,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "check",
     tone: "emerald",
     goal: 1,
-    current: (p) => Object.keys(p.tests).length,
+    current: (p) => Object.values(p.tests).filter((t) => !t.fromPlacement).length,
   },
   {
     id: "mistrz-poteg",
@@ -35,7 +35,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "bolt",
     tone: "amber",
     goal: 3,
-    current: (p) => passedLevels(p, "potegi-i-pierwiastki"),
+    current: (p) => earnedLevels(p, "potegi-i-pierwiastki"),
   },
   {
     id: "wladca-logarytmow",
@@ -44,7 +44,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "crown",
     tone: "violet",
     goal: 3,
-    current: (p) => passedLevels(p, "logarytmy"),
+    current: (p) => earnedLevels(p, "logarytmy"),
   },
   {
     id: "analityk-wykresow",
@@ -53,7 +53,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "chart",
     tone: "teal",
     goal: 3,
-    current: (p) => passedLevels(p, "wykres-funkcji"),
+    current: (p) => earnedLevels(p, "wykres-funkcji"),
   },
   {
     id: "nocny-marek",
@@ -107,7 +107,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "layers",
     tone: "emerald",
     goal: basicTopics.length,
-    current: (p) => basicTopics.filter((t) => passedLevels(p, t.id) > 0).length,
+    current: (p) => basicTopics.filter((t) => earnedLevels(p, t.id) > 0).length,
   },
   {
     id: "pogromca-bledow",

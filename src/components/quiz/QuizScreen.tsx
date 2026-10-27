@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ComponentType } from "react";
 import Link from "next/link";
 import ExplainSheet, { TypingDots } from "@/components/quiz/ExplainSheet";
 import QuizSummary from "@/components/quiz/QuizSummary";
-import type { ScratchTemplate } from "@/components/quiz/ScratchBackground";
-import Scratchpad, { type ScratchItem } from "@/components/quiz/Scratchpad";
+import type { ScratchItem, ScratchTemplate } from "@/components/scratch/ScratchBoard";
+import TaskScratch from "@/components/scratch/TaskScratch";
 import FormulaList from "@/components/topic/FormulaList";
 import BottomSheet from "@/components/ui/BottomSheet";
 import TrapCard from "@/components/quiz/TrapCard";
@@ -32,17 +32,26 @@ type Props = {
   /** Nadtytuł ekranu sukcesu, np. „Test – poziom średni”. */
   kicker: string;
   formulaGroups: FormulaGroup[];
-  /** Czy wolno korzystać z podpowiedzi (każda podpowiedź obniża XP za zadanie o połowę). */
+  /** Czy wolno korzystać z podpowiedzi. */
   hints: boolean;
-  xpPerCorrect: number;
   exitHref: string;
   onFinish: (result: QuizResult) => Promise<SaveOutcome>;
+  /** Serca: 3 pomyłki kończą test. Wyłączone w teście na start – diagnoza idzie do końca. */
+  hearts?: boolean;
+  /** Własny ekran wyniku zamiast standardowego podsumowania testu. */
+  Summary?: ComponentType<SummaryProps>;
 };
 
-type Panel = "formulas" | "scratchpad" | "explain" | null;
+export interface SummaryProps {
+  result: QuizResult;
+  outcome: SaveOutcome | null;
+  onRetry: () => void;
+}
+
+type Panel = "formulas" | "explain" | null;
 
 export default function QuizScreen(props: Props) {
-  const { questions, formulaGroups, hints, xpPerCorrect, exitHref, onFinish } = props;
+  const { questions, formulaGroups, hints, exitHref, onFinish, hearts: useHearts = true } = props;
   const aiReady = useAiReady();
 
   const [index, setIndex] = useState(0);
@@ -54,7 +63,6 @@ export default function QuizScreen(props: Props) {
   const hintAbort = useRef<AbortController | null>(null);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [correct, setCorrect] = useState(0);
-  const [xp, setXp] = useState(0);
   const [hearts, setHearts] = useState(MAX_HEARTS);
   const [panel, setPanel] = useState<Panel>(null);
   const [notes, setNotes] = useState<Record<string, ScratchItem[]>>({});
@@ -117,18 +125,16 @@ export default function QuizScreen(props: Props) {
     setAnswers((a) => [...a, { questionId: question.id, chosen: selected, correct: selected === question.correct }]);
     if (selected === question.correct) {
       setCorrect((c) => c + 1);
-      // podpowiedź obniża nagrodę o połowę
-      setXp((x) => x + (hintsShown.length > 0 ? Math.round(xpPerCorrect / 2) : xpPerCorrect));
       hapticSuccess();
     } else {
-      setHearts((h) => h - 1);
+      if (useHearts) setHearts((h) => h - 1);
       hapticError();
     }
   }
 
   async function handleNext() {
     if (isLast || hearts === 0) {
-      const final: QuizResult = { correct, total: questions.length, answered: index + 1, xp, heartsLeft: hearts, answers };
+      const final: QuizResult = { correct, total: questions.length, answered: index + 1, heartsLeft: hearts, answers };
       setResult(final);
       setOutcome(await onFinish(final));
       return;
@@ -142,7 +148,6 @@ export default function QuizScreen(props: Props) {
     resetQuestionState();
     setAnswers([]);
     setCorrect(0);
-    setXp(0);
     setHearts(MAX_HEARTS);
     setNotes({});
     setResult(null);
@@ -150,6 +155,7 @@ export default function QuizScreen(props: Props) {
   }
 
   if (result) {
+    if (props.Summary) return <props.Summary result={result} outcome={outcome} onRetry={handleRetry} />;
     return (
       <QuizSummary
         result={result}
@@ -196,16 +202,18 @@ export default function QuizScreen(props: Props) {
           <span className="flex-1 text-sm font-semibold text-muted">
             Zadanie {index + 1}/{questions.length}
           </span>
-          <span
-            key={hearts}
-            className={`flex items-center gap-1 text-sm font-bold ${hearts < MAX_HEARTS ? "animate-shake" : ""} ${
-              hearts === 0 ? "text-faint" : "text-rose-500"
-            }`}
-            aria-label={`Serca: ${hearts} z ${MAX_HEARTS}`}
-          >
-            <Icon name="heart" filled className="h-5 w-5" />
-            {hearts}/{MAX_HEARTS}
-          </span>
+          {useHearts && (
+            <span
+              key={hearts}
+              className={`flex items-center gap-1 text-sm font-bold ${hearts < MAX_HEARTS ? "animate-shake" : ""} ${
+                hearts === 0 ? "text-faint" : "text-rose-500"
+              }`}
+              aria-label={`Serca: ${hearts} z ${MAX_HEARTS}`}
+            >
+              <Icon name="heart" filled className="h-5 w-5" />
+              {hearts}/{MAX_HEARTS}
+            </span>
+          )}
           <button
             onClick={() => setPanel("formulas")}
             className="flex items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
@@ -260,19 +268,6 @@ export default function QuizScreen(props: Props) {
                   </span>
                 </button>
               )}
-              <button
-                onClick={() => {
-                  hapticTap();
-                  setPanel("scratchpad");
-                }}
-                className="relative flex items-center gap-1.5 rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-sm font-bold text-orange-600 dark:text-orange-400"
-              >
-                <Icon name="pencil" className="h-4 w-4" />
-                Brudnopis
-                {questionNotes.length > 0 && (
-                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-card bg-orange-500" />
-                )}
-              </button>
             </div>
             {hintsShown.length > 0 && (
               <ol className="mt-3 flex flex-col gap-2">
@@ -289,15 +284,21 @@ export default function QuizScreen(props: Props) {
                     </div>
                   </li>
                 ))}
-                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  Z podpowiedzią dostaniesz za to zadanie połowę XP.
-                </p>
               </ol>
             )}
             {hintError && (
               <p className="mt-2 text-xs font-semibold text-rose-500">Nie udało się pobrać podpowiedzi – spróbuj ponownie.</p>
             )}
           </section>
+
+          <TaskScratch
+            prompt={question.prompt}
+            items={questionNotes}
+            onChange={(items) => setNotes((n) => ({ ...n, [question.id]: items }))}
+            template={template}
+            onTemplateChange={setTemplate}
+            formulaGroups={formulaGroups}
+          />
         </div>
 
         <section className="lg:pt-14">
@@ -402,16 +403,6 @@ export default function QuizScreen(props: Props) {
         <ExplainSheet question={question} chosen={selected} onClose={() => setPanel(null)} />
       )}
 
-      {panel === "scratchpad" && (
-        <Scratchpad
-          prompt={question.prompt}
-          items={questionNotes}
-          onChange={(items) => setNotes((n) => ({ ...n, [question.id]: items }))}
-          template={template}
-          onTemplateChange={setTemplate}
-          onClose={() => setPanel(null)}
-        />
-      )}
     </div>
   );
 }

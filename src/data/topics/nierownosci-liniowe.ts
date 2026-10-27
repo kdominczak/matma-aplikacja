@@ -34,6 +34,32 @@ const content: TopicContent = {
     "Przy nieskończoności nawias jest zawsze okrągły.",
     "Mnożąc przez wspólny mianownik, mnożysz każdy wyraz – także te bez ułamka.",
   ],
+  openTasks: [
+    {
+      id: "nl-o1",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Rozwiąż nierówność $\\frac{x - 1}{2} - \\frac{x + 2}{3} \\le 1$. Podaj największą liczbę, która ją spełnia.",
+      answers: ["13"],
+      hints: ["Pomnóż obie strony przez wspólny mianownik $6$."],
+      solution: [
+        { step: "Pomnożenie przez $6$: $3(x - 1) - 2(x + 2) \\le 6$.", points: 1 },
+        { step: "Rozwiązanie: $x - 7 \\le 6$, czyli $x \\le 13$ – największa liczba to $13$.", points: 1 },
+      ],
+    },
+    {
+      id: "nl-o2",
+      difficulty: "podstawowy",
+      points: 2,
+      prompt: "Ile liczb naturalnych dodatnich spełnia nierówność $3(x - 2) < x + 9$?",
+      answers: ["7"],
+      hints: ["Rozwiąż nierówność, a potem policz liczby $1, 2, 3, \\ldots$ spełniające wynik."],
+      solution: [
+        { step: "Rozwiązanie: $3x - 6 < x + 9 \\Rightarrow 2x < 15 \\Rightarrow x < 7{,}5$.", points: 1 },
+        { step: "Liczby $1, 2, \\ldots, 7$ – jest ich $7$.", points: 1 },
+      ],
+    },
+  ],
   tests: {
     podstawowy: [
       {
