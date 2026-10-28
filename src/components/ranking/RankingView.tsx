@@ -3,22 +3,23 @@
 import { useSyncStatus } from "@/lib/learning-sync";
 import { useEffect, useRef, useState } from "react";
 import { Page, PageHeader, ProfileAvatar } from "@/components/layout/AppShell";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import ErrorState from "@/components/ui/ErrorState";
 import Icon from "@/components/ui/Icon";
 import {
   avatarUrl,
   fetchLeaderboard,
-  fetchRankingSummary,
   joinRanking,
   leaveRanking,
   NICK_PATTERN,
   renameNick,
   retryRanking,
   useRanking,
+  useRankingSummary,
   watchLeaderboard,
   type LeaderboardPeriod,
   type LeaderboardRow,
   type RankingProfile,
-  type RankingSummary,
 } from "@/lib/ranking";
 
 function plural(n: number) {
@@ -57,18 +58,13 @@ export default function RankingView() {
 
       {ranking.status === "disabled" && <NotConfigured />}
       {ranking.status === "loading" && <div className="h-40 animate-pulse rounded-3xl bg-card" />}
-      {ranking.status === "error" && (
-        <section className="flex flex-col items-start gap-3 rounded-3xl border border-rose-500/30 bg-rose-500/10 p-5">
-          <p className="font-semibold text-rose-700 dark:text-rose-300">{ranking.message}</p>
-          <button onClick={retryRanking} className="rounded-2xl bg-brand px-4 py-2 text-sm font-bold text-white">
-            Spróbuj ponownie
-          </button>
-        </section>
-      )}
+      {ranking.status === "error" && <ErrorState title="Ranking jest chwilowo niedostępny" message={ranking.message} onRetry={retryRanking} />}
 
       {(ranking.status === "guest" || ranking.status === "member") && (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <Leaderboard />
+          <ErrorBoundary>
+            <Leaderboard />
+          </ErrorBoundary>
           <aside className="flex flex-col gap-4 lg:sticky lg:top-10">
             {ranking.status === "guest" ? <JoinCard /> : <MyCard profile={ranking.profile} />}
             <p className="px-1 text-xs text-faint">
@@ -84,7 +80,7 @@ export default function RankingView() {
 
 function NotConfigured() {
   return (
-    <section className="rounded-3xl border border-dashed border-line bg-card p-6 text-center shadow-card">
+    <section className="rounded-3xl border border-dashed border-line glass-card p-6 text-center shadow-card">
       <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500">
         <Icon name="trophy" className="h-7 w-7" />
       </span>
@@ -107,6 +103,7 @@ function Leaderboard() {
   const [period, setPeriod] = useState<LeaderboardPeriod>("week");
   const [rows, setRows] = useState<LeaderboardRow[] | null>(null);
   const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -130,7 +127,7 @@ function Leaderboard() {
       clearTimeout(refreshTimer.current);
       stop();
     };
-  }, [period]);
+  }, [period, attempt]);
 
   // wiersze przychodzą posortowane – podium to pierwsze miejsca 1–3 (przy remisach maks. trzy osoby)
   const podium = rows?.filter((r) => r.rank <= 3).slice(0, 3) ?? [];
@@ -163,10 +160,17 @@ function Leaderboard() {
         </span>
       </div>
 
-      {error && <p className="text-sm font-semibold text-rose-500">Nie udało się pobrać rankingu. Sprawdź internet.</p>}
+      {error && (
+        <ErrorState
+          compact
+          title={rows ? "Ranking może być nieaktualny" : "Nie udało się pobrać rankingu"}
+          message={rows ? "Pokazujemy ostatnio pobrane wyniki. Sprawdź internet." : undefined}
+          onRetry={() => setAttempt((n) => n + 1)}
+        />
+      )}
       {!rows && !error && <div className="h-72 animate-pulse rounded-3xl bg-card" />}
       {rows && rows.length === 0 && (
-        <p className="rounded-3xl border border-dashed border-line bg-card p-8 text-center text-sm text-muted">
+        <p className="rounded-3xl border border-dashed border-line glass-card p-8 text-center text-sm text-muted">
           {period === "week" ? "W tym tygodniu nikt jeszcze nie rozwiązał zadania. Zostań pierwszy!" : "Ranking jest jeszcze pusty."}
         </p>
       )}
@@ -174,7 +178,7 @@ function Leaderboard() {
       {podium.length > 0 && <Podium rows={podium} />}
 
       {rest.length > 0 && (
-        <ol className="overflow-hidden rounded-3xl border border-line bg-card shadow-card">
+        <ol className="overflow-hidden rounded-3xl border border-line glass-card shadow-card">
           {rest.map((row, i) => {
             const gap = i > 0 && row.rank - rest[i - 1].rank > 1;
             return (
@@ -200,7 +204,7 @@ const MEDAL = [
 function Podium({ rows }: { rows: LeaderboardRow[] }) {
   const order = [rows[1], rows[0], rows[2]].filter(Boolean) as LeaderboardRow[];
   return (
-    <div className="grid grid-cols-3 items-end gap-3 rounded-3xl border border-line bg-card p-4 pt-6 shadow-card">
+    <div className="grid grid-cols-3 items-end gap-3 rounded-3xl border border-line glass-card p-4 pt-6 shadow-card">
       {order.map((row) => {
         const medal = MEDAL[Math.min(row.rank, 3) - 1];
         return (
@@ -307,15 +311,8 @@ function JoinCard() {
 }
 
 function MyCard({ profile }: { profile: RankingProfile }) {
-  const [summary, setSummary] = useState<RankingSummary | null>(null);
   // odświeżamy razem z profilem – zmienia się po każdej zapisanej sesji (seria, updated_at)
-  useEffect(() => {
-    let active = true;
-    fetchRankingSummary().then((s) => active && setSummary(s));
-    return () => {
-      active = false;
-    };
-  }, [profile]);
+  const { summary, error: summaryError, retry: retrySummary } = useRankingSummary(true, profile);
   const [editing, setEditing] = useState(false);
   const [nick, setNick] = useState(profile.nick);
   const [error, setError] = useState<string | null>(null);
@@ -328,7 +325,7 @@ function MyCard({ profile }: { profile: RankingProfile }) {
   }
 
   return (
-    <section className="rounded-3xl border border-line bg-card p-5 shadow-card">
+    <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
       <p className="text-xs font-extrabold uppercase tracking-widest text-faint">Twój profil</p>
       {editing ? (
         <form
@@ -362,10 +359,16 @@ function MyCard({ profile }: { profile: RankingProfile }) {
       )}
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-        <Stat label="Ten tydzień" value={summary?.solvedWeek ?? "…"} />
-        <Stat label="Łącznie" value={summary?.solvedAll ?? "…"} />
+        <Stat label="Ten tydzień" value={summary?.solvedWeek ?? (summaryError ? "–" : "…")} />
+        <Stat label="Łącznie" value={summary?.solvedAll ?? (summaryError ? "–" : "…")} />
         <Stat label="Seria" value={profile.streak} />
       </div>
+      {summaryError && (
+        <button onClick={retrySummary} className="mt-2 flex min-h-11 items-center gap-1.5 text-sm font-bold text-brand">
+          <Icon name="refresh" className="h-4 w-4" />
+          Nie wczytano wyniku – spróbuj ponownie
+        </button>
+      )}
 
       <SyncNote />
 

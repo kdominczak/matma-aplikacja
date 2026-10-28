@@ -45,11 +45,11 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
 
         <Trophy passed={passed} />
 
-        <h1 className="text-center text-3xl leading-tight font-extrabold text-ink lg:text-4xl">
+        <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-blue-400 text-center text-3xl leading-tight font-extrabold lg:text-4xl">
           {passed ? (
             <>
               Zrobione!
-              <span className="block text-brand">{title}</span>
+              <span className="block">{title}</span>
             </>
           ) : result.heartsLeft === 0 ? (
             "Skończyły się serca"
@@ -121,7 +121,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
           {passed ? (
             <Link
               href={exitHref}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float transition-transform hover:-translate-y-0.5 active:bg-brand-dark"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
             >
               Kontynuuj <Icon name="arrow" className="h-4 w-4" />
             </Link>
@@ -129,7 +129,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
             <>
               <button
                 onClick={onRetry}
-                className="w-full rounded-2xl bg-brand py-4 font-bold text-white shadow-float transition-transform hover:-translate-y-0.5 active:bg-brand-dark"
+                className="w-full rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
               >
                 Spróbuj ponownie
               </button>

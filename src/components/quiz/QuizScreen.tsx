@@ -17,6 +17,7 @@ import { streamAi, toAiQuestion } from "@/lib/ai";
 import { useAiReady } from "@/lib/ai-settings";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import type { SaveOutcome } from "@/lib/progress";
+import { soundSelect } from "@/lib/sounds";
 import type { OptionKey, QuizAnswer, QuizQuestion, QuizResult } from "@/types/quiz";
 import type { FormulaGroup } from "@/types/topic";
 
@@ -196,7 +197,7 @@ export default function QuizScreen(props: Props) {
     <div className="flex min-h-dvh animate-fade-in flex-col bg-surface pt-[env(safe-area-inset-top)]">
       <header className="mx-auto w-full max-w-6xl px-4 pt-3 sm:px-6 lg:px-10 lg:pt-6">
         <div className="flex items-center gap-3">
-          <Link href={exitHref} aria-label="Zakończ test" className="-ml-1 rounded-full p-1 text-faint hover:text-ink">
+          <Link href={exitHref} aria-label="Zakończ test" className="-ml-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-faint hover:text-ink">
             <Icon name="close" className="h-6 w-6" />
           </Link>
           <span className="flex-1 text-sm font-semibold text-muted">
@@ -216,7 +217,7 @@ export default function QuizScreen(props: Props) {
           )}
           <button
             onClick={() => setPanel("formulas")}
-            className="flex items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
+            className="flex min-h-11 items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
           >
             <Icon name="book" className="h-4 w-4" />
             Wzory
@@ -235,7 +236,7 @@ export default function QuizScreen(props: Props) {
 
       <main
         key={question.id}
-        className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in content-start gap-5 px-4 pt-5 pb-72 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-10 lg:pb-40"
+        className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 pb-72 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-10 lg:pb-40"
       >
         <div className="flex flex-col gap-5 lg:sticky lg:top-6 lg:self-start">
           <div>
@@ -246,7 +247,7 @@ export default function QuizScreen(props: Props) {
             <h1 className="mt-1 text-2xl font-extrabold text-ink lg:text-3xl">{heading}</h1>
           </div>
 
-          <section className="rounded-3xl border border-line bg-card p-5 shadow-card lg:p-7">
+          <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-7">
             <p className="text-lg leading-relaxed font-semibold text-ink lg:text-xl">
               <MathText text={question.prompt} />
             </p>
@@ -259,7 +260,7 @@ export default function QuizScreen(props: Props) {
               {canHint && (
                 <button
                   onClick={handleHint}
-                  className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
+                  className="flex min-h-11 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
                 >
                   <Icon name="bulb" className="h-4 w-4" />
                   {hintsShown.length === 0 ? "Podpowiedź" : "Kolejna podpowiedź"}
@@ -308,7 +309,10 @@ export default function QuizScreen(props: Props) {
           </div>
           <div className="flex flex-col gap-3">
             {KEYS.map((key) => (
-              <button key={key} onClick={() => setSelected(key)} disabled={checked} className={optionClasses(key)}>
+              <button key={key} onClick={() => {
+                  setSelected(key);
+                  soundSelect();
+                }} disabled={checked} className={optionClasses(key)}>
                 <span className={badgeClasses(key)}>{key}</span>
                 <MathText text={question.options[key]} className="flex-1" />
                 {!checked && key === selected && <Icon name="checkCircle" className="h-5 w-5 shrink-0" />}
@@ -376,7 +380,7 @@ export default function QuizScreen(props: Props) {
               <button
                 onClick={handleCheck}
                 disabled={!selected}
-                className="w-full rounded-2xl bg-brand py-4 text-base font-bold text-white shadow-float transition-colors active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
+                className="w-full rounded-2xl bg-brand py-4 text-base font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
               >
                 Sprawdź odpowiedź
               </button>

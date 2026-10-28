@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Preferences } from "@capacitor/preferences";
 
 // Klucz „anon” Supabase jest publiczny z założenia (trafia do aplikacji) – dane chroni RLS w bazie,
@@ -20,18 +20,23 @@ const preferencesStorage = {
   removeItem: (key: string) => Preferences.remove({ key }),
 };
 
-let client: SupabaseClient | null = null;
+let client: Promise<SupabaseClient> | null = null;
 
-/** Klient Supabase tworzony leniwie – tylko w przeglądarce i tylko gdy ranking jest skonfigurowany. */
-export function supabase(): SupabaseClient | null {
-  if (!SUPABASE_ENABLED || typeof window === "undefined") return null;
-  client ??= createClient(URL!, ANON_KEY!, {
-    auth: {
-      storage: preferencesStorage,
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: false, // static export, bez przekierowań OAuth
-    },
-  });
+/**
+ * Klient Supabase tworzony leniwie – tylko w przeglądarce i tylko gdy ranking jest skonfigurowany.
+ * Biblioteka (~320 KB) ładuje się osobną paczką dopiero przy pierwszym użyciu, nie przy starcie aplikacji.
+ */
+export function supabase(): Promise<SupabaseClient | null> {
+  if (!SUPABASE_ENABLED || typeof window === "undefined") return Promise.resolve(null);
+  client ??= import("@supabase/supabase-js").then(({ createClient }) =>
+    createClient(URL!, ANON_KEY!, {
+      auth: {
+        storage: preferencesStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false, // static export, bez przekierowań OAuth
+      },
+    }),
+  );
   return client;
 }

@@ -49,7 +49,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
   return (
     <div className="mx-auto w-full max-w-6xl animate-fade-in px-4 sm:px-6 lg:px-10">
       <div className="flex items-center gap-2 pt-3 pb-2 lg:pt-8">
-        <Link href="/" aria-label="Wróć do planu" className="-ml-2 flex items-center gap-1 rounded-full p-2 font-bold text-muted hover:bg-card hover:text-ink">
+        <Link href="/" aria-label="Wróć do planu" className="-ml-2 flex min-h-11 items-center gap-1 rounded-full p-2 font-bold text-muted hover:bg-card hover:text-ink">
           <Icon name="back" className="h-5 w-5" />
           <span className="text-sm">Plan nauki</span>
         </Link>
@@ -70,7 +70,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
                   role="tab"
                   aria-selected={tab === t.id}
                   onClick={() => setTab(t.id)}
-                  className={`rounded-xl py-2 text-sm font-bold transition-colors ${
+                  className={`min-h-10 rounded-xl py-2 text-sm font-bold transition-colors ${
                     tab === t.id ? "bg-brand text-white shadow-float" : "text-muted hover:text-ink"
                   }`}
                 >
@@ -84,7 +84,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
             {tab === "teoria" && (
               <>
                 {content.theory.map((section, i) => (
-                  <article key={section.title} className="rounded-3xl border border-line bg-card p-5 shadow-card lg:p-7">
+                  <article key={section.title} className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-7">
                     <p className="text-xs font-extrabold uppercase tracking-widest text-brand">Krok {i + 1}</p>
                     <h2 className="mt-1 text-xl font-extrabold text-ink">{section.title}</h2>
                     <div className="mt-3 flex flex-col gap-3 leading-relaxed text-body lg:text-[17px]">
@@ -147,7 +147,7 @@ function TopicHero({ topic }: { topic: Topic }) {
           <p className="text-xs font-bold uppercase tracking-widest text-white/60">
             {topic.lesson} · {topic.category}
           </p>
-          <h1 className="text-xl leading-tight font-extrabold lg:text-2xl">{topic.title}</h1>
+          <h1 className="bg-linear-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-xl leading-tight font-extrabold text-transparent lg:text-2xl">{topic.title}</h1>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {chips.map((chip) => (
               <span key={chip.text} className="flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold">
@@ -167,7 +167,7 @@ function LevelSummary({ topic, progress, onOpen }: { topic: Topic; progress: Pro
   return (
     <button
       onClick={onOpen}
-      className="hidden flex-col gap-3 rounded-3xl border border-line bg-card p-5 text-left shadow-card transition-transform hover:-translate-y-0.5 lg:flex"
+      className="hidden flex-col gap-3 rounded-3xl border border-line glass-card p-5 text-left shadow-card card-hover hover:border-brand/40 lg:flex"
     >
       <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Test podsumowujący</p>
       {DIFFICULTIES.map((level) => {
@@ -212,7 +212,7 @@ function NextStep({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float transition-transform hover:-translate-y-0.5 active:bg-brand-dark sm:max-w-xs"
+      className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
     >
       {label} <Icon name="arrow" className="h-4 w-4" />
     </button>
@@ -258,13 +258,13 @@ function TestLevels({ topic, progress }: { topic: Topic; progress: Progress | nu
           </>
         );
 
-        const className = "flex items-center gap-4 rounded-3xl border border-line bg-card p-4 lg:p-5";
+        const className = "flex items-center gap-4 rounded-3xl border border-line glass-card p-4 lg:p-5";
         return unlocked ? (
           <Link
             key={level.id}
             href={`/dzial/${topic.id}/test/${level.id}`}
             onClick={() => hapticTap()}
-            className={`${className} shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/40 active:scale-[0.98]`}
+            className={`${className} shadow-card card-hover hover:border-brand/40`}
           >
             {body}
           </Link>

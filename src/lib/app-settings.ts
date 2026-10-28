@@ -22,11 +22,13 @@ export interface AppSettings {
   avatar: string | null;
   avatarColor: AvatarColor;
   haptics: boolean;
+  /** Ciche dźwięki przy wyborze odpowiedzi. */
+  sounds: boolean;
   confetti: boolean;
 }
 
 const STORAGE_KEY = "settings.v1";
-const DEFAULTS: AppSettings = { name: "", avatar: null, avatarColor: "brand", haptics: true, confetti: true };
+const DEFAULTS: AppSettings = { name: "", avatar: null, avatarColor: "brand", haptics: true, sounds: true, confetti: true };
 
 let current: AppSettings = DEFAULTS;
 let loaded = false;

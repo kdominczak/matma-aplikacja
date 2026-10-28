@@ -13,7 +13,7 @@ export default function EstimateCard({ progress }: { progress: Progress }) {
   return (
     <Link
       href="/profil"
-      className="group block rounded-3xl border border-line bg-card p-5 shadow-card transition-transform hover:-translate-y-0.5"
+      className="group block rounded-3xl border border-line glass-card p-5 shadow-card card-hover hover:border-brand/40"
     >
       <div className="flex items-start justify-between">
         <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Szacowany wynik</p>

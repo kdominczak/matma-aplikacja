@@ -148,36 +148,105 @@ export function formatNumber(value: number): string {
 }
 
 // ── Sprawdzanie odpowiedzi otwartych ──
+//
+// Porównujemy WARTOŚCI, nie tekst: „3/2” = „1,5” = „6/4” = „x = 1,5 cm”. Zapis ucznia czyścimy z tego,
+// co nie zmienia wyniku (nazwa niewiadomej, „Odp:”, jednostka, kropka na końcu, różne minusy i ułamki
+// Unicode), a niejednoznaczny przecinek („-2,3” = −2,3 albo −2 i 3) sprawdzamy w obu odczytaniach.
+// Zły wynik nie przejdzie: w każdym odczytaniu zbiór wartości musi być dokładnie taki jak w kluczu.
 
-/** Rozbija odpowiedź na wartości: „x = 2 lub x = 3”, „-2; 3”, „2 i 3” → ["2", "3"]. */
-function splitValues(answer: string): string[] {
-  return answer
-    .toLowerCase()
-    .split(/;|\blub\b|\boraz\b|\bi\b/)
-    .map((part) => part.trim().replace(/^[a-z]\s*=\s*/, "").replace(/\.$/, ""))
-    .filter(Boolean);
+const UNICODE_FRACTIONS: Record<string, string> = { "½": "1/2", "⅓": "1/3", "⅔": "2/3", "¼": "1/4", "¾": "3/4", "⅕": "1/5", "⅙": "1/6", "⅛": "1/8" };
+const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
+
+/** Jednostki i dopiski po wyniku, które nie zmieniają wartości. */
+const UNIT =
+  /\s*(?:cm|mm|dm|km|m|kg|dag|g|zł|gr|min|h|s|l|ml|j|jednost(?:ek|ki|ka)|stopni(?:e|a)?|°|rad|szt\.?|osób|osoby|lat|dni)(?:\^?[23])?\.?$/;
+
+function normalize(answer: string): string {
+  let s = answer.toLowerCase().trim();
+  for (const [ch, frac] of Object.entries(UNICODE_FRACTIONS)) {
+    // „1½” = 1 + 1/2 (liczba mieszana), samo „½” = 1/2
+    s = s.replace(new RegExp(`(\\d)${ch}`, "g"), `($1+${frac})`).replaceAll(ch, frac);
+  }
+  return s
+    .replace(/[−–—‐]/g, "-")
+    .replace(/[₀-₉]/g, (d) => String(SUBSCRIPT_DIGITS.indexOf(d)))
+    .replace(/²/g, "^2")
+    .replace(/³/g, "^3")
+    .replace(/≈/g, "=")
+    .replace(/^(?:odp(?:owiedź|owiedz)?\.?\s*:?|wynik\s*:)\s*/, "")
+    .replace(/(\d)\s+(\d+)\s*\/\s*(\d+)/g, "($1+$2/$3)"); // „1 1/2” – liczba mieszana
 }
 
-function values(answer: string): number[] | null {
+/** Usuwa „x =”, „x₁ =”, „x_2 =”, „y=” przed wartością (ale nie „x² =” – to nie jest wynik) i kropkę na końcu. */
+function stripName(part: string): string {
+  return part
+    .trim()
+    .replace(/^[a-z](?:_?\d+)?\s*=\s*/, "")
+    .replace(/^=\s*/, "")
+    .replace(/\.$/, "")
+    .trim();
+}
+
+const SEPARATOR_WORDS = /;|\blub\b|\boraz\b|\balbo\b|\bi\b|∨/;
+
+/** Możliwe podziały odpowiedzi na wartości – przecinek bez spacji może być dziesiętny albo rozdzielać rozwiązania. */
+function readings(answer: string): string[][] {
+  // zbiór „x ∈ {-2, 3}” albo „{-2; 3}” rozpakowujemy przed podziałem
+  const base = normalize(answer).replace(/^(?:[a-z]\s*∈\s*)?\{(.*)\}\.?$/, "$1");
+  // przecinek ze spacją za nim, przed minusem albo przy literze zawsze rozdziela („-2, 3”, „2,-3”, „x1=-2,x2=3”)
+  const clear = base.replace(/,(?=\s|-|[a-z])|(?<=[a-z]),/g, ";");
+  const variants = [clear, clear.replace(/,/g, ";")].map((text) => text.split(SEPARATOR_WORDS).map(stripName).filter(Boolean));
+  return variants[0].join("|") === variants[1].join("|") ? [variants[0]] : variants;
+}
+
+/** Wartości jednego wyniku: dosłownie, bez jednostki i bez „%” (30% przy kluczu „30”). */
+function valueCandidates(part: string): number[] {
+  const out: number[] = [];
+  const tryEval = (expr: string) => {
+    try {
+      out.push(evaluate(expr));
+    } catch {
+      // ten zapis nie jest wyrażeniem – próbujemy kolejnego wariantu
+    }
+  };
+  tryEval(part);
+  const noUnit = part.replace(UNIT, "").trim();
+  if (noUnit !== part) tryEval(noUnit);
+  if (noUnit.endsWith("%")) tryEval(noUnit.slice(0, -1));
+  return out;
+}
+
+const close = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(a));
+
+/** Wartości z klucza (zapisane przez nas średnikami, więc jednoznaczne) – bez powtórzeń. */
+function keyValues(answer: string): number[] | null {
   try {
-    return splitValues(answer)
-      .map(evaluate)
-      .sort((a, b) => a - b);
+    const values = answer.split(";").map((p) => evaluate(p.trim()));
+    return values.filter((v, i) => values.findIndex((w) => close(v, w)) === i);
   } catch {
     return null;
   }
 }
 
+/** Każda część odpowiedzi ma wartość z klucza i każda wartość z klucza jest w odpowiedzi (podwójne „3; 3” liczymy raz). */
+function sameSet(parts: string[], expected: number[]): boolean {
+  if (parts.length === 0) return false;
+  const found = new Set<number>();
+  for (const part of parts) {
+    const candidates = valueCandidates(part);
+    const index = expected.findIndex((v) => candidates.some((c) => close(v, c)));
+    if (index < 0) return false;
+    found.add(index);
+  }
+  return found.size === expected.length;
+}
+
 /** Czy odpowiedź ucznia odpowiada jednej z akceptowanych (porównanie wartości, kolejność rozwiązań dowolna). */
 export function matchesAnswer(given: string, accepted: string[]): boolean {
-  const mine = values(given);
-  if (!mine || mine.length === 0) return false;
+  if (!given.trim()) return false;
+  const options = readings(given);
   return accepted.some((answer) => {
-    const expected = values(answer);
-    return (
-      expected !== null &&
-      expected.length === mine.length &&
-      expected.every((v, i) => Math.abs(v - mine[i]) <= 1e-6 * Math.max(1, Math.abs(v)))
-    );
+    const expected = keyValues(answer);
+    return expected !== null && expected.length > 0 && options.some((parts) => sameSet(parts, expected));
   });
 }

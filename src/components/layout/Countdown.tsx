@@ -81,7 +81,7 @@ function Unit({ value, label }: { value: number | string; label: string }) {
   return (
     <span className="flex items-baseline gap-1 rounded-lg bg-white/10 px-2 py-0.5">
       <span className="text-sm sm:text-base">{value}</span>
-      <span className="text-[10px] font-bold text-white/60 sm:text-xs">{label}</span>
+      <span className="text-[11px] font-bold text-white/60 sm:text-xs">{label}</span>
     </span>
   );
 }

@@ -9,7 +9,7 @@ export default function MistakesCard({ progress }: { progress: Progress }) {
   return (
     <Link
       href="/bledy"
-      className="group flex items-center gap-4 rounded-3xl border border-rose-500/25 bg-rose-500/10 p-5 transition-transform hover:-translate-y-0.5"
+      className="group flex items-center gap-4 rounded-3xl border border-rose-500/25 bg-rose-500/10 p-5 card-hover hover:border-rose-500/50"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-card text-rose-500 shadow-card">
         <Icon name="archive" className="h-6 w-6" />

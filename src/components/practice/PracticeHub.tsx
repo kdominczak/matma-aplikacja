@@ -32,7 +32,7 @@ export default function PracticeHub() {
             key={c}
             onClick={() => setCategory(c)}
             aria-pressed={category === c}
-            className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-bold transition-colors ${
+            className={`min-h-11 shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
               category === c ? "border-brand bg-brand text-white shadow-float" : "border-line bg-card text-muted hover:text-ink"
             }`}
           >
@@ -63,7 +63,7 @@ function TopicTasksCard({ topic, progress }: { topic: Topic; progress: Progress 
     <Link
       href={`/zadania/${topic.id}`}
       onClick={() => hapticTap()}
-      className="group flex flex-col gap-3 rounded-3xl border border-line bg-card p-4 shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/40"
+      className="group flex flex-col gap-3 rounded-3xl border border-line glass-card p-4 shadow-card card-hover hover:border-brand/40"
     >
       <div className="flex items-center gap-3">
         <CategoryTile topic={topic} />

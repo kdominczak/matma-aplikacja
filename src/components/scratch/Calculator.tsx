@@ -68,7 +68,7 @@ export default function Calculator({ onInsert, onClose }: Props) {
   const tone = { op: "bg-brand-soft text-brand", fn: "bg-subtle text-body", eq: "bg-brand text-white", none: "bg-card text-ink border border-line" };
 
   return (
-    <div className="w-64 rounded-3xl border border-line bg-card p-3 shadow-2xl" role="dialog" aria-label="Kalkulator">
+    <div className="w-64 rounded-3xl border border-line glass-card p-3 shadow-2xl" role="dialog" aria-label="Kalkulator">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-xs font-extrabold uppercase tracking-widest text-faint">Kalkulator</p>
         <button onClick={onClose} aria-label="Zamknij kalkulator" className="rounded-full p-1 text-faint hover:text-ink">

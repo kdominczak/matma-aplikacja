@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { BadgeIcon } from "@/components/achievements/Badge";
+import StudyTimeCard from "@/components/home/StudyTimeCard";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page } from "@/components/layout/AppShell";
 import MistakesCard from "@/components/mistakes/MistakesCard";
@@ -31,13 +32,15 @@ export default function Dashboard() {
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="flex min-w-0 flex-col gap-6">
           <section>
-            <h1 className="text-3xl leading-tight font-extrabold tracking-tight text-ink sm:text-4xl lg:text-5xl">
-              Małe kroki. <span className="text-brand">Wielkie wyniki.</span>
+            {/* gradient przez cały nagłówek – „Wielkie wyniki” wypadają na jego najjaśniejszym, niebieskim końcu */}
+            <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-blue-400 text-3xl leading-tight font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+              Małe kroki. Wielkie wyniki.
             </h1>
             <p className="mt-2 text-muted lg:text-lg">Twój następny sukces na maturze zaczyna się tu.</p>
           </section>
 
           <QuickStats progress={progress} className="lg:hidden" />
+          <StudyTimeCard className="lg:hidden" />
           <DailyCard progress={progress} />
 
           <section className="flex flex-col gap-4">
@@ -82,6 +85,7 @@ export default function Dashboard() {
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-10">
           <QuickStats progress={progress} className="hidden lg:grid" />
+          <StudyTimeCard className="hidden lg:block" />
           {progress && <EstimateCard progress={progress} />}
           {progress && <WeekStreak progress={progress} />}
           {progress && Object.keys(progress.mistakes).length > 0 && <MistakesCard progress={progress} />}
@@ -150,7 +154,7 @@ function DailyCard({ progress }: { progress: Progress | null }) {
         <Link
           href="/wyzwanie"
           onClick={() => hapticTap()}
-          className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float transition-transform hover:-translate-y-0.5 active:bg-brand-dark sm:max-w-xs"
+          className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
         >
           Rozpocznij wyzwanie <Icon name="arrow" className="h-4 w-4" />
         </Link>
@@ -167,10 +171,10 @@ function NextBadges({ progress }: { progress: Progress }) {
   if (next.length === 0) return null;
 
   return (
-    <section className="rounded-3xl border border-line bg-card p-5 shadow-card">
+    <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
       <div className="flex items-center justify-between">
         <h2 className="font-extrabold text-ink">Najbliższe odznaki</h2>
-        <Link href="/odznaki" className="text-sm font-bold text-brand">
+        <Link href="/odznaki" className="-my-2 flex min-h-11 items-center text-sm font-bold text-brand">
           Wszystkie
         </Link>
       </div>

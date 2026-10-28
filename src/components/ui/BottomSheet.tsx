@@ -23,7 +23,7 @@ export default function BottomSheet({ title, onClose, children }: Props) {
       <div className="relative mx-auto flex max-h-[85dvh] w-full max-w-xl animate-slide-up flex-col rounded-t-3xl border border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-2xl lg:max-w-3xl lg:animate-pop lg:rounded-3xl lg:pb-0">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="text-lg font-extrabold text-ink">{title}</h2>
-          <button onClick={onClose} aria-label="Zamknij" className="rounded-full p-2 text-faint hover:bg-subtle hover:text-ink">
+          <button onClick={onClose} aria-label="Zamknij" className="-m-1.5 flex h-11 w-11 items-center justify-center rounded-full text-faint hover:bg-subtle hover:text-ink">
             <Icon name="close" />
           </button>
         </div>

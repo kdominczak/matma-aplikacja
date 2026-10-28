@@ -20,7 +20,7 @@ export default function MistakesView() {
 
   return (
     <Page width="reading">
-      <Link href="/profil" className="-mb-2 flex items-center gap-1 text-sm font-bold text-muted hover:text-ink">
+      <Link href="/profil" className="-my-2 flex min-h-11 items-center gap-1 self-start text-sm font-bold text-muted hover:text-ink">
         <Icon name="back" className="h-4 w-4" />
         Profil
       </Link>
@@ -44,7 +44,7 @@ export default function MistakesView() {
         {entries.length > 0 && (
           <Link
             href="/bledy/trening"
-            className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float transition-transform hover:-translate-y-0.5 active:bg-brand-dark sm:max-w-xs"
+            className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
           >
             <Icon name="refresh" className="h-4 w-4" />
             Przećwicz swoje błędy ({trainingCount})
@@ -53,7 +53,7 @@ export default function MistakesView() {
       </section>
 
       {entries.length === 0 ? (
-        <section className="rounded-3xl border border-dashed border-line bg-card p-8 text-center">
+        <section className="rounded-3xl border border-dashed border-line glass-card p-8 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
             <Icon name="checkCircle" className="h-7 w-7" />
           </span>
@@ -76,7 +76,7 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
   const { question, topic, difficulty, mistake } = entry;
 
   return (
-    <li className="rounded-3xl border border-line bg-card p-4 shadow-card lg:p-5">
+    <li className="rounded-3xl border border-line glass-card p-4 shadow-card lg:p-5">
       <div className="flex items-start gap-3">
         <CategoryTile topic={topic} />
         <div className="min-w-0 flex-1">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import Calculator from "@/components/scratch/Calculator";
+import dynamic from "next/dynamic";
 import ScratchBackground, { type ScratchTemplate } from "@/components/scratch/ScratchBackground";
 import {
   colorOf,
@@ -18,6 +18,9 @@ import Icon, { type IconName } from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import { useTheme } from "@/lib/theme";
 import type { FormulaGroup } from "@/types/topic";
+
+// kalkulator doczytuje się dopiero po otwarciu
+const Calculator = dynamic(() => import("@/components/scratch/Calculator"), { ssr: false });
 
 export type { ScratchItem } from "@/components/scratch/scratch-draw";
 export type { ScratchTemplate } from "@/components/scratch/ScratchBackground";
@@ -250,7 +253,8 @@ export default function ScratchBoard(props: Props) {
     setSelected(null);
   }
 
-  const toolButton = "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors";
+  // 44×44 – wygodne do trafienia palcem także na 320 px
+  const toolButton = "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors";
   const active = "bg-subtle text-ink ring-2 ring-brand";
   const previewSize = tool === "eraser" ? Math.min(width * ERASER_SCALE, 32) : width;
 
@@ -267,7 +271,7 @@ export default function ScratchBoard(props: Props) {
           <span className={`flex shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-500 ${full ? "h-9 w-9" : "h-7 w-7"}`}>
             <Icon name="pencil" className="h-4 w-4" />
           </span>
-          <h2 className={`truncate font-extrabold text-ink ${full ? "hidden sm:block" : "text-sm"}`}>Brudnopis</h2>
+          <h2 className={`truncate font-extrabold text-ink ${full ? "hidden sm:block" : "hidden text-sm min-[400px]:block"}`}>Brudnopis</h2>
         </div>
         <div className="flex gap-0.5 rounded-xl bg-subtle p-0.5" role="radiogroup" aria-label="Tło kartki">
           {TEMPLATES.map((t) => (
@@ -278,7 +282,7 @@ export default function ScratchBoard(props: Props) {
               aria-label={t.label}
               onClick={() => onTemplateChange(t.id)}
               title={t.label}
-              className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold transition-colors ${
+              className={`flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold transition-colors ${
                 template === t.id ? "bg-card text-ink shadow-card" : "text-muted"
               }`}
             >
@@ -288,7 +292,7 @@ export default function ScratchBoard(props: Props) {
           ))}
         </div>
         {full ? (
-          <button onClick={props.onClose} className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-float active:bg-brand-dark">
+          <button onClick={props.onClose} className="min-h-11 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-float active:bg-brand-dark">
             Gotowe
           </button>
         ) : (
@@ -321,7 +325,7 @@ export default function ScratchBoard(props: Props) {
                 // pan-x: przewijanie paska w poziomie zostaje przeglądarce, ruch w dół (na kartkę) to przeciąganie
                 className="shrink-0 cursor-grab touch-pan-x rounded-xl border border-line bg-card px-3 py-1.5 text-left select-none active:cursor-grabbing"
               >
-                <span className="block text-[10px] font-bold uppercase tracking-wide text-faint">{f.label}</span>
+                <span className="block text-[11px] font-bold uppercase tracking-wide text-faint">{f.label}</span>
                 <span className="pointer-events-none block text-sm whitespace-nowrap text-ink">
                   <MathText text={`$${f.tex}$`} />
                 </span>
@@ -390,8 +394,9 @@ export default function ScratchBoard(props: Props) {
 
       <footer className={`border-t border-line bg-card ${full ? "px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-8" : "px-2 py-2"}`}>
         <div className={`mx-auto flex flex-col gap-2 ${full ? "max-w-5xl lg:flex-row lg:items-center lg:justify-between" : ""}`}>
-          <div className="flex items-center justify-between gap-1">
-            <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto">
+          {/* jeden zawijany rząd: narzędzia od lewej, cofnij/wyczyść dosunięte do prawej – bez pustych miejsc na wąskim ekranie */}
+          <div className="flex flex-wrap items-center gap-0.5">
+            <div className="contents">
               {(Object.keys(PALETTE) as PenColor[]).map((c) => (
                 <button
                   key={c}
@@ -417,7 +422,7 @@ export default function ScratchBoard(props: Props) {
               )}
               <ToolButton icon="calculator" label="Kalkulator" selected={calcOpen} onClick={() => setCalcOpen(!calcOpen)} />
             </div>
-            <div className={`flex shrink-0 items-center gap-0.5 text-muted ${full ? "lg:hidden" : ""}`}>
+            <div className={`ml-auto flex shrink-0 items-center gap-0.5 text-muted ${full ? "lg:hidden" : ""}`}>
               <UndoClear items={items} onChange={onChange} className={toolButton} />
             </div>
           </div>
@@ -434,7 +439,7 @@ export default function ScratchBoard(props: Props) {
                   step={0.5}
                   value={width}
                   onChange={(e) => setWidth(Number(e.target.value))}
-                  className="min-w-0 flex-1 accent-brand"
+                  className="h-11 min-w-0 flex-1 accent-brand"
                 />
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center" aria-hidden>
                   <span
@@ -512,7 +517,7 @@ function ToolButton({ icon, label, selected, onClick }: { icon: IconName; label:
       aria-label={label}
       title={label}
       aria-pressed={selected}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${
         selected ? "bg-subtle text-ink ring-2 ring-brand" : "text-muted hover:bg-subtle"
       }`}
     >

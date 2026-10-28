@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase, SUPABASE_ENABLED, SUPABASE_URL } from "@/lib/supabase";
@@ -77,7 +77,7 @@ export function useRanking(): RankingState {
 }
 
 async function fetchOwnProfile(userId: string): Promise<RankingProfile | null> {
-  const db = supabase()!;
+  const db = (await supabase())!;
   const { data, error } = await db
     .from("profiles")
     .select("id, nick, streak, best_streak, last_active, avatar_version")
@@ -88,12 +88,14 @@ async function fetchOwnProfile(userId: string): Promise<RankingProfile | null> {
 }
 
 async function init() {
-  const db = supabase();
+  const db = await supabase();
   if (!db) return;
   try {
     // pozostałość po rankingu z XP – kolejka nie jest już używana
     await Preferences.remove({ key: "ranking.pending" });
-    const { data } = await db.auth.getSession();
+    const { data, error } = await db.auth.getSession();
+    // bez internetu odświeżenie sesji się nie udaje – to nie znaczy, że uczeń nie ma konta
+    if (error) throw error;
     const userId = data.session?.user.id;
     const profile = userId ? await fetchOwnProfile(userId) : null;
     setState(profile ? { status: "member", profile } : { status: "guest" });
@@ -118,6 +120,11 @@ export function retryRanking() {
   initializing = init();
 }
 
+/** Ponawia połączenie z kontem po wcześniejszym błędzie (np. po powrocie internetu). */
+export function retryRankingIfFailed() {
+  if (state.status === "error") retryRanking();
+}
+
 /** Odświeża profil (np. serię dni) po zapisaniu odpowiedzi na serwerze. */
 export async function refreshOwnProfile() {
   const id = memberId();
@@ -136,7 +143,7 @@ function nickError(error: PostgrestError): string {
 
 /** Dołącza do rankingu: anonimowe konto (bez e-maila) + profil z nickiem. Zwraca komunikat błędu albo null. */
 export async function joinRanking(nick: string): Promise<string | null> {
-  const db = supabase();
+  const db = await supabase();
   if (!db) return "Ranking nie jest dostępny.";
   if (!NICK_PATTERN.test(nick)) return "Nick może mieć 3–20 znaków: litery, cyfry, _ . -";
 
@@ -156,7 +163,7 @@ export async function joinRanking(nick: string): Promise<string | null> {
 }
 
 export async function renameNick(nick: string): Promise<string | null> {
-  const db = supabase();
+  const db = await supabase();
   if (!db || state.status !== "member") return "Najpierw dołącz do rankingu.";
   if (!NICK_PATTERN.test(nick)) return "Nick może mieć 3–20 znaków: litery, cyfry, _ . -";
   const { data, error } = await db
@@ -170,14 +177,18 @@ export async function renameNick(nick: string): Promise<string | null> {
   return null;
 }
 
-/** Usuwa profil z rankingu (razem z historią odpowiedzi i zdjęciem) i wylogowuje anonimowe konto. */
+/**
+ * Usuwa profil z rankingu (razem z historią odpowiedzi i zdjęciem). Konto anonimowe – istniejące tylko dla
+ * rankingu – wylogowujemy; konto z e-mailem zostaje (trzyma kopię postępu i historię arkuszy).
+ */
 export async function leaveRanking(): Promise<void> {
-  const db = supabase();
+  const db = await supabase();
   if (!db || state.status !== "member") return;
   const id = state.profile.id;
   await db.storage.from("avatars").remove([`${id}.jpg`]);
   await db.from("profiles").delete().eq("id", id);
-  await db.auth.signOut();
+  const { data } = await db.auth.getSession();
+  if (data.session?.user.is_anonymous) await db.auth.signOut();
   setState({ status: "guest" });
 }
 
@@ -191,7 +202,7 @@ export function avatarUrl(userId: string, version: number | null): string | null
 
 /** Wgrywa zdjęcie (JPEG 256×256) jako avatars/<id>.jpg i zapisuje nową wersję w profilu. */
 export async function uploadRankingAvatar(jpeg: Blob): Promise<string | null> {
-  const db = supabase();
+  const db = await supabase();
   if (!db || state.status !== "member") return "Najpierw dołącz do rankingu.";
   const id = state.profile.id;
   const upload = await db.storage.from("avatars").upload(`${id}.jpg`, jpeg, { upsert: true, contentType: "image/jpeg" });
@@ -209,7 +220,7 @@ export async function uploadRankingAvatar(jpeg: Blob): Promise<string | null> {
 }
 
 export async function removeRankingAvatar() {
-  const db = supabase();
+  const db = await supabase();
   if (!db || state.status !== "member") return;
   const id = state.profile.id;
   await db.storage.from("avatars").remove([`${id}.jpg`]);
@@ -225,7 +236,7 @@ export async function removeRankingAvatar() {
 // ── Tabela wyników ──
 
 export async function fetchLeaderboard(period: LeaderboardPeriod): Promise<LeaderboardRow[]> {
-  const db = supabase();
+  const db = await supabase();
   if (!db) return [];
   await rankingReady(); // „Ty” w tabeli wymaga wczytanej sesji
   const { data, error } = await db.rpc("leaderboard", { p_period: period, p_limit: 50 });
@@ -234,11 +245,12 @@ export async function fetchLeaderboard(period: LeaderboardPeriod): Promise<Leade
 }
 
 export async function fetchRankingSummary(): Promise<RankingSummary | null> {
-  const db = supabase();
+  const db = await supabase();
   if (!db || !(await readyMemberId())) return null;
   const { data, error } = await db.rpc("my_ranking_summary");
+  if (error) throw error;
   const row = (data as { solved_week: number; rank_week: number; solved_all: number; rank_all: number }[] | null)?.[0];
-  if (error || !row) return null;
+  if (!row) return null;
   return {
     solvedWeek: Number(row.solved_week),
     rankWeek: Number(row.rank_week),
@@ -247,15 +259,47 @@ export async function fetchRankingSummary(): Promise<RankingSummary | null> {
   };
 }
 
+/**
+ * Podsumowanie miejsca w rankingu z obsługą błędu: `error` = nie udało się pobrać (pokaż „Spróbuj ponownie”).
+ * `refreshKey` – zmiana (np. nowy profil po zapisanej sesji) pobiera dane od nowa.
+ */
+export function useRankingSummary(enabled: boolean, refreshKey?: unknown) {
+  const [summary, setSummary] = useState<RankingSummary | null>(null);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let active = true;
+    fetchRankingSummary()
+      .then((s) => {
+        if (!active) return;
+        setSummary(s);
+        setError(false);
+      })
+      .catch(() => active && setError(true));
+    return () => {
+      active = false;
+    };
+  }, [enabled, refreshKey, attempt]);
+
+  return { summary, error, retry: () => setAttempt((n) => n + 1) };
+}
+
 /** Nasłuch zmian w profilach (Supabase Realtime) – każda zapisana sesja kogoś z rankingu odświeża tabelę. */
 export function watchLeaderboard(onChange: () => void): () => void {
-  const db = supabase();
-  if (!db) return () => {};
-  const channel = db
-    .channel(`leaderboard-${Math.random().toString(36).slice(2)}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, onChange)
-    .subscribe();
+  let stopped = false;
+  let stop = () => {};
+  void supabase().then((db) => {
+    if (!db || stopped) return;
+    const channel = db
+      .channel(`leaderboard-${Math.random().toString(36).slice(2)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, onChange)
+      .subscribe();
+    stop = () => void db.removeChannel(channel);
+  });
   return () => {
-    void db.removeChannel(channel);
+    stopped = true;
+    stop();
   };
 }

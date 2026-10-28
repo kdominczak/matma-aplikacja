@@ -5,14 +5,18 @@ import { newlyEarned, type Achievement } from "@/lib/achievements";
 import {
   fetchServerMistakes,
   flushAnswers,
+  flushMistakes,
   importLocalMistakesOnce,
   queueAnswers,
+  queueMistakes,
   resetServerLearning,
   type AnswerSource,
 } from "@/lib/learning-sync";
 import { scorePlacement } from "@/lib/placement";
+import { mergeProgress } from "@/lib/progress-merge";
 import { readyMemberId } from "@/lib/ranking";
 import { dayKey, isPassed, starsFor, testKey } from "@/lib/stats";
+import type { ExamAttempt } from "@/types/exam";
 import type { Progress } from "@/types/progress";
 import type { OptionKey, QuizAnswer, QuizResult } from "@/types/quiz";
 import type { Difficulty, Target } from "@/types/topic";
@@ -21,7 +25,11 @@ import type { Difficulty, Target } from "@/types/topic";
 export * from "@/lib/stats";
 
 // Preferences: natywny storage w aplikacji (odporny na czyszczenie WebView), localStorage w przeglądarce.
+// Każdy zapis trafia też do kopii zapasowej – uszkodzony główny zapis nie zeruje postępu ucznia.
 const STORAGE_KEY = "progress.v2";
+const BACKUP_KEY = "progress.v2.backup";
+/** Awaryjny zapis bezpośrednio w localStorage, gdy Preferences zawiedzie (np. błąd wtyczki natywnej). */
+const FALLBACK_KEY = "matma.progress.fallback";
 
 const EMPTY_PROGRESS: Progress = {
   activityByDay: {},
@@ -58,12 +66,21 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
-function subscribe(listener: () => void) {
-  listeners.add(listener);
+/**
+ * Jedno wczytanie na cały czas działania aplikacji. Zapis zawsze na nie czeka – inaczej wynik zapisany
+ * zaraz po starcie zostałby nadpisany przez spóźnione wczytanie starego stanu.
+ */
+function ensureLoaded(): Promise<void> {
   loading ??= loadProgress().then((progress) => {
-    current = progress;
+    current ??= progress;
     emit();
   });
+  return loading;
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  void ensureLoaded();
   return () => listeners.delete(listener);
 }
 
@@ -72,11 +89,35 @@ export function useProgress(): Progress | null {
   return useSyncExternalStore(subscribe, () => current, () => null);
 }
 
+async function readKey(key: string): Promise<string | null> {
+  try {
+    return (await Preferences.get({ key })).value;
+  } catch {
+    return null;
+  }
+}
+
+function readFallback(): string | null {
+  try {
+    return window.localStorage.getItem(FALLBACK_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Najnowszy czytelny zapis: główny → kopia zapasowa → awaryjny localStorage. Nigdy nie rzuca. */
 async function loadProgress(): Promise<Progress> {
-  const { value } = await Preferences.get({ key: STORAGE_KEY });
-  if (!value) return EMPTY_PROGRESS;
+  const candidates = [await readKey(STORAGE_KEY), await readKey(BACKUP_KEY), readFallback()];
+  const parsed = candidates.map((value) => (value ? parseProgress(value) : null)).filter((p): p is Progress => p !== null);
+  if (parsed.length === 0) return EMPTY_PROGRESS;
+  // awaryjny zapis może być nowszy niż główny (gdy Preferences zawiodło) – bierzemy ten z największą liczbą odpowiedzi
+  return parsed.reduce((best, p) => (p.stats.answered > best.stats.answered ? p : best));
+}
+
+function parseProgress(value: string): Progress | null {
   try {
     const saved = JSON.parse(value);
+    if (!saved || typeof saved !== "object") return null;
     // Starsze zapisy liczyły serię z XP (xpByDay) – dni z XP to dni z nauką, więc przenosimy je do aktywności.
     const activityByDay: Record<string, number> =
       saved.activityByDay ??
@@ -87,12 +128,43 @@ async function loadProgress(): Promise<Progress> {
     // starsze zapisy nie mają nowszych pól – uzupełniamy domyślnymi
     return { ...EMPTY_PROGRESS, ...rest, activityByDay, stats: { ...EMPTY_PROGRESS.stats, ...saved.stats } };
   } catch {
-    return EMPTY_PROGRESS;
+    return null;
   }
 }
 
-async function update(change: (progress: Progress) => Progress): Promise<SaveOutcome> {
-  let next = change(current ?? (await loadProgress()));
+/** Zapisuje stan; gdy Preferences zawiedzie – awaryjnie do localStorage (i ponawia przy następnym zapisie). */
+async function persist(progress: Progress) {
+  const value = JSON.stringify(progress);
+  try {
+    await Preferences.set({ key: STORAGE_KEY, value });
+    await Preferences.set({ key: BACKUP_KEY, value });
+    try {
+      window.localStorage.removeItem(FALLBACK_KEY);
+    } catch {
+      // localStorage niedostępny – nic do sprzątania
+    }
+  } catch (error) {
+    console.warn("Zapis postępu przez Preferences nie powiódł się, używam localStorage:", error);
+    try {
+      window.localStorage.setItem(FALLBACK_KEY, value);
+    } catch {
+      // brak miejsca – stan zostaje w pamięci, kolejny zapis spróbuje ponownie
+    }
+  }
+}
+
+// Zapisy po kolei: dwa szybkie zapisy (np. dwa zadania z rzędu) nie nadpisują sobie nawzajem zmian.
+let writes: Promise<unknown> = Promise.resolve();
+
+function update(change: (progress: Progress) => Progress): Promise<SaveOutcome> {
+  const run = writes.then(() => applyUpdate(change));
+  writes = run.catch(() => {});
+  return run;
+}
+
+async function applyUpdate(change: (progress: Progress) => Progress): Promise<SaveOutcome> {
+  await ensureLoaded();
+  let next = change(current ?? EMPTY_PROGRESS);
   const earned = newlyEarned(next);
   if (earned.length > 0) {
     const today = dayKey();
@@ -103,8 +175,36 @@ async function update(change: (progress: Progress) => Progress): Promise<SaveOut
   }
   current = next;
   emit();
-  await Preferences.set({ key: STORAGE_KEY, value: JSON.stringify(next) });
+  await persist(next);
+  savedListeners.forEach((listener) => listener(next));
   return { progress: next, earned };
+}
+
+// ── Kopia w chmurze (cloud-sync.ts) ──
+
+const savedListeners = new Set<(progress: Progress) => void>();
+
+/** Wywoływane po każdym zapisie postępu – do wysłania kopii na konto. */
+export function onProgressSaved(listener: (progress: Progress) => void): () => void {
+  savedListeners.add(listener);
+  return () => savedListeners.delete(listener);
+}
+
+/** Aktualny postęp (po wczytaniu z urządzenia). */
+export async function readProgress(): Promise<Progress> {
+  await ensureLoaded();
+  return current ?? EMPTY_PROGRESS;
+}
+
+/** Scala kopię z chmury z postępem na urządzeniu. Zwraca false, gdy kopia jest nieczytelna. */
+export async function mergeRemoteProgress(data: unknown, newer: "local" | "remote"): Promise<boolean> {
+  const remote = parseProgress(JSON.stringify(data));
+  if (!remote) return false;
+  await ensureLoaded();
+  // bez zmian (np. kopia zapisana przez ten sam telefon) – bez zapisu i bez ponownej wysyłki
+  if (JSON.stringify(mergeProgress(current ?? EMPTY_PROGRESS, remote, newer)) === JSON.stringify(current)) return true;
+  await update((progress) => mergeProgress(progress, remote, newer));
+  return true;
 }
 
 // ── Zapis sesji ──
@@ -288,6 +388,50 @@ export async function savePracticeTask(attempt: PracticeAttempt): Promise<SaveOu
   return outcome;
 }
 
+// ── Arkusz (symulacja matury) ──
+
+/**
+ * Wynik arkusza w statystykach na urządzeniu: rozwiązane zadania, seria dni, skuteczność działów.
+ * Pomyłki NIE trafiają same do Pudełka porażek – uczeń dodaje je przyciskiem na podsumowaniu.
+ */
+export async function saveExamResult(attempt: ExamAttempt): Promise<SaveOutcome> {
+  const answered = attempt.results.filter((r) => r.status !== "skipped");
+  return update((progress) => {
+    const today = dayKey();
+    const topicStats = { ...progress.topicStats };
+    for (const result of answered) {
+      const ref = findQuestion(result.taskId);
+      if (!ref) continue; // zadania otwarte i spoza bazy zamkniętych liczą się tylko do ogólnych statystyk
+      const key = testKey(ref.topic.id, ref.difficulty);
+      const stat = topicStats[key] ?? { answered: 0, correct: 0, lastAnswered: today };
+      topicStats[key] = { answered: stat.answered + 1, correct: stat.correct + (result.status === "correct" ? 1 : 0), lastAnswered: today };
+    }
+    const correct = answered.filter((r) => r.status === "correct").length;
+    return {
+      ...progress,
+      topicStats,
+      activityByDay: addActivity(progress, answered.length),
+      stats: { ...progress.stats, answered: progress.stats.answered + answered.length, correct: progress.stats.correct + correct },
+    };
+  });
+}
+
+/** Dodaje błędne odpowiedzi (zadania zamknięte z bazy) do Pudełka porażek – na urządzeniu i na koncie. */
+export async function addMistakes(entries: { questionId: string; chosen: OptionKey }[]): Promise<number> {
+  const known = entries.filter((e) => findQuestion(e.questionId));
+  if (known.length === 0) return 0;
+  const today = dayKey();
+  await update((progress) => {
+    const mistakes = { ...progress.mistakes };
+    for (const { questionId, chosen } of known) {
+      mistakes[questionId] = { lastWrong: today, count: (mistakes[questionId]?.count ?? 0) + 1, chosen };
+    }
+    return { ...progress, mistakes };
+  });
+  void queueMistakes(known.map(({ questionId, chosen }) => ({ q: questionId, c: chosen, n: 1, d: today })));
+  return known.length;
+}
+
 // ── Test na start ──
 
 /**
@@ -324,9 +468,8 @@ export async function skipPlacement() {
 export async function resetProgress() {
   // reset obejmuje też historię odpowiedzi na koncie – inaczej synchronizacja przywróciłaby pudełko
   await resetServerLearning().catch(() => {});
-  current = { ...EMPTY_PROGRESS, stats: { ...EMPTY_PROGRESS.stats } };
-  emit();
-  await Preferences.remove({ key: STORAGE_KEY });
+  await update(() => ({ ...EMPTY_PROGRESS, stats: { ...EMPTY_PROGRESS.stats } }));
+  await Promise.all([Preferences.remove({ key: STORAGE_KEY }), Preferences.remove({ key: BACKUP_KEY })]).catch(() => {});
 }
 
 // ── Synchronizacja z kontem (Supabase) ──
@@ -341,7 +484,9 @@ export function syncLearning(): Promise<void> {
   syncing ??= (async () => {
     if (!(await readyMemberId())) return;
     if (!(await flushAnswers())) return; // zaległe odpowiedzi nie dotarły – serwer nie jest aktualny
-    const local = current ?? (await loadProgress());
+    if (!(await flushMistakes())) return; // pomyłki dodane ręcznie (np. z arkusza) też muszą być na serwerze
+    await ensureLoaded();
+    const local = current ?? EMPTY_PROGRESS;
     if (!(await importLocalMistakesOnce(local.mistakes))) return;
     const server = await fetchServerMistakes();
     if (!server) return;

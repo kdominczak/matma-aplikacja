@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+import BackgroundServices from "@/components/layout/BackgroundServices";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-full font-sans">{children}</body>
+      <body className="min-h-full font-sans">
+        <BackgroundServices />
+        {children}
+      </body>
     </html>
   );
 }

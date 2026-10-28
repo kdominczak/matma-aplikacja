@@ -46,8 +46,8 @@ export function BadgeCard({ achievement, progress }: { achievement: Achievement;
 
   return (
     <article
-      className={`flex flex-col items-center gap-3 rounded-3xl border p-5 text-center transition-transform hover:-translate-y-0.5 ${
-        earnedAt ? "border-line bg-card shadow-card" : "border-line bg-card/60"
+      className={`flex flex-col items-center gap-3 rounded-3xl border p-5 text-center card-hover ${
+        earnedAt ? "border-line glass-card shadow-card" : "border-line bg-card/60"
       }`}
     >
       <BadgeIcon achievement={achievement} unlocked={Boolean(earnedAt)} large />

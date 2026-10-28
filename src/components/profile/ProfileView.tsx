@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/layout/AppShell";
@@ -9,19 +9,19 @@ import EstimateChart from "@/components/progress/EstimateChart";
 import TopicCard from "@/components/topic/TopicCard";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { DIFFICULTIES, topics } from "@/data/topics";
+import { useAccount } from "@/lib/account";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AVATAR_COLORS, prepareAvatar, saveAppSettings, useAppSettings, type AvatarColor } from "@/lib/app-settings";
 import { currentEstimate } from "@/lib/estimate";
 import { hapticTap } from "@/lib/haptics";
 import { longestStreak, passedLevels, streak, testKey, totalStars, useProgress } from "@/lib/progress";
 import {
-  fetchRankingSummary,
   NICK_PATTERN,
   removeRankingAvatar,
   renameNick,
   uploadRankingAvatar,
   useRanking,
-  type RankingSummary,
+  useRankingSummary,
 } from "@/lib/ranking";
 import type { Progress } from "@/types/progress";
 
@@ -37,7 +37,7 @@ export default function ProfileView() {
         action={
           <Link
             href="/ustawienia"
-            className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-line bg-card px-3 py-2 text-sm font-bold text-muted transition-colors hover:text-ink"
+            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-line bg-card px-3 py-2 text-sm font-bold text-muted transition-colors hover:text-ink"
           >
             <Icon name="settings" className="h-4 w-4" />
             <span className="hidden sm:inline">Ustawienia</span>
@@ -46,6 +46,7 @@ export default function ProfileView() {
       />
 
       <ProfileCard />
+      <SecureAccountNudge />
 
       <Section title="Statystyki">
         <StatsGrid progress={progress} />
@@ -54,7 +55,7 @@ export default function ProfileView() {
 
       <Section title="Postępy">
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="rounded-3xl border border-line bg-card p-5 shadow-card lg:p-6">
+          <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
                 <h3 className="text-lg font-extrabold text-ink">Szacowany wynik matury</h3>
@@ -133,7 +134,7 @@ function ProfileCard() {
             onClick={() => fileRef.current?.click()}
             disabled={busy}
             aria-label="Zmień zdjęcie profilowe"
-            className="absolute -right-1 -bottom-1 flex h-9 w-9 items-center justify-center rounded-full border-4 border-navy bg-brand text-white shadow-float disabled:opacity-60"
+            className="absolute -right-2 -bottom-2 flex h-11 w-11 items-center justify-center rounded-full border-4 border-navy bg-brand text-white shadow-float disabled:opacity-60"
           >
             <Icon name="camera" className="h-4 w-4" />
           </button>
@@ -147,7 +148,7 @@ function ProfileCard() {
             <button
               onClick={() => fileRef.current?.click()}
               disabled={busy}
-              className="rounded-xl bg-white/10 px-3 py-1.5 text-sm font-bold transition-colors hover:bg-white/20 disabled:opacity-60"
+              className="min-h-11 rounded-xl bg-white/10 px-4 py-2 text-sm font-bold transition-colors hover:bg-white/20 disabled:opacity-60"
             >
               {busy ? "Zapisywanie…" : hasPhoto ? "Zmień zdjęcie" : "Dodaj zdjęcie"}
             </button>
@@ -168,7 +169,7 @@ function ProfileCard() {
       {!hasPhoto && settings && (
         <div className="relative mt-5">
           <p className="text-xs font-bold uppercase tracking-widest text-white/60">Kolor awatara</p>
-          <div className="mt-2 flex gap-2" role="radiogroup" aria-label="Kolor awatara">
+          <div className="mt-2 flex flex-wrap gap-3" role="radiogroup" aria-label="Kolor awatara">
             {(Object.keys(AVATAR_COLORS) as AvatarColor[]).map((color) => (
               <button
                 key={color}
@@ -179,7 +180,7 @@ function ProfileCard() {
                   hapticTap();
                   void saveAppSettings({ avatarColor: color });
                 }}
-                className={`h-8 w-8 rounded-full bg-linear-to-br transition-transform ${AVATAR_COLORS[color]} ${
+                className={`h-10 w-10 shrink-0 rounded-full bg-linear-to-br transition-transform ${AVATAR_COLORS[color]} ${
                   settings.avatarColor === color ? "scale-110 ring-2 ring-white ring-offset-2 ring-offset-navy" : "hover:scale-105"
                 }`}
               />
@@ -294,18 +295,20 @@ function NickEditor({ nick }: { nick: string }) {
 function RankingStrip() {
   const ranking = useRanking();
   const memberId = ranking.status === "member" ? ranking.profile.id : null;
-  const [summary, setSummary] = useState<RankingSummary | null>(null);
-
-  useEffect(() => {
-    if (!memberId) return;
-    let active = true;
-    fetchRankingSummary().then((s) => active && setSummary(s));
-    return () => {
-      active = false;
-    };
-  }, [memberId]);
+  const { summary, error, retry } = useRankingSummary(Boolean(memberId), memberId);
 
   if (!memberId) return null;
+  if (error && !summary) {
+    return (
+      <button
+        onClick={retry}
+        className="relative mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-white/10 p-3 text-sm font-bold transition-colors hover:bg-white/15"
+      >
+        <Icon name="refresh" className="h-4 w-4" />
+        Nie udało się wczytać miejsca w rankingu – spróbuj ponownie
+      </button>
+    );
+  }
   return (
     <Link href="/ranking" className="relative mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-white/10 p-3 transition-colors hover:bg-white/15">
       <div>
@@ -332,7 +335,7 @@ function StatsGrid({ progress }: { progress: Progress }) {
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div className="rounded-3xl border border-line bg-card p-5 shadow-card sm:col-span-2">
+      <div className="rounded-3xl border border-line glass-card p-5 shadow-card sm:col-span-2">
         <p className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
           <Icon name="target" className="h-4 w-4" />
           Skuteczność
@@ -380,9 +383,9 @@ function Stat({
       {note && <p className="text-sm text-muted">{note}</p>}
     </>
   );
-  const className = "rounded-3xl border border-line bg-card p-5 shadow-card";
+  const className = "rounded-3xl border border-line glass-card p-5 shadow-card";
   return href ? (
-    <Link href={href} className={`${className} transition-transform hover:-translate-y-0.5`}>
+    <Link href={href} className={`${className} card-hover hover:border-brand/40`}>
       {body}
     </Link>
   ) : (
@@ -405,7 +408,7 @@ function TopicAccuracy({ progress }: { progress: Progress }) {
     .sort((a, b) => a.accuracy - b.accuracy);
 
   return (
-    <section className="rounded-3xl border border-line bg-card p-5 shadow-card lg:p-6">
+    <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6">
       <h3 className="font-extrabold text-ink">Skuteczność w działach</h3>
       <p className="text-sm text-muted">Najsłabsze działy na górze – tam warto wrócić najpierw.</p>
       {rows.length === 0 ? (
@@ -461,5 +464,26 @@ function StartedTopics({ progress }: { progress: Progress }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Przypomnienie o zabezpieczeniu postępu – dopóki konto nie ma e-maila, postęp jest tylko na telefonie. */
+function SecureAccountNudge() {
+  const account = useAccount();
+  if (account.status !== "signed-out" && account.status !== "anonymous") return null;
+  return (
+    <Link
+      href="/ustawienia#konto"
+      className="flex items-center gap-3 rounded-3xl border border-amber-500/30 bg-amber-500/10 p-4 card-hover hover:border-amber-500/60"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+        <Icon name="lock" className="h-5 w-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-extrabold text-ink">Zabezpiecz swój postęp</span>
+        <span className="block text-sm text-muted">Bez konta odznaki i Pudełko porażek znikną przy zmianie telefonu. Zajmie to minutę.</span>
+      </span>
+      <Icon name="arrow" className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+    </Link>
   );
 }

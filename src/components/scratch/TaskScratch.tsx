@@ -1,10 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import ScratchBoard, { type ScratchItem, type ScratchTemplate } from "@/components/scratch/ScratchBoard";
+import dynamic from "next/dynamic";
+import type { ScratchItem, ScratchTemplate } from "@/components/scratch/ScratchBoard";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import Icon from "@/components/ui/Icon";
 import { hapticTap } from "@/lib/haptics";
 import type { FormulaGroup } from "@/types/topic";
+
+// Brudnopis (kanwa, bryły 3D, kalkulator) to osobna paczka – treść zadania i odpowiedzi pojawiają się bez czekania na nią.
+const ScratchBoard = dynamic(() => import("@/components/scratch/ScratchBoard"), {
+  ssr: false,
+  loading: () => <div className="h-[22rem] animate-pulse rounded-3xl border border-line bg-card" aria-label="Wczytywanie brudnopisu" />,
+});
 
 type Props = {
   prompt: string;
@@ -42,10 +50,17 @@ export default function TaskScratch(props: Props) {
       </button>
 
       <div className={`${mobileOpen ? "block" : "hidden"} animate-fade-in lg:block`}>
-        <ScratchBoard variant="inline" {...props} onExpand={() => setFull(true)} />
+        {/* awaria brudnopisu (np. canvas) nie blokuje rozwiązywania zadania */}
+        <ErrorBoundary>
+          <ScratchBoard variant="inline" {...props} onExpand={() => setFull(true)} />
+        </ErrorBoundary>
       </div>
 
-      {full && <ScratchBoard variant="full" {...props} onClose={() => setFull(false)} />}
+      {full && (
+        <ErrorBoundary>
+          <ScratchBoard variant="full" {...props} onClose={() => setFull(false)} />
+        </ErrorBoundary>
+      )}
     </>
   );
 }

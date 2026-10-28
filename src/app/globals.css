@@ -28,7 +28,10 @@
 
   --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
   --shadow-float: 0 12px 32px -8px rgb(47 91 255 / 0.35);
+  --shadow-lift: 0 2px 4px rgb(15 23 42 / 0.05), 0 18px 36px -14px rgb(47 91 255 / 0.28);
 
+  --animate-drift: drift 24s ease-in-out infinite alternate;
+  --animate-float: float 16s ease-in-out infinite;
   --animate-shake: shake 0.4s ease-in-out;
   --animate-slide-up: slide-up 0.25s ease-out;
   --animate-fade-in: fade-in 0.3s ease-out;
@@ -51,6 +54,17 @@
     from { opacity: 0; transform: scale(0.6); }
     to { opacity: 1; transform: scale(1); }
   }
+  /* powolne „pływanie” plam światła w tle ekranu głównego */
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(6%, 8%) scale(1.15); }
+  }
+  /* symbole matematyczne w tle: powolne unoszenie się z lekkim obrotem (czas trwania ustawia komponent) */
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    33% { transform: translateY(-22px) rotate(4deg); }
+    66% { transform: translateY(10px) rotate(-3deg); }
+  }
 }
 
 .dark {
@@ -70,7 +84,112 @@
 
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
   --shadow-float: 0 12px 32px -8px rgb(107 138 255 / 0.3);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 18px 36px -14px rgb(107 138 255 / 0.3);
   color-scheme: dark;
+}
+
+/*
+ * Karta, która lekko „podskakuje” pod kursorem (sprężysta krzywa, mocniejszy cień).
+ * Tylko na urządzeniach z kursorem – na telefonie efekt nie „zawisa” po tapnięciu.
+ * Kolor obwódki przy najechaniu dokładamy w komponencie, np. `hover:border-brand/40`.
+ */
+@utility card-hover {
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease,
+    border-color 0.2s ease;
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lift);
+    }
+  }
+  &:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.1s;
+  }
+}
+
+/* Przycisk: lekkie uniesienie i delikatna obwódka-poświata w kolorze marki (bez efektu, gdy wyłączony). */
+@utility btn-hover {
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-float), 0 0 0 3px color-mix(in oklab, var(--color-brand) 25%, transparent);
+    }
+  }
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.1s;
+  }
+}
+
+/*
+ * Świetlny refleks na głównych przyciskach: jasny pas przechodzi przez przycisk co kilka sekund
+ * i dodatkowo od razu po najechaniu kursorem. Wyłączony przycisk i „ogranicz ruch” – bez refleksu.
+ */
+@utility btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      rgb(255 255 255 / 0.28) 46%,
+      rgb(255 255 255 / 0.5) 50%,
+      rgb(255 255 255 / 0.28) 54%,
+      transparent 70%
+    );
+    transform: translateX(-110%);
+    animation: shine 6s ease-in-out 2s infinite;
+  }
+  @media (hover: hover) {
+    &:hover::after {
+      /* inna nazwa animacji = start od początku w chwili najechania */
+      animation: shine-hover 0.9s ease-out;
+    }
+  }
+  &:disabled::after {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      display: none;
+    }
+  }
+}
+
+@keyframes shine {
+  0% { transform: translateX(-110%); }
+  18%, 100% { transform: translateX(110%); }
+}
+@keyframes shine-hover {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(110%); }
+}
+
+/*
+ * Szkło: półprzezroczyste tło karty z rozmyciem tego, co pod spodem (plamy światła, symbole)
+ * i jaśniejsza krawędź u góry – jak odbicie światła na tafli. Stosujemy zamiast `bg-card`.
+ */
+@utility glass-card {
+  background-color: color-mix(in oklab, var(--color-card) 78%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  border-top-color: rgb(255 255 255 / 0.9);
+  &:where(.dark, .dark *) {
+    border-top-color: rgb(255 255 255 / 0.1);
+  }
 }
 
 body {

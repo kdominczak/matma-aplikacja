@@ -190,7 +190,7 @@ function Chat() {
             <button
               key={s.title}
               onClick={() => applySuggestion(s.text)}
-              className="rounded-2xl border border-line bg-card p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/40"
+              className="rounded-2xl border border-line glass-card p-4 text-left shadow-card card-hover hover:border-brand/40"
             >
               <p className="font-extrabold text-ink">{s.title}</p>
               <p className="mt-1 line-clamp-2 text-sm text-muted">{s.text.trim()}</p>
@@ -219,7 +219,7 @@ function Chat() {
               <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
                 <Icon name="sparkles" className="h-4 w-4" />
               </span>
-              <div className="min-w-0 rounded-3xl rounded-tl-lg border border-line bg-card px-4 py-3 text-body shadow-card">
+              <div className="min-w-0 rounded-3xl rounded-tl-lg border border-line glass-card px-4 py-3 text-body shadow-card">
                 {m.content ? <RichText text={m.content} /> : <TypingDots />}
               </div>
             </li>

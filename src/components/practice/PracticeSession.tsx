@@ -135,7 +135,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
       <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur-lg">
         <div className="mx-auto w-full max-w-6xl px-4 pt-3 pb-3 sm:px-6 lg:px-10">
           <div className="flex items-center gap-3">
-            <Link href="/zadania" aria-label="Wróć do listy działów" className="-ml-1 rounded-full p-1 text-faint hover:text-ink">
+            <Link href="/zadania" aria-label="Wróć do listy działów" className="-ml-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-faint hover:text-ink">
               <Icon name="close" className="h-6 w-6" />
             </Link>
             <div className="min-w-0 flex-1">
@@ -146,7 +146,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
             </div>
             <button
               onClick={() => setPanel("formulas")}
-              className="flex items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
             >
               <Icon name="book" className="h-4 w-4" />
               Wzory
@@ -161,7 +161,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
                   role="radio"
                   aria-checked={filter === f.id}
                   onClick={() => setFilter(f.id)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${filter === f.id ? "bg-card text-ink shadow-card" : "text-muted"}`}
+                  className={`min-h-10 rounded-lg px-3 py-2 text-xs font-bold transition-colors ${filter === f.id ? "bg-card text-ink shadow-card" : "text-muted"}`}
                 >
                   {f.label}
                 </button>
@@ -174,12 +174,12 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
                   onClick={() => go(t)}
                   aria-current={t.id === task.id ? "step" : undefined}
                   aria-label={`Zadanie ${i + 1} (${t.kind === "closed" ? "zamknięte" : "otwarte"})`}
-                  className={`flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition-all ${
+                  className={`flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition-all ${
                     PILL[status(progress?.practice[t.id])]
                   } ${t.id === task.id ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}`}
                 >
                   {i + 1}
-                  {t.kind === "open" && <span className="ml-0.5 text-[9px] opacity-80">O</span>}
+                  {t.kind === "open" && <span className="ml-0.5 text-[11px] opacity-80">O</span>}
                 </button>
               ))}
             </nav>
@@ -189,7 +189,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
 
       <main
         key={task.id}
-        className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in content-start gap-5 px-4 pt-5 pb-10 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8"
+        className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 pb-10 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8"
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold uppercase tracking-wide">
@@ -209,7 +209,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
             )}
           </div>
 
-          <section className="rounded-3xl border border-line bg-card p-5 shadow-card lg:p-7">
+          <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-7">
             <p className="text-lg leading-relaxed font-semibold text-ink lg:text-xl">
               <MathText text={prompt} />
             </p>
@@ -223,7 +223,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
                 {state.hints < hints.length && (
                   <button
                     onClick={() => patch({ hints: state.hints + 1 })}
-                    className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 dark:text-amber-400"
+                    className="flex min-h-11 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 dark:text-amber-400"
                   >
                     <Icon name="bulb" className="h-4 w-4" />
                     Podpowiedź {state.hints + 1}/{hints.length}

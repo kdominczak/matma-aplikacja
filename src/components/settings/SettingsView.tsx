@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
+import AccountCard from "@/components/settings/AccountCard";
 import AiSettingsCard from "@/components/tutor/AiSettingsCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Icon, { type IconName } from "@/components/ui/Icon";
@@ -10,6 +11,7 @@ import { ThemeSwitcher } from "@/components/ui/ThemeToggle";
 import { CKE_ARCHIVE_URL } from "@/data/cke-sheets";
 import { TARGETS } from "@/data/topics";
 import { saveAppSettings, useAppSettings } from "@/lib/app-settings";
+import { resetCloudData } from "@/lib/cloud-sync";
 import { hapticTap } from "@/lib/haptics";
 import { formatDay, resetProgress, setTarget, useProgress } from "@/lib/progress";
 import { leaveRanking, useRanking } from "@/lib/ranking";
@@ -30,7 +32,11 @@ export default function SettingsView() {
 
   return (
     <Page width="reading">
-      <PageHeader title="Ustawienia" subtitle="Cel nauki, wygląd, korepetytor AI i Twoje dane." />
+      <PageHeader title="Ustawienia" subtitle="Konto, cel nauki, wygląd, korepetytor AI i Twoje dane." />
+
+      <div id="konto" className="scroll-mt-6">
+        <AccountCard />
+      </div>
 
       <div id="cel" className="scroll-mt-6">
         <TargetSetting progress={progress} />
@@ -40,8 +46,14 @@ export default function SettingsView() {
         <ThemeSwitcher />
       </Card>
 
-      <Card icon="vibrate" title="Wibracje i efekty" description="Reakcje aplikacji przy odpowiedziach i wynikach.">
+      <Card icon="vibrate" title="Dźwięki, wibracje i efekty" description="Reakcje aplikacji przy odpowiedziach i wynikach.">
         <div className="flex flex-col divide-y divide-line">
+          <Toggle
+            label="Dźwięki"
+            description="Cichy klik przy wyborze odpowiedzi A–D (wyłącz, żeby wyciszyć)"
+            checked={settings.sounds}
+            onChange={(sounds) => void saveAppSettings({ sounds })}
+          />
           <Toggle
             label="Wibracje"
             description="Krótka wibracja przy dobrej i złej odpowiedzi"
@@ -80,7 +92,7 @@ export default function SettingsView() {
 
 function Card({ icon, title, description, children }: { icon: IconName; title: string; description: string; children: ReactNode }) {
   return (
-    <section className="rounded-3xl border border-line bg-card p-5 shadow-card">
+    <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
       <h2 className="flex items-center gap-2 font-extrabold text-ink">
         <Icon name={icon} className="h-5 w-5 text-brand" />
         {title}
@@ -176,7 +188,7 @@ function RankingSetting() {
   if (ranking.status === "disabled") return null;
 
   return (
-    <Card icon="trophy" title="Ranking i konto" description="Ranking liczy poprawnie rozwiązane zadania. Konto jest anonimowe – tylko nick.">
+    <Card icon="trophy" title="Ranking i konto" description="Ranking liczy poprawnie rozwiązane zadania. Inni widzą tylko Twój nick i zdjęcie.">
       {ranking.status === "member" ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-body">
@@ -211,6 +223,7 @@ function RankingSetting() {
 function ResetSetting({ progress }: { progress: Progress }) {
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   return (
     <section className="rounded-3xl border border-rose-500/30 bg-rose-500/5 p-5">
@@ -219,10 +232,15 @@ function ResetSetting({ progress }: { progress: Progress }) {
         Resetowanie postępów
       </h2>
       <p className="mt-1 text-sm text-muted">
-        Usuwa zaliczone testy, serię, statystyki, odznaki i Pudełko porażek (także historię odpowiedzi na koncie). Ustawienia,
+        Usuwa zaliczone testy, serię, statystyki, odznaki, Pudełko porażek i historię arkuszy – także kopię i historię odpowiedzi na koncie. Ustawienia,
         zdjęcie, klucz Groq i nick w rankingu zostają.
       </p>
       {done && <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">Postęp został wyzerowany.</p>}
+      {failed && (
+        <p role="alert" className="mt-3 text-sm font-semibold text-rose-600 dark:text-rose-400">
+          Nie udało się wyzerować kopii na koncie (sprawdź internet). Postęp na telefonie został bez zmian – inaczej wróciłby z chmury.
+        </p>
+      )}
       <button
         onClick={() => setOpen(true)}
         className="mt-4 rounded-2xl border-2 border-rose-500/40 bg-card px-5 py-2.5 text-sm font-bold text-rose-600 transition-colors hover:border-rose-500 dark:text-rose-300"
@@ -235,9 +253,18 @@ function ResetSetting({ progress }: { progress: Progress }) {
           confirmLabel="Tak, resetuj"
           confirmWord="RESET"
           onConfirm={async () => {
+            // najpierw konto: gdyby reset zrobić tylko na telefonie, synchronizacja przywróciłaby postęp z chmury
+            try {
+              await resetCloudData();
+            } catch {
+              setOpen(false);
+              setFailed(true);
+              return;
+            }
             await resetProgress();
             hapticTap();
             setOpen(false);
+            setFailed(false);
             setDone(true);
           }}
           onCancel={() => setOpen(false)}

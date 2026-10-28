@@ -3,7 +3,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import Countdown from "@/components/layout/Countdown";
+import GlowBackground from "@/components/layout/GlowBackground";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { ThemeSwitcher, ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -41,7 +43,7 @@ function useActiveHref() {
 
 export function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2">
+    <Link href="/" className="flex min-h-11 items-center gap-2">
       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-xl font-extrabold text-white shadow-float">
         Σ
       </span>
@@ -134,6 +136,7 @@ function TopBar({ active }: { active: string }) {
  */
 export default function AppShell({ children }: { children: ReactNode }) {
   const active = useActiveHref();
+  const pathname = usePathname().replace(/(.)\/$/, "$1");
   const progress = useProgress();
   const [moreOpen, setMoreOpen] = useState(false);
   const secondary = NAV.filter((item) => !item.primary);
@@ -147,111 +150,137 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }, [memberId]);
 
   return (
-    <div className="min-h-dvh">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-line bg-card px-5 py-6 lg:flex">
-        <Logo />
-        <nav className="mt-10 flex flex-col gap-1" aria-label="Główna nawigacja">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active === item.href ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-2xl px-4 py-3 font-bold transition-colors ${
-                active === item.href ? "bg-brand-soft text-brand" : "text-muted hover:bg-subtle hover:text-ink"
-              }`}
-            >
-              <Icon name={item.icon} className="h-5 w-5" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="mt-auto flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-navy p-4 text-white">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Seria</p>
-              <p className="mt-0.5 flex items-center gap-1 text-lg font-extrabold">
-                <Icon name="flame" className="h-4 w-4 text-orange-400" />
-                {progress ? streak(progress) : 0}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Rozwiązane</p>
-              <p className="mt-0.5 text-lg font-extrabold">{progress?.stats.correct ?? 0}</p>
-            </div>
-          </div>
-          <ThemeSwitcher />
-        </div>
-      </aside>
-
-      <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-10 lg:pl-72">
-        <div className="bg-navy pt-[env(safe-area-inset-top)]">
-          <Countdown />
-        </div>
-        <TopBar active={active} />
-        {children}
-      </div>
-
-      <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
-        aria-label="Główna nawigacja"
-      >
-        <ul className="mx-auto grid max-w-xl grid-cols-5">
-          {NAV.filter((item) => item.primary).map((item) => (
-            <li key={item.href}>
+    // reducedMotion="user": przy systemowym „ogranicz ruch” widoki pojawiają się bez animacji
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-dvh">
+        {pathname === "/" && <GlowBackground />}
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-line bg-card px-5 py-6 lg:flex">
+          <Logo />
+          <nav className="mt-10 flex flex-col gap-1" aria-label="Główna nawigacja">
+            {NAV.map((item) => (
               <Link
+                key={item.href}
                 href={item.href}
                 aria-current={active === item.href ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors sm:text-[11px] ${
-                  active === item.href ? "text-brand" : "text-faint"
+                className={`relative flex items-center gap-3 rounded-2xl px-4 py-3 font-bold transition-colors ${
+                  active === item.href ? "text-brand" : "text-muted hover:bg-subtle hover:text-ink"
                 }`}
               >
-                <Icon name={item.icon} className="h-6 w-6" />
-                {item.label}
+                {/* podświetlenie aktywnej zakładki „przepływa” między pozycjami menu */}
+                {active === item.href && (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="absolute inset-0 rounded-2xl bg-brand-soft"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                  />
+                )}
+                <Icon name={item.icon} className="relative h-5 w-5" />
+                <span className="relative">{item.label}</span>
               </Link>
-            </li>
-          ))}
-          <li>
-            <button
-              onClick={() => setMoreOpen(true)}
-              aria-haspopup="dialog"
-              className={`flex w-full flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors sm:text-[11px] ${
-                secondaryActive ? "text-brand" : "text-faint"
-              }`}
-            >
-              <Icon name="more" className="h-6 w-6" />
-              Więcej
-            </button>
-          </li>
-        </ul>
-      </nav>
+            ))}
+          </nav>
 
-      {moreOpen && (
-        <BottomSheet title="Więcej" onClose={() => setMoreOpen(false)}>
-          <ul className="flex flex-col gap-2">
-            {secondary.map((item) => (
+          <div className="mt-auto flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-navy p-4 text-white">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Seria</p>
+                <p className="mt-0.5 flex items-center gap-1 text-lg font-extrabold">
+                  <Icon name="flame" className="h-4 w-4 text-orange-400" />
+                  {progress ? streak(progress) : 0}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Rozwiązane</p>
+                <p className="mt-0.5 text-lg font-extrabold">{progress?.stats.correct ?? 0}</p>
+              </div>
+            </div>
+            <ThemeSwitcher />
+          </div>
+        </aside>
+
+        <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-10 lg:pl-72">
+          <div className="bg-navy pt-[env(safe-area-inset-top)]">
+            <Countdown />
+          </div>
+          <TopBar active={active} />
+          {/*
+            Każdy widok wjeżdża z lekkim uniesieniem i rozjaśnieniem. Bez animacji wyjścia: w App Routerze
+            stary widok podmienia się od razu, więc „znikanie” pokazałoby już nową treść.
+            initial={false} – pierwsze wejście do aplikacji bez animacji (treść widoczna od razu w HTML).
+          */}
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <nav
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
+          aria-label="Główna nawigacja"
+        >
+          <ul className="mx-auto grid max-w-xl grid-cols-5">
+            {NAV.filter((item) => item.primary).map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  onClick={() => setMoreOpen(false)}
-                  className={`flex items-center gap-3 rounded-2xl border p-3 transition-colors ${
-                    active === item.href ? "border-brand bg-brand-soft" : "border-line bg-card hover:border-brand/40"
+                  aria-current={active === item.href ? "page" : undefined}
+                  className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors sm:text-xs ${
+                    active === item.href ? "text-brand" : "text-faint"
                   }`}
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-subtle text-brand">
-                    <Icon name={item.icon} className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-bold text-ink">{item.label}</span>
-                    <span className="block text-sm text-muted">{item.description}</span>
-                  </span>
+                  <Icon name={item.icon} className="h-6 w-6" />
+                  {item.label}
                 </Link>
               </li>
             ))}
+            <li>
+              <button
+                onClick={() => setMoreOpen(true)}
+                aria-haspopup="dialog"
+                className={`flex w-full flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors sm:text-xs ${
+                  secondaryActive ? "text-brand" : "text-faint"
+                }`}
+              >
+                <Icon name="more" className="h-6 w-6" />
+                Więcej
+              </button>
+            </li>
           </ul>
-        </BottomSheet>
-      )}
-    </div>
+        </nav>
+
+        {moreOpen && (
+          <BottomSheet title="Więcej" onClose={() => setMoreOpen(false)}>
+            <ul className="flex flex-col gap-2">
+              {secondary.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setMoreOpen(false)}
+                    className={`flex items-center gap-3 rounded-2xl border p-3 transition-colors ${
+                      active === item.href ? "border-brand bg-brand-soft" : "border-line bg-card hover:border-brand/40"
+                    }`}
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-subtle text-brand">
+                      <Icon name={item.icon} className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-bold text-ink">{item.label}</span>
+                      <span className="block text-sm text-muted">{item.description}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </BottomSheet>
+        )}
+      </div>
+    </MotionConfig>
   );
 }
 
@@ -260,7 +289,7 @@ export function Page({ children, width = "wide" }: { children: ReactNode; width?
   const max = width === "wide" ? "max-w-6xl" : "max-w-3xl";
   return (
     <div
-      className={`mx-auto flex w-full ${max} animate-fade-in flex-col gap-6 px-4 pt-4 sm:px-6 lg:px-10 lg:pt-6`}
+      className={`mx-auto flex w-full ${max} flex-col gap-6 px-4 pt-4 sm:px-6 lg:px-10 lg:pt-6`}
     >
       {children}
     </div>
@@ -272,7 +301,8 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <header className="flex items-start justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-ink lg:text-4xl">{title}</h1>
+        {/* w jasnym motywie granat → niebieski (biały gradient byłby niewidoczny na jasnym tle) */}
+        <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-blue-400 text-3xl font-extrabold tracking-tight lg:text-4xl">{title}</h1>
         {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
       </div>
       {action}

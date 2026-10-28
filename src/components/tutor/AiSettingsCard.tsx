@@ -36,7 +36,7 @@ export default function AiSettingsCard({ intro = false }: { intro?: boolean }) {
   const connected = Boolean(settings.apiKey);
 
   return (
-    <section className="rounded-3xl border border-line bg-card p-5 shadow-card lg:p-6">
+    <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6">
       <div className="flex items-start gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
           <Icon name="sparkles" className="h-6 w-6" />
@@ -130,7 +130,7 @@ export default function AiSettingsCard({ intro = false }: { intro?: boolean }) {
               </label>
             ))}
           </fieldset>
-          <button onClick={() => removeApiKey()} className="self-start text-sm font-bold text-muted hover:text-rose-500">
+          <button onClick={() => removeApiKey()} className="-my-2 min-h-11 self-start text-sm font-bold text-muted hover:text-rose-500">
             Odłącz klucz
           </button>
         </div>

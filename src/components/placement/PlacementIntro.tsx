@@ -60,7 +60,7 @@ export default function PlacementIntro() {
             <Link
               href="/start"
               onClick={() => hapticTap()}
-              className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float active:bg-brand-dark"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
             >
               Rozpocznij test <Icon name="arrow" className="h-4 w-4" />
             </Link>

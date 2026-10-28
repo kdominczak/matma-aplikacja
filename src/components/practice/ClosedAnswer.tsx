@@ -3,6 +3,7 @@
 import TrapCard from "@/components/quiz/TrapCard";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
+import { soundSelect } from "@/lib/sounds";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
 const KEYS: OptionKey[] = ["A", "B", "C", "D"];
@@ -52,7 +53,10 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
         <p className="mb-2 text-sm font-bold text-body">Wybierz odpowiedź</p>
         <div className="flex flex-col gap-3">
           {KEYS.map((key) => (
-            <button key={key} onClick={() => onChange({ ...state, selected: key })} disabled={checked} className={optionClasses(key)}>
+            <button key={key} onClick={() => {
+                onChange({ ...state, selected: key });
+                soundSelect();
+              }} disabled={checked} className={optionClasses(key)}>
               <span className={badgeClasses(key)}>{key}</span>
               <MathText text={question.options[key]} className="flex-1" />
               {!checked && key === selected && <Icon name="checkCircle" className="h-5 w-5 shrink-0" />}
@@ -65,7 +69,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
         <button
           onClick={onCheck}
           disabled={!selected}
-          className="rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+          className="rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
         >
           Sprawdź odpowiedź
         </button>

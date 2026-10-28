@@ -56,7 +56,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
     </>
   );
 
-  const className = "group flex items-center gap-3 rounded-3xl border border-line bg-card p-4";
+  const className = "group flex items-center gap-3 rounded-3xl border border-line glass-card p-4";
   if (!ready && !tasksOnly) {
     return <div className={`${className} opacity-60`}>{body}</div>;
   }
@@ -64,7 +64,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
     <Link
       href={ready ? `/dzial/${topic.id}` : `/zadania/${topic.id}`}
       onClick={() => hapticTap()}
-      className={`${className} shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/40 active:scale-[0.98]`}
+      className={`${className} shadow-card card-hover hover:border-brand/40`}
     >
       {body}
     </Link>
