@@ -1,4 +1,5 @@
 import type { PracticeTask } from "@/data/topics";
+import type { Relaxation } from "@/types/blueprint";
 import type { OptionKey } from "@/types/quiz";
 
 /**
@@ -7,8 +8,11 @@ import type { OptionKey } from "@/types/quiz";
  */
 export interface ExamSheet {
   id: string;
-  /** „cke” – przepisany oficjalny arkusz CKE; „probny” – arkusz złożony z zadań aplikacji. */
-  kind: "cke" | "probny";
+  /**
+   * „cke” – przepisany oficjalny arkusz CKE; „probny” – stały arkusz próbny z zadań aplikacji;
+   * „losowy” – arkusz z generatora, odtwarzany z kodu (`code`).
+   */
+  kind: "cke" | "probny" | "losowy";
   title: string;
   subtitle: string;
   year?: number;
@@ -18,6 +22,12 @@ export interface ExamSheet {
   tasks: PracticeTask[];
   /** Oficjalne pliki CKE – do porównania z oryginałem (tylko `kind: "cke"`). */
   pdf?: { exam: string; solutions: string };
+  /** Kod arkusza z generatora – do udostępnienia znajomym (ten sam kod = ten sam arkusz). */
+  code?: string;
+  /** Rok matury, której układ odwzorowuje arkusz z generatora. */
+  layoutYear?: number;
+  /** Czym arkusz z generatora różni się od oryginalnego układu (zastępstwa zadań). */
+  relaxations?: Relaxation[];
 }
 
 /** Odpowiedź ucznia w trakcie arkusza. */

@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import Icon from "@/components/ui/Icon";
+import { plural } from "@/lib/plural";
 
 /**
  * Matura z matematyki (poziom podstawowy) 2027: 5 maja, godz. 9:00 czasu polskiego.
@@ -35,13 +36,6 @@ function subscribe(listener: () => void) {
 
 function useNow(): number | null {
   return useSyncExternalStore(subscribe, () => now, () => null);
-}
-
-function plural(n: number, one: string, few: string, many: string) {
-  if (n === 1) return one;
-  const last = n % 10;
-  const lastTwo = n % 100;
-  return last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? few : many;
 }
 
 /** Pasek „Do matury z matematyki zostało: X dni, Y godzin”. */

@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
 import type { PostgrestError } from "@supabase/supabase-js";
+import { isNickAllowed } from "@/lib/moderation";
 import { supabase, SUPABASE_ENABLED, SUPABASE_URL } from "@/lib/supabase";
 
 // Ranking = liczba POPRAWNIE rozwiązanych zadań, policzona przez serwer z historii odpowiedzi
@@ -40,6 +41,8 @@ export type RankingState =
   | { status: "guest" }
   | { status: "member"; profile: RankingProfile }
   | { status: "error"; message: string };
+
+const NICK_BLOCKED = "Ten nick jest niedozwolony – wybierz inny.";
 
 export const NICK_PATTERN = /^[A-Za-z0-9ĄĆĘŁŃÓŚŹŻąćęłńóśźż_.-]{3,20}$/;
 
@@ -138,6 +141,7 @@ export async function refreshOwnProfile() {
 function nickError(error: PostgrestError): string {
   if (error.code === "23505") return "Ten nick jest już zajęty – wybierz inny.";
   if (error.code === "23514") return "Nick może mieć 3–20 znaków: litery, cyfry, _ . -";
+  if (error.code === "MA004") return NICK_BLOCKED;
   return "Nie udało się zapisać nicku. Spróbuj ponownie.";
 }
 
@@ -146,6 +150,7 @@ export async function joinRanking(nick: string): Promise<string | null> {
   const db = await supabase();
   if (!db) return "Ranking nie jest dostępny.";
   if (!NICK_PATTERN.test(nick)) return "Nick może mieć 3–20 znaków: litery, cyfry, _ . -";
+  if (!isNickAllowed(nick)) return NICK_BLOCKED;
 
   let { data } = await db.auth.getSession();
   if (!data.session) {
@@ -166,6 +171,7 @@ export async function renameNick(nick: string): Promise<string | null> {
   const db = await supabase();
   if (!db || state.status !== "member") return "Najpierw dołącz do rankingu.";
   if (!NICK_PATTERN.test(nick)) return "Nick może mieć 3–20 znaków: litery, cyfry, _ . -";
+  if (!isNickAllowed(nick)) return NICK_BLOCKED;
   const { data, error } = await db
     .from("profiles")
     .update({ nick })

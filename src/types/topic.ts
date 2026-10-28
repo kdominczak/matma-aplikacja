@@ -1,3 +1,4 @@
+import type { Section } from "@/types/blueprint";
 import type { Plot } from "@/types/plot";
 import type { OpenQuestion, Question } from "@/types/quiz";
 
@@ -49,6 +50,8 @@ export interface PracticeContent {
 
 export interface Topic {
   id: string;
+  /** Dział podstawy programowej (jak w „Zasadach oceniania” CKE) – do składania arkuszy według szablonu. */
+  section: Section;
   lesson: string;
   title: string;
   /** Krótki symbol na kafelku, np. "log". */
@@ -58,11 +61,16 @@ export interface Topic {
   priority: Priority;
   /** W ilu procentach arkuszy pojawia się temat. */
   examShare: number;
-  /** Ile punktów (z 46) daje zwykle temat w arkuszu, gdy się pojawi. */
+  /**
+   * Względna waga tematu w jego dziale podstawy (ile punktów zwykle daje, gdy się pojawi). Punkty na maturze
+   * liczymy z prawdziwych arkuszy – `topicExamPoints()` w src/lib/exam-weights.ts.
+   */
   points: number;
   studyHours: number;
   /** Brak treści = lekcja (teoria, testy) „Wkrótce”. */
   content?: TopicContent;
   /** Zadania do zakładki „Zadania” dla działów bez pełnej lekcji. */
   practice?: PracticeContent;
+  /** Warianty zadań z szablonów parametrycznych (src/data/templates) – dochodzą do zadań działu. */
+  generated?: Omit<PracticeContent, "formulas">;
 }

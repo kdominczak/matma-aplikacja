@@ -4,7 +4,7 @@
 
 export type SheetLevel = "podstawowy" | "rozszerzony";
 
-/** Formuła 2023 – obecna podstawa (46 pkt na poziomie podstawowym); formuła 2015 – poprzedni program. */
+/** Formuła 2023 – obecna podstawa (poziom podstawowy: 46 pkt w latach 2023–2024, od 2025 – 50 pkt); formuła 2015 – poprzedni program. */
 export type SheetFormula = "2023" | "2015";
 
 export interface SheetFiles {

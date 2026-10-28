@@ -5,7 +5,7 @@ import Link from "next/link";
 import ClosedAnswer, { type ClosedState } from "@/components/practice/ClosedAnswer";
 import OpenAnswer, { type OpenState } from "@/components/practice/OpenAnswer";
 import ExplainSheet from "@/components/quiz/ExplainSheet";
-import type { ScratchItem, ScratchTemplate } from "@/components/scratch/ScratchBoard";
+import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
 import TaskScratch from "@/components/scratch/TaskScratch";
 import FormulaList from "@/components/topic/FormulaList";
 import BottomSheet from "@/components/ui/BottomSheet";
@@ -16,6 +16,7 @@ import { formulaGroup, getDifficulty, getTopic, practiceTasks, type PracticeTask
 import { matchesAnswer } from "@/lib/calc";
 import { hapticError, hapticSuccess } from "@/lib/haptics";
 import { savePracticeTask, useProgress } from "@/lib/progress";
+import { useScratchNotes } from "@/lib/scratch-notes";
 import type { PracticeRecord } from "@/types/progress";
 
 type Filter = "all" | "closed" | "open";
@@ -58,12 +59,12 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [currentId, setCurrentId] = useState(allTasks[0].id);
   const [ui, setUi] = useState<Record<string, TaskUi>>({});
-  const [notes, setNotes] = useState<Record<string, ScratchItem[]>>({});
   const [template, setTemplate] = useState<ScratchTemplate>("grid");
   const [panel, setPanel] = useState<"formulas" | "explain" | null>(null);
 
   const tasks = allTasks.filter((t) => filter === "all" || t.kind === filter);
   const task = tasks.find((t) => t.id === currentId) ?? tasks[0];
+  const [notes, setNotes] = useScratchNotes(task.id);
   const index = tasks.indexOf(task);
   const state = ui[task.id] ?? EMPTY_UI;
   const prompt = task.kind === "closed" ? task.question.prompt : task.task.prompt;
@@ -247,8 +248,8 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
 
           <TaskScratch
             prompt={prompt}
-            items={notes[task.id] ?? []}
-            onChange={(items) => setNotes((n) => ({ ...n, [task.id]: items }))}
+            items={notes}
+            onChange={setNotes}
             template={template}
             onTemplateChange={setTemplate}
             formulaGroups={groups}

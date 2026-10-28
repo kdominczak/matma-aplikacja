@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import { EXAM_YEARS } from "@/data/cke-sheets";
-import { EXAMS, examMaxPoints } from "@/data/exams";
+import RandomExamCard from "@/components/exam/RandomExamCard";
+import { EXAMS, examHref, examKindLabel, examMaxPoints } from "@/data/exams";
 import { examStats, formatDuration, loadSession, useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import type { ExamSession } from "@/types/exam";
@@ -55,6 +56,7 @@ export default function ExamPicker() {
       )}
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <RandomExamCard />
         {EXAMS.map((exam) => {
           const session = sessions[exam.id];
           const last = attempts?.find((a) => a.examId === exam.id);
@@ -62,13 +64,13 @@ export default function ExamPicker() {
           return (
             <Link
               key={exam.id}
-              href={`/arkusz/${exam.id}`}
+              href={examHref(exam)}
               onClick={() => hapticTap()}
               className="group flex flex-col gap-3 rounded-3xl border border-line glass-card p-5 shadow-card card-hover hover:border-brand/40"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-extrabold uppercase tracking-widest text-brand">{exam.kind === "cke" ? "Oficjalny CKE" : "Próbny"}</p>
+                  <p className="text-xs font-extrabold uppercase tracking-widest text-brand">{examKindLabel(exam)}</p>
                   <p className="mt-0.5 text-lg font-extrabold text-ink">{exam.title}</p>
                 </div>
                 {session ? (

@@ -7,10 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "mobile:sync": "next build && cap sync",
     "android": "npm run mobile:sync && cap open android",
     "ios": "npm run mobile:sync && cap open ios",
-    "db:keys": "tsx --tsconfig tsconfig.json scripts/generate-question-keys.ts"
+    "db:keys": "tsx --tsconfig tsconfig.json scripts/generate-question-keys.ts",
+    "blueprint:coverage": "tsx --tsconfig tsconfig.json scripts/blueprint-coverage.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
@@ -32,16 +35,18 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.3",
+    "@electric-sql/pglite": "^0.5.13",
     "@tailwindcss/turbopack": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/katex": "^0.16.8",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.5"
   }
 }

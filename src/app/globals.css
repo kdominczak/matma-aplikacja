@@ -54,16 +54,17 @@
     from { opacity: 0; transform: scale(0.6); }
     to { opacity: 1; transform: scale(1); }
   }
-  /* powolne „pływanie” plam światła w tle ekranu głównego */
+  /* powolne „pływanie” plam światła w tle ekranu głównego – sam translate3d (kompozytor, bez skalowania,
+     które zmuszało przeglądarkę do ponownego rasteryzowania warstwy) */
   @keyframes drift {
-    from { transform: translate(0, 0) scale(1); }
-    to { transform: translate(6%, 8%) scale(1.15); }
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(6%, 8%, 0); }
   }
   /* symbole matematyczne w tle: powolne unoszenie się z lekkim obrotem (czas trwania ustawia komponent) */
   @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    33% { transform: translateY(-22px) rotate(4deg); }
-    66% { transform: translateY(10px) rotate(-3deg); }
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    33% { transform: translate3d(0, -22px, 0) rotate(4deg); }
+    66% { transform: translate3d(0, 10px, 0) rotate(-3deg); }
   }
 }
 
@@ -179,17 +180,72 @@
 }
 
 /*
- * Szkło: półprzezroczyste tło karty z rozmyciem tego, co pod spodem (plamy światła, symbole)
- * i jaśniejsza krawędź u góry – jak odbicie światła na tafli. Stosujemy zamiast `bg-card`.
+ * Szkło: półprzezroczyste tło karty (prześwitują plamy światła) i jaśniejsza krawędź u góry – jak odbicie
+ * światła na tafli. Stosujemy zamiast `bg-card`.
+ * Bez `backdrop-filter`: nad ruchomym tłem ekranu głównego przeglądarki Chromium (Chrome, Opera, Edge)
+ * przeliczały rozmycie w każdej klatce i tło migało; na pozostałych ekranach rozmycie i tak nic nie dawało.
  */
 @utility glass-card {
-  background-color: color-mix(in oklab, var(--color-card) 78%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  backdrop-filter: blur(16px) saturate(140%);
+  background-color: color-mix(in oklab, var(--color-card) 86%, transparent);
   border-top-color: rgb(255 255 255 / 0.9);
   &:where(.dark, .dark *) {
     border-top-color: rgb(255 255 255 / 0.1);
   }
+}
+
+/*
+ * Tło ekranu głównego (GlowBackground / FloatingSymbols).
+ * Plamy: miękki gradient radialny zamiast `filter: blur` – wygląda tak samo, a nie kosztuje filtra przy każdej klatce.
+ */
+.glow-blob {
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, var(--glow), transparent);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.glow-blue { --glow: rgb(59 130 246 / 0.16); }
+.glow-violet { --glow: rgb(139 92 246 / 0.16); }
+.glow-fuchsia { --glow: rgb(99 102 241 / 0.12); }
+.dark .glow-blue { --glow: rgb(59 130 246 / 0.4); }
+.dark .glow-violet { --glow: rgb(139 92 246 / 0.4); }
+.dark .glow-fuchsia { --glow: rgb(217 70 239 / 0.24); }
+
+:root { --symbol-opacity: 0.07; }
+.dark { --symbol-opacity: 0.13; }
+
+/* Paralaksa symboli przy przewijaniu: animacja sterowana przewijaniem działa na kompozytorze,
+   bez nasłuchiwania `scroll` w JS. Przeglądarki bez wsparcia po prostu nie przesuwają symboli. */
+@supports (animation-timeline: scroll()) {
+  .scroll-parallax {
+    animation: scroll-parallax linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 100vh;
+  }
+  @keyframes scroll-parallax {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(0, calc(-25vh * var(--depth, 1)), 0); }
+  }
+}
+
+/* Profil: pierścień skuteczności „napełnia się”, a paski opanowania rosną od zera (sam CSS, bez renderów;
+   przy „ogranicz ruch” animacje skraca globalna reguła prefers-reduced-motion). */
+.ring-fill {
+  animation: ring-fill 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-length); }
+}
+.bar-grow {
+  transform-origin: left;
+  animation: bar-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-parallax { animation: none; }
 }
 
 body {

@@ -1,19 +1,9 @@
 import { DIFFICULTIES, formulaGroup, testQuestions, topicsForTarget } from "@/data/topics";
+import { seededRandom } from "@/lib/random";
 import type { QuizQuestion } from "@/types/quiz";
 import type { FormulaGroup, Target } from "@/types/topic";
 
 export const DAILY_QUESTION_COUNT = 10;
-
-/** Prosty generator pseudolosowy z ziarnem – ten sam zestaw przez cały dzień. */
-function seededRandom(seed: string) {
-  let h = 2166136261;
-  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-  return () => {
-    h = Math.imul(h ^ (h >>> 15), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    return ((h ^= h >>> 16) >>> 0) / 4294967296;
-  };
-}
 
 /** Losuje zadania dnia z działów planu (wszystkie poziomy trudności). */
 export function dailyChallenge(day: string, target: Target): { questions: QuizQuestion[]; formulaGroups: FormulaGroup[] } {

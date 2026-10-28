@@ -9,20 +9,29 @@ import { hapticSuccess, hapticTap } from "@/lib/haptics";
 
 const RESEND_SECONDS = 60;
 
-/** Konto z e-mailem i kopia postępu w chmurze – zabezpieczenie przed zmianą albo wyczyszczeniem telefonu. */
-export default function AccountCard() {
+/**
+ * Konto z e-mailem i kopia postępu w chmurze – zabezpieczenie przed zmianą albo wyczyszczeniem telefonu.
+ * `embedded` – bez własnej karty i nagłówka (wewnątrz grupy w ustawieniach).
+ */
+export default function AccountCard({ embedded = false }: { embedded?: boolean }) {
   const account = useAccount();
   if (account.status === "disabled") return null;
 
+  const content = (
+    <>
+      {account.status === "loading" && <div className="mt-3 h-24 animate-pulse rounded-2xl bg-subtle" />}
+      {account.status === "email" && <SignedIn email={account.email} />}
+      {(account.status === "signed-out" || account.status === "anonymous") && <SignInFlow anonymous={account.status === "anonymous"} />}
+    </>
+  );
+  if (embedded) return content;
   return (
     <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
       <h2 className="flex items-center gap-2 font-extrabold text-ink">
         <Icon name="lock" className="h-5 w-5 text-brand" />
         Konto i kopia zapasowa
       </h2>
-      {account.status === "loading" && <div className="mt-3 h-24 animate-pulse rounded-2xl bg-subtle" />}
-      {account.status === "email" && <SignedIn email={account.email} />}
-      {(account.status === "signed-out" || account.status === "anonymous") && <SignInFlow anonymous={account.status === "anonymous"} />}
+      {content}
     </section>
   );
 }
@@ -40,7 +49,7 @@ function SignedIn({ email }: { email: string }) {
   }[cloud.state];
 
   return (
-    <div className="mt-2 flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
         Zalogowano jako <strong className="break-all text-ink">{email}</strong>. Postęp, odznaki, Pudełko porażek i historia arkuszy są w chmurze –
         na nowym telefonie wystarczy się zalogować.
@@ -117,7 +126,7 @@ function SignInFlow({ anonymous }: { anonymous: boolean }) {
   }
 
   return (
-    <div className="mt-2 flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <p className="text-sm text-muted">
         {anonymous
           ? "Twoje konto w rankingu nie ma e-maila – po zmianie albo wyczyszczeniu telefonu przepadnie razem z postępem. Dodaj e-mail, a zrobimy kopię w chmurze."

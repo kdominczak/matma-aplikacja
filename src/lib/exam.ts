@@ -181,3 +181,19 @@ export function examStats(list: ExamAttempt[]): ExamStats | null {
     totalSec: list.reduce((sum, a) => sum + a.durationSec, 0),
   };
 }
+
+// ── Ostatni arkusz losowy (nie ma go na stałej liście – zapamiętujemy kod, żeby dało się do niego wrócić) ──
+
+const LAST_RANDOM_KEY = "exam.lastRandom";
+
+export async function rememberRandomExam(code: string): Promise<void> {
+  await Preferences.set({ key: LAST_RANDOM_KEY, value: code }).catch(() => {});
+}
+
+export async function lastRandomExamCode(): Promise<string | null> {
+  try {
+    return (await Preferences.get({ key: LAST_RANDOM_KEY })).value;
+  } catch {
+    return null;
+  }
+}

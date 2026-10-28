@@ -2,19 +2,25 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { BadgeIcon } from "@/components/achievements/Badge";
+import NextBadge, { nextAchievement } from "@/components/achievements/NextBadge";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/layout/AppShell";
 import MistakesCard from "@/components/mistakes/MistakesCard";
 import EstimateChart from "@/components/progress/EstimateChart";
-import TopicCard from "@/components/topic/TopicCard";
+import EmptyState from "@/components/ui/EmptyState";
 import Icon, { type IconName } from "@/components/ui/Icon";
-import { DIFFICULTIES, topics } from "@/data/topics";
+import { DIFFICULTIES, practiceTasks, topics } from "@/data/topics";
 import { useAccount } from "@/lib/account";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AVATAR_COLORS, prepareAvatar, saveAppSettings, useAppSettings, type AvatarColor } from "@/lib/app-settings";
-import { currentEstimate } from "@/lib/estimate";
+import { answersToEstimate, currentEstimate } from "@/lib/estimate";
+import { MATURA_POINTS } from "@/lib/exam-weights";
 import { hapticTap } from "@/lib/haptics";
-import { longestStreak, passedLevels, streak, testKey, totalStars, useProgress } from "@/lib/progress";
+import { topicMastery } from "@/lib/mastery";
+import { longestPlanStreak } from "@/lib/planner";
+import { plural } from "@/lib/plural";
+import { streak, testKey, totalStars, useProgress, weekSolved } from "@/lib/progress";
 import {
   NICK_PATTERN,
   removeRankingAvatar,
@@ -45,43 +51,65 @@ export default function ProfileView() {
         }
       />
 
-      <ProfileCard />
+      <ProfileCard progress={progress} />
       <SecureAccountNudge />
 
       <Section title="Statystyki">
-        <StatsGrid progress={progress} />
-        <TopicAccuracy progress={progress} />
+        <div className="grid gap-3 lg:grid-cols-2">
+          <AccuracyCard progress={progress} />
+          <WeekStreak progress={progress} showRecord className="flex flex-col justify-between" />
+        </div>
+        <StatTiles progress={progress} />
       </Section>
 
-      <Section title="Postępy">
+      <Section title="Odznaki" action={{ label: `Wszystkie · ${Object.keys(progress.achievements).length}/${ACHIEVEMENTS.length}`, href: "/odznaki" }}>
+        <BadgesShowcase progress={progress} />
+      </Section>
+
+      <Section title="Opanowanie działów">
+        <MasteryList progress={progress} />
+      </Section>
+
+      <Section title="Szacowany wynik">
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
           <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6">
             <div className="flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h3 className="text-lg font-extrabold text-ink">Szacowany wynik matury</h3>
-                <p className="text-sm text-muted">Na podstawie zaliczonych testów i wagi działów w arkuszu</p>
-              </div>
-              <p className="text-3xl font-extrabold tracking-tight text-brand">{currentEstimate(progress)}%</p>
+              <p className="text-sm text-muted">Ze skuteczności we wszystkich zadaniach i wagi działów na maturze</p>
+              {answersToEstimate(progress) > 0 ? (
+                <p className="text-sm font-bold text-brand">
+                  Zbieramy dane – jeszcze {answersToEstimate(progress)} {plural(answersToEstimate(progress), "zadanie", "zadania", "zadań")}
+                </p>
+              ) : (
+                <p className="text-3xl font-extrabold tracking-tight text-brand tabular-nums">
+                  {currentEstimate(progress)}%{" "}
+                  <span className="text-base font-bold text-muted">
+                    · ok. {Math.round((currentEstimate(progress) / 100) * MATURA_POINTS)}/{MATURA_POINTS} pkt
+                  </span>
+                </p>
+              )}
             </div>
             <div className="mt-4">
               <EstimateChart progress={progress} />
             </div>
           </section>
-          <div className="flex flex-col gap-4">
-            <WeekStreak progress={progress} />
-            <MistakesCard progress={progress} />
-          </div>
+          <MistakesCard progress={progress} />
         </div>
-        <StartedTopics progress={progress} />
       </Section>
     </Page>
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, action, children }: { title: string; action?: { label: string; href: string }; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-xl font-extrabold text-ink">{title}</h2>
+    <section className="flex flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-xl font-extrabold text-ink">{title}</h2>
+        {action && (
+          <Link href={action.href} className="-my-2 flex min-h-11 shrink-0 items-center gap-1 text-sm font-bold text-brand">
+            {action.label} <Icon name="chevron" className="h-4 w-4" />
+          </Link>
+        )}
+      </div>
       {children}
     </section>
   );
@@ -89,7 +117,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 // ── Karta profilu: zdjęcie, kolor, imię/nick, miejsce w rankingu ──
 
-function ProfileCard() {
+function ProfileCard({ progress }: { progress: Progress }) {
   const settings = useAppSettings();
   const ranking = useRanking();
   const name = useDisplayName();
@@ -189,6 +217,7 @@ function ProfileCard() {
         </div>
       )}
 
+      <HeroStats progress={progress} />
       <RankingStrip />
       <p className="sr-only">Zalogowany jako {name}</p>
     </section>
@@ -325,145 +354,228 @@ function RankingStrip() {
 
 // ── Statystyki ──
 
-function StatsGrid({ progress }: { progress: Progress }) {
-  const { answered, correct } = progress.stats;
-  const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : null;
+/** Trzy liczby, które uczeń chce zobaczyć od razu: seria, rozwiązane zadania i szacowany wynik. */
+function HeroStats({ progress }: { progress: Progress }) {
   const days = streak(progress);
-  const best = longestStreak(progress);
-  const earned = Object.keys(progress.achievements).length;
-  const practiceSolved = Object.values(progress.practice).filter((r) => r.points === r.maxPoints).length;
-
+  const items: { icon: IconName; value: string; label: string; tone: string }[] = [
+    { icon: "flame", value: String(days), label: plural(days, "dzień serii", "dni serii", "dni serii"), tone: "text-orange-300" },
+    { icon: "checkCircle", value: String(progress.stats.correct), label: "rozwiązane", tone: "text-emerald-300" },
+    { icon: "target", value: answersToEstimate(progress) > 0 ? "–" : `${currentEstimate(progress)}%`, label: "szac. wynik", tone: "text-sky-300" },
+  ];
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div className="rounded-3xl border border-line glass-card p-5 shadow-card sm:col-span-2">
-        <p className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-          <Icon name="target" className="h-4 w-4" />
-          Skuteczność
-        </p>
-        <p className="mt-1 text-4xl font-extrabold tracking-tight text-ink">{accuracy === null ? "–" : `${accuracy}%`}</p>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-subtle">
-          <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${accuracy ?? 0}%` }} />
+    <dl className="relative mt-5 grid grid-cols-3 gap-2">
+      {items.map((item) => (
+        <div key={item.label} className="min-w-0 rounded-2xl bg-white/10 px-2 py-3 text-center">
+          <dt className="sr-only">{item.label}</dt>
+          <dd>
+            <Icon name={item.icon} className={`mx-auto h-5 w-5 ${item.tone}`} />
+            <span className="mt-1 block text-2xl font-extrabold tracking-tight tabular-nums">{item.value}</span>
+            <span className="block truncate text-[11px] font-bold uppercase tracking-wide text-white/60">{item.label}</span>
+          </dd>
         </div>
-        <p className="mt-2 text-sm text-muted">
-          {answered > 0 ? `${correct} z ${answered} odpowiedzi poprawnych` : "Rozwiąż pierwsze zadanie, aby zobaczyć skuteczność."}
-        </p>
-      </div>
-      <Stat icon="checkCircle" tone="text-emerald-600 dark:text-emerald-400" label="Rozwiązane poprawnie" value={correct} note={`z ${answered} prób`} />
-      <Stat icon="flame" tone="text-orange-500" label="Seria dni" value={days} note={`Rekord: ${best} ${best === 1 ? "dzień" : "dni"}`} />
-      <Stat icon="tasks" tone="text-brand" label="Zadania (zakładka)" value={practiceSolved} note="rozwiązane w całości" href="/zadania" />
-      <Stat icon="star" tone="text-amber-500" label="Gwiazdki" value={totalStars(progress)} />
-      <Stat icon="layers" tone="text-violet-500" label="Zaliczone testy" value={Object.values(progress.tests).filter((t) => !t.fromPlacement).length} />
-      <Stat icon="medal" tone="text-violet-500" label="Odznaki" value={`${earned}/${ACHIEVEMENTS.length}`} href="/odznaki" />
-    </div>
+      ))}
+    </dl>
   );
 }
 
-function Stat({
-  icon,
-  tone,
-  label,
-  value,
-  note,
-  href,
-}: {
-  icon: IconName;
-  tone: string;
-  label: string;
-  value: string | number;
-  note?: string;
-  href?: string;
-}) {
-  const body = (
-    <>
-      <p className={`flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest ${tone}`}>
-        <Icon name={icon} className="h-4 w-4" />
-        {label}
-      </p>
-      <p className="mt-1 text-3xl font-extrabold tracking-tight text-ink tabular-nums">{value}</p>
-      {note && <p className="text-sm text-muted">{note}</p>}
-    </>
-  );
-  const className = "rounded-3xl border border-line glass-card p-5 shadow-card";
-  return href ? (
-    <Link href={href} className={`${className} card-hover hover:border-brand/40`}>
-      {body}
-    </Link>
-  ) : (
-    <div className={className}>{body}</div>
-  );
-}
+const RING_RADIUS = 42;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
-const LEVEL_SHORT = { podstawowy: "P", sredni: "Ś", zaawansowany: "Z" } as const;
-
-/** Skuteczność per dział (z rozbiciem na poziomy) – najsłabsze działy na górze. */
-function TopicAccuracy({ progress }: { progress: Progress }) {
-  const rows = topics
-    .map((topic) => {
-      const levels = DIFFICULTIES.map((d) => ({ level: d, stat: progress.topicStats[testKey(topic.id, d.id)] }));
-      const answered = levels.reduce((sum, l) => sum + (l.stat?.answered ?? 0), 0);
-      const correct = levels.reduce((sum, l) => sum + (l.stat?.correct ?? 0), 0);
-      return { topic, levels, answered, accuracy: answered ? correct / answered : 0 };
-    })
-    .filter((row) => row.answered > 0)
-    .sort((a, b) => a.accuracy - b.accuracy);
+/** Skuteczność jako pierścień – główny kafel statystyk. */
+function AccuracyCard({ progress }: { progress: Progress }) {
+  const { answered, correct } = progress.stats;
+  const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+  const week = weekSolved(progress);
+  const tone = accuracy >= 80 ? "text-emerald-500" : accuracy >= 50 ? "text-amber-500" : "text-rose-500";
 
   return (
-    <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6">
-      <h3 className="font-extrabold text-ink">Skuteczność w działach</h3>
-      <p className="text-sm text-muted">Najsłabsze działy na górze – tam warto wrócić najpierw.</p>
-      {rows.length === 0 ? (
-        <p className="mt-4 rounded-2xl border border-dashed border-line p-5 text-center text-sm text-muted">
-          Rozwiąż kilka zadań, a zobaczysz tu swoją skuteczność w każdym dziale.
+    <section className="flex items-center gap-5 rounded-3xl border border-line glass-card p-5 shadow-card">
+      <div className="relative h-28 w-28 shrink-0">
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden>
+          <circle cx="50" cy="50" r={RING_RADIUS} fill="none" strokeWidth="10" className="stroke-subtle" />
+          {answered > 0 && (
+            <circle
+              cx="50"
+              cy="50"
+              r={RING_RADIUS}
+              fill="none"
+              strokeWidth="10"
+              strokeLinecap="round"
+              stroke="currentColor"
+              className={`ring-fill ${tone}`}
+              strokeDasharray={RING_LENGTH}
+              strokeDashoffset={RING_LENGTH * (1 - accuracy / 100)}
+              style={{ "--ring-length": RING_LENGTH } as React.CSSProperties}
+            />
+          )}
+        </svg>
+        <span className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-extrabold tracking-tight text-ink tabular-nums">{answered > 0 ? `${accuracy}%` : "–"}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wide text-faint">skuteczność</span>
+        </span>
+      </div>
+      <div className="min-w-0">
+        <p className="font-extrabold text-ink">{answered > 0 ? `${correct} z ${answered} poprawnie` : "Jeszcze bez odpowiedzi"}</p>
+        <p className="mt-1 text-sm text-muted">
+          {answered > 0
+            ? week > 0
+              ? `W tym tygodniu: ${week} ${plural(week, "zadanie", "zadania", "zadań")}. Tak trzymaj!`
+              : "W tym tygodniu jeszcze nic – plan na dziś zajmie kilkanaście minut."
+            : "Rozwiąż pierwsze zadanie, a zobaczysz tu swoją skuteczność."}
         </p>
-      ) : (
-        <ul className="mt-4 flex flex-col gap-4">
-          {rows.map(({ topic, levels, answered, accuracy }) => {
-            const percent = Math.round(accuracy * 100);
-            const tone = percent >= 80 ? "bg-emerald-500" : percent >= 50 ? "bg-amber-400" : "bg-rose-500";
-            return (
-              <li key={topic.id}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="min-w-0 truncate text-sm font-bold text-ink">{topic.title}</p>
-                  <p className="shrink-0 text-sm font-extrabold text-ink tabular-nums">
-                    {percent}% <span className="text-xs font-semibold text-faint">· {answered} odp.</span>
-                  </p>
-                </div>
-                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-subtle">
-                  <div className={`h-full rounded-full transition-all duration-500 ${tone}`} style={{ width: `${percent}%` }} />
-                </div>
-                <p className="mt-1 flex gap-3 text-xs font-semibold text-faint">
-                  {levels.map(({ level, stat }) => (
-                    <span key={level.id} title={level.label}>
-                      {LEVEL_SHORT[level.id]}: {stat ? `${stat.correct}/${stat.answered}` : "–"}
-                    </span>
-                  ))}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+        <Link href="/plan" className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-2xl bg-brand-soft px-4 text-sm font-bold text-brand active:scale-[0.98]">
+          Plan na dziś <Icon name="arrow" className="h-4 w-4" />
+        </Link>
+      </div>
     </section>
   );
 }
 
-function StartedTopics({ progress }: { progress: Progress }) {
-  const started = topics.filter((t) => passedLevels(progress, t.id) > 0);
+/** Kafle drugiego rzędu – każdy prowadzi tam, gdzie liczbę da się podnieść. */
+function StatTiles({ progress }: { progress: Progress }) {
+  const practiceSolved = Object.values(progress.practice).filter((r) => r.verifiedPoints === r.maxPoints).length;
+  const passed = Object.values(progress.tests).filter((t) => !t.fromPlacement).length;
+  const planBest = longestPlanStreak(progress);
+  const stars = totalStars(progress);
   return (
-    <div className="flex flex-col gap-3">
-      <h3 className="font-extrabold text-ink">Rozpoczęte działy</h3>
-      {started.length === 0 ? (
-        <p className="rounded-3xl border border-dashed border-line p-6 text-center text-sm text-muted">
-          Zalicz pierwszy test, a Twoje działy pojawią się tutaj.
-        </p>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {started.map((topic) => (
-            <TopicCard key={topic.id} topic={topic} progress={progress} />
-          ))}
-        </div>
-      )}
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Tile icon="tasks" tone="bg-brand-soft text-brand" value={practiceSolved} label={plural(practiceSolved, "zadanie rozwiązane", "zadania rozwiązane", "zadań rozwiązanych")} note="w zakładce Zadania" href="/zadania" />
+      <Tile icon="star" tone="bg-amber-500/15 text-amber-500" value={stars} label={plural(stars, "gwiazdka", "gwiazdki", "gwiazdek")} note="z testów działów" href="/" />
+      <Tile icon="layers" tone="bg-violet-500/15 text-violet-500" value={passed} label={plural(passed, "zaliczony test", "zaliczone testy", "zaliczonych testów")} note="działów z lekcjami" href="/" />
+      <Tile icon="calendar" tone="bg-teal-500/15 text-teal-500" value={planBest} label={plural(planBest, "dzień z planem", "dni z planem", "dni z planem")} note="najdłuższa seria planu" href="/plan" />
     </div>
+  );
+}
+
+function Tile({ icon, tone, value, label, note, href }: { icon: IconName; tone: string; value: number; label: string; note: string; href: string }) {
+  return (
+    <Link
+      href={href}
+      className="group flex min-w-0 flex-col gap-2 rounded-3xl border border-line glass-card p-4 shadow-card card-hover hover:border-brand/40 active:scale-[0.98]"
+    >
+      <span className="flex items-center justify-between">
+        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}>
+          <Icon name={icon} className="h-[18px] w-[18px]" />
+        </span>
+        <Icon name="chevron" className="h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5" />
+      </span>
+      <span>
+        <span className="block text-3xl font-extrabold tracking-tight text-ink tabular-nums">{value}</span>
+        <span className="line-clamp-2 block text-sm leading-snug font-bold text-body">{label}</span>
+        <span className="block truncate text-xs text-faint">{note}</span>
+      </span>
+    </Link>
+  );
+}
+
+/** Gablota: zdobyte odznaki (najnowsze pierwsze) i najbliższa do zdobycia. */
+function BadgesShowcase({ progress }: { progress: Progress }) {
+  const earned = ACHIEVEMENTS.filter((a) => progress.achievements[a.id]).sort((a, b) => progress.achievements[b.id].localeCompare(progress.achievements[a.id]));
+  const next = nextAchievement(progress);
+
+  return (
+    <section className="flex flex-col gap-4 rounded-3xl border border-line glass-card p-5 shadow-card">
+      {earned.length > 0 ? (
+        <ul className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1" aria-label="Zdobyte odznaki">
+          {earned.map((a) => (
+            <li key={a.id} className="flex w-20 shrink-0 flex-col items-center gap-2 text-center">
+              <BadgeIcon achievement={a} unlocked />
+              <span className="line-clamp-2 text-xs font-bold leading-tight text-ink">{a.title}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted">Pierwsza odznaka jest bliżej, niż myślisz – zobacz, co ją odblokuje.</p>
+      )}
+      {next && <NextBadge progress={progress} achievement={next} />}
+    </section>
+  );
+}
+
+const LEVEL_NAMES = { podstawowy: "podstawowy", sredni: "średni", zaawansowany: "zaawansowany" } as const;
+const LEVEL_SHORT = { podstawowy: "podst.", sredni: "śr.", zaawansowany: "zaaw." } as const;
+const VISIBLE_TOPICS = 5;
+
+/**
+ * Opanowanie działów (ta sama miara co w planie na dziś) – najsłabsze na górze. Każdy wiersz prowadzi
+ * prosto do zadań z działu, a kropki pokazują skuteczność na poziomach trudności.
+ */
+function MasteryList({ progress }: { progress: Progress }) {
+  const [expanded, setExpanded] = useState(false);
+  const rows = topics
+    .map((topic) => {
+      const levels = DIFFICULTIES.map((d) => ({ level: d, stat: progress.topicStats[testKey(topic.id, d.id)] }));
+      const answered = levels.reduce((sum, l) => sum + (l.stat?.answered ?? 0), 0);
+      return { topic, levels, answered, mastery: Math.round(topicMastery(progress, topic) * 100) };
+    })
+    .filter((row) => row.answered > 0)
+    .sort((a, b) => a.mastery - b.mastery);
+
+  if (rows.length === 0) {
+    return (
+      <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
+        <EmptyState icon="layers" title="Tu zobaczysz swoje mocne i słabe działy" action={{ label: "Zacznij plan na dziś", href: "/plan" }}>
+          Po kilku zadaniach pokażemy, które działy masz opanowane, a do których warto wrócić.
+        </EmptyState>
+      </section>
+    );
+  }
+
+  const shown = expanded ? rows : rows.slice(0, VISIBLE_TOPICS);
+  return (
+    <section className="rounded-3xl border border-line glass-card shadow-card">
+      <p className="px-5 pt-4 text-sm text-muted">Najsłabsze działy na górze – stuknij, żeby od razu poćwiczyć.</p>
+      <ul className="mt-2 flex flex-col divide-y divide-line">
+        {shown.map(({ topic, levels, answered, mastery }) => {
+          const tone = mastery >= 80 ? "bg-emerald-500" : mastery >= 50 ? "bg-amber-400" : "bg-rose-500";
+          const href = practiceTasks(topic).length > 0 ? `/zadania/${topic.id}` : `/dzial/${topic.id}`;
+          return (
+            <li key={topic.id}>
+              <Link href={href} className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-subtle/60 active:bg-subtle">
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 truncate text-sm font-bold text-ink">{topic.title}</span>
+                    <span className="shrink-0 text-sm font-extrabold text-ink tabular-nums">{mastery}%</span>
+                  </span>
+                  <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-subtle">
+                    <span className={`bar-grow block h-full rounded-full ${tone}`} style={{ width: `${Math.max(mastery, 3)}%` }} />
+                  </span>
+                  <span className="mt-1.5 flex items-center gap-2 text-xs text-faint">
+                    {levels.map(({ level, stat }) => {
+                      const ratio = stat && stat.answered > 0 ? stat.correct / stat.answered : null;
+                      const dot = ratio === null ? "bg-line" : ratio >= 0.8 ? "bg-emerald-500" : ratio >= 0.5 ? "bg-amber-400" : "bg-rose-500";
+                      return (
+                        <span key={level.id} className="flex items-center gap-1" title={`${level.label}: ${stat ? `${stat.correct}/${stat.answered}` : "bez zadań"}`}>
+                          <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden />
+                          <span className="sr-only">
+                            Poziom {LEVEL_NAMES[level.id]}: {stat ? `${stat.correct} z ${stat.answered} poprawnie` : "bez zadań"}
+                          </span>
+                          <span aria-hidden>{LEVEL_SHORT[level.id]}</span>
+                        </span>
+                      );
+                    })}
+                    <span className="ml-auto">
+                      {answered} {plural(answered, "odpowiedź", "odpowiedzi", "odpowiedzi")}
+                    </span>
+                  </span>
+                </span>
+                <Icon name="chevron" className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      {rows.length > VISIBLE_TOPICS && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="flex min-h-12 w-full items-center justify-center gap-1.5 rounded-b-3xl border-t border-line text-sm font-bold text-brand hover:bg-subtle/60"
+        >
+          {expanded ? "Pokaż mniej" : `Pokaż wszystkie (${rows.length})`}
+          <Icon name="chevron" className={`h-4 w-4 transition-transform ${expanded ? "-rotate-90" : "rotate-90"}`} />
+        </button>
+      )}
+    </section>
   );
 }
 

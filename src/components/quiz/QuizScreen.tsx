@@ -4,7 +4,7 @@ import { useRef, useState, type ComponentType } from "react";
 import Link from "next/link";
 import ExplainSheet, { TypingDots } from "@/components/quiz/ExplainSheet";
 import QuizSummary from "@/components/quiz/QuizSummary";
-import type { ScratchItem, ScratchTemplate } from "@/components/scratch/ScratchBoard";
+import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
 import TaskScratch from "@/components/scratch/TaskScratch";
 import FormulaList from "@/components/topic/FormulaList";
 import BottomSheet from "@/components/ui/BottomSheet";
@@ -17,6 +17,7 @@ import { streamAi, toAiQuestion } from "@/lib/ai";
 import { useAiReady } from "@/lib/ai-settings";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import type { SaveOutcome } from "@/lib/progress";
+import { clearScratchNotes, useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
 import type { OptionKey, QuizAnswer, QuizQuestion, QuizResult } from "@/types/quiz";
 import type { FormulaGroup } from "@/types/topic";
@@ -66,7 +67,6 @@ export default function QuizScreen(props: Props) {
   const [correct, setCorrect] = useState(0);
   const [hearts, setHearts] = useState(MAX_HEARTS);
   const [panel, setPanel] = useState<Panel>(null);
-  const [notes, setNotes] = useState<Record<string, ScratchItem[]>>({});
   const [template, setTemplate] = useState<ScratchTemplate>("grid");
   const [result, setResult] = useState<QuizResult | null>(null);
   const [outcome, setOutcome] = useState<SaveOutcome | null>(null);
@@ -75,7 +75,7 @@ export default function QuizScreen(props: Props) {
   const isCorrect = selected === question.correct;
   const isLast = index + 1 >= questions.length;
   const progressPercent = ((index + (checked ? 1 : 0)) / questions.length) * 100;
-  const questionNotes = notes[question.id] ?? [];
+  const [questionNotes, setQuestionNotes] = useScratchNotes(question.id);
 
   // Podpowiedzi: najpierw te z klucza, potem (jeśli działa AI) kolejne stopnie generowane na żywo.
   const authoredHints = question.hints ?? [];
@@ -150,7 +150,7 @@ export default function QuizScreen(props: Props) {
     setAnswers([]);
     setCorrect(0);
     setHearts(MAX_HEARTS);
-    setNotes({});
+    clearScratchNotes(questions.map((q) => q.id));
     setResult(null);
     setOutcome(null);
   }
@@ -295,7 +295,7 @@ export default function QuizScreen(props: Props) {
           <TaskScratch
             prompt={question.prompt}
             items={questionNotes}
-            onChange={(items) => setNotes((n) => ({ ...n, [question.id]: items }))}
+            onChange={setQuestionNotes}
             template={template}
             onTemplateChange={setTemplate}
             formulaGroups={formulaGroups}

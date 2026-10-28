@@ -137,7 +137,6 @@ function TopBar({ active }: { active: string }) {
 export default function AppShell({ children }: { children: ReactNode }) {
   const active = useActiveHref();
   const pathname = usePathname().replace(/(.)\/$/, "$1");
-  const progress = useProgress();
   const [moreOpen, setMoreOpen] = useState(false);
   const secondary = NAV.filter((item) => !item.primary);
   const secondaryActive = secondary.some((item) => item.href === active);
@@ -181,19 +180,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="mt-auto flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-navy p-4 text-white">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Seria</p>
-                <p className="mt-0.5 flex items-center gap-1 text-lg font-extrabold">
-                  <Icon name="flame" className="h-4 w-4 text-orange-400" />
-                  {progress ? streak(progress) : 0}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Rozwiązane</p>
-                <p className="mt-0.5 text-lg font-extrabold">{progress?.stats.correct ?? 0}</p>
-              </div>
-            </div>
             <ThemeSwitcher />
           </div>
         </aside>

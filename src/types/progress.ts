@@ -46,6 +46,18 @@ export interface Stats {
   earlySessions: number;
   /** Zadania wyjęte z „Pudełka porażek” poprawną odpowiedzią. */
   mistakesBeaten: number;
+  /** Zadania utrwalone powtórkami (przeszły wszystkie odstępy – patrz `reviews`). */
+  reviewsMastered: number;
+}
+
+/**
+ * Powtórka w odstępach (pudełka Leitnera). Pomyłka → pudełko 0, powtórka jutro. Każda poprawna odpowiedź
+ * w terminie przesuwa zadanie dalej (3, 7, 14, 30 dni); po ostatnim pudełku zadanie jest utrwalone i wypada.
+ */
+export interface ReviewItem {
+  box: number;
+  /** Dzień, od którego zadanie czeka na powtórkę (RRRR-MM-DD). */
+  due: string;
 }
 
 /** Zadanie, w którym uczeń się pomylił – czeka w „Pudełku porażek”. */
@@ -73,4 +85,13 @@ export interface Progress {
   placement?: PlacementState;
   /** Zakładka „Zadania”: id zadania → najlepszy wynik. */
   practice: Record<string, PracticeRecord>;
+  /** Powtórki w odstępach: id zadania → pudełko i termin. */
+  reviews: Record<string, ReviewItem>;
+  /** Plan na dziś: dzień → liczba ukończonych sesji planu. */
+  planDays: Record<string, number>;
+  /**
+   * Dzienna historia skuteczności: dzień → `${topicId}/${difficulty}` → [odpowiedzi, poprawne].
+   * Z niej odtwarzamy szacowany wynik w czasie (wykres). Sumy = `topicStats`.
+   */
+  statsByDay: Record<string, Record<string, [number, number]>>;
 }

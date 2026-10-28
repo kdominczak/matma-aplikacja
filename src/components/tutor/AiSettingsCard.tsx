@@ -9,7 +9,7 @@ import { GROQ_MODELS, removeApiKey, saveAiSettings, useAiSettings } from "@/lib/
  * Podłączenie darmowego korepetytora: uczeń wkleja własny klucz Groq,
  * który zostaje tylko na tym urządzeniu. Bez klucza funkcje AI są ukryte.
  */
-export default function AiSettingsCard({ intro = false }: { intro?: boolean }) {
+export default function AiSettingsCard({ intro = false, embedded = false }: { intro?: boolean; embedded?: boolean }) {
   const settings = useAiSettings();
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState<"idle" | "checking" | "invalid" | "offline">("idle");
@@ -34,9 +34,11 @@ export default function AiSettingsCard({ intro = false }: { intro?: boolean }) {
   }
 
   const connected = Boolean(settings.apiKey);
+  // klucz pokazujemy tylko w skrócie – wystarczy, żeby rozpoznać, który jest podłączony
+  const masked = connected ? `${settings.apiKey.slice(0, 4)}••••${settings.apiKey.slice(-4)}` : "";
 
   return (
-    <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6">
+    <section className={embedded ? "" : "rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6"}>
       <div className="flex items-start gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
           <Icon name="sparkles" className="h-6 w-6" />
@@ -45,7 +47,7 @@ export default function AiSettingsCard({ intro = false }: { intro?: boolean }) {
           <h2 className="font-extrabold text-ink">{intro ? "Podłącz darmowego korepetytora AI" : "Korepetytor AI"}</h2>
           <p className="text-sm text-muted">
             {connected
-              ? "Połączono z Groq. Klucz jest zapisany tylko na tym urządzeniu."
+              ? `Połączono z Groq (${masked}). Klucz jest zapisany tylko na tym urządzeniu.`
               : "Korepetytor działa na darmowych modelach Groq. Wystarczy Twój własny, bezpłatny klucz."}
           </p>
         </div>
@@ -96,7 +98,7 @@ export default function AiSettingsCard({ intro = false }: { intro?: boolean }) {
             </button>
           </form>
           {status === "invalid" && (
-            <p className="text-sm font-semibold text-rose-500">Ten klucz nie działa – sprawdź, czy skopiowałeś go w całości.</p>
+            <p className="text-sm font-semibold text-rose-500">Ten klucz nie działa – sprawdź, czy został skopiowany w całości.</p>
           )}
           {status === "offline" && (
             <p className="text-sm font-semibold text-rose-500">Brak połączenia z Groq – sprawdź internet i spróbuj ponownie.</p>

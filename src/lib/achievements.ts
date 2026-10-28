@@ -1,5 +1,6 @@
 import type { IconName } from "@/components/ui/Icon";
 import { topics } from "@/data/topics";
+import { longestPlanStreak } from "@/lib/planner";
 import { earnedLevels, longestStreak, totalStars } from "@/lib/stats";
 import type { Progress } from "@/types/progress";
 
@@ -135,6 +136,33 @@ export const ACHIEVEMENTS: Achievement[] = [
     tone: "amber",
     goal: 30,
     current: totalStars,
+  },
+  {
+    id: "pierwszy-plan",
+    title: "Mam plan",
+    description: "Wykonaj swój pierwszy plan na dziś",
+    icon: "target",
+    tone: "teal",
+    goal: 1,
+    current: (p) => Object.keys(p.planDays).length,
+  },
+  {
+    id: "tydzien-z-planem",
+    title: "Tydzień z planem",
+    description: "Wykonaj plan na dziś 7 dni z rzędu",
+    icon: "flame",
+    tone: "orange",
+    goal: 7,
+    current: longestPlanStreak,
+  },
+  {
+    id: "pamiec-slonia",
+    title: "Pamięć słonia",
+    description: "Utrwal 10 zadań powtórkami (każde wraca coraz rzadziej, aż zostaje na stałe)",
+    icon: "layers",
+    tone: "indigo",
+    goal: 10,
+    current: (p) => p.stats.reviewsMastered,
   },
 ];
 

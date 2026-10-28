@@ -18,6 +18,13 @@ export interface Question {
   trap?: string;
   /** Wykres pod treścią zadania. */
   figure?: Plot;
+  /**
+   * Typ zadania jak w arkuszu CKE (domyślnie wybór ABCD). „truefalse” – ocena prawdziwości dwóch zdań,
+   * zapisana jako cztery kombinacje P/F (1 pkt tylko za obie poprawne oceny – tak punktuje CKE).
+   */
+  format?: "abcd" | "truefalse";
+  /** Rodzina wariantów (np. z jednego szablonu) – dwa zadania z jednej rodziny nie trafiają do jednego arkusza. */
+  family?: string;
 }
 
 /**
@@ -37,6 +44,9 @@ export interface OpenQuestion {
   hints?: string[];
   /** Schemat oceniania: kolejne kroki rozwiązania z punktami (jak w zasadach oceniania CKE). */
   solution: { step: string; points: number }[];
+  /** „short” – krótka odpowiedź (na maturze liczy się sam wynik); domyślnie zadanie z rozwiązaniem. */
+  format?: "short" | "extended";
+  family?: string;
 }
 
 /** Pytanie gotowe do quizu – z etykietą działu i poziomu nad treścią. */

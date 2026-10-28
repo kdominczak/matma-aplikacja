@@ -69,6 +69,18 @@ async function localSavedAt(): Promise<string | null> {
   }
 }
 
+/**
+ * Czy klient ma ważną sesję właśnie tego konta. Bez sesji supabase-js wysyła zapytanie jako rola `anon`,
+ * a ta nie ma dostępu do kopii (42501) – np. gdy zaplanowana wysyłka odpali tuż po wylogowaniu
+ * albo po wygaśnięciu sesji, zanim stan konta zdąży się zmienić. Wtedy po prostu pomijamy synchronizację.
+ */
+async function hasSessionFor(id: string): Promise<boolean> {
+  const db = await supabase();
+  if (!db) return false;
+  const { data } = await db.auth.getSession();
+  return data.session?.user.id === id;
+}
+
 async function pullProgress(id: string): Promise<boolean> {
   const db = await supabase();
   if (!db) return false;
@@ -164,6 +176,10 @@ export function syncNow(): Promise<void> {
   return serial(async () => {
     const id = userId;
     if (!id) return;
+    if (!(await hasSessionFor(id))) {
+      setStatus({ state: "off" });
+      return;
+    }
     setStatus({ state: "syncing" });
     try {
       if (pulledFor !== id) {
@@ -242,6 +258,8 @@ export function resetCloudData(): Promise<void> {
     const id = userId;
     const db = await supabase();
     if (db && id) {
+      // bez sesji nie skasujemy kopii, a potem wróciłaby przy synchronizacji – nie resetujemy wcale
+      if (!(await hasSessionFor(id))) throw new Error("Brak aktywnej sesji – zaloguj się ponownie i spróbuj jeszcze raz.");
       const { data, error } = await db
         .from("user_progress")
         .upsert({ user_id: id, data: {}, updated_at: new Date().toISOString() })

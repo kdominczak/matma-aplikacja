@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ExamNavGrid, { NavLegend } from "@/components/exam/ExamNavGrid";
 import ExamSummary from "@/components/exam/ExamSummary";
-import type { ScratchItem, ScratchTemplate } from "@/components/scratch/ScratchBoard";
+import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
 import TaskScratch from "@/components/scratch/TaskScratch";
 import FormulaList from "@/components/topic/FormulaList";
 import BottomSheet from "@/components/ui/BottomSheet";
@@ -13,11 +13,12 @@ import ErrorState from "@/components/ui/ErrorState";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
-import { examMaxPoints, getExam } from "@/data/exams";
+import { examKindLabel, examMaxPoints, getExam } from "@/data/exams";
 import { formulaGroup, topics, type PracticeTask } from "@/data/topics";
 import { clearSession, finishExam, formatDuration, isAnswered, loadSession, saveAttempt, saveSession } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import { saveExamResult } from "@/lib/progress";
+import { useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
 import type { ExamAttempt, ExamSession, ExamSheet } from "@/types/exam";
 import type { OptionKey } from "@/types/quiz";
@@ -80,7 +81,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
           <Icon name="back" className="h-4 w-4" /> Arkusze
         </Link>
         <p className="mt-3 text-xs font-extrabold uppercase tracking-widest text-brand">
-          {exam.kind === "cke" ? "Oficjalny arkusz CKE" : "Arkusz próbny"} · poziom podstawowy
+          {examKindLabel(exam)} · poziom podstawowy
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-ink">{exam.title}</h1>
         <p className="mt-1 text-muted">{exam.subtitle}</p>
@@ -113,6 +114,9 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
           </li>
         </ul>
 
+        {exam.kind === "losowy" && exam.code && <ShareCode code={exam.code} />}
+        {exam.relaxations && exam.relaxations.length > 0 && <Relaxations exam={exam} />}
+
         <button
           onClick={() => {
             hapticTap();
@@ -130,12 +134,13 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
 function ExamInProgress({ exam, initial, onFinished }: { exam: ExamSheet; initial: ExamSession; onFinished: (attempt: ExamAttempt) => void }) {
   const [session, setSession] = useState(initial);
   const [panel, setPanel] = useState<"formulas" | "overview" | "finish" | null>(null);
-  const [notes, setNotes] = useState<Record<string, ScratchItem[]>>({});
   const [template, setTemplate] = useState<ScratchTemplate>("grid");
   const finishing = useRef(false);
 
   const index = Math.min(session.current, exam.tasks.length - 1);
   const task = exam.tasks[index];
+  // notatki osobno dla każdego podejścia do arkusza – nowe podejście zaczyna się od czystych kartek
+  const [notes, setNotes] = useScratchNotes(`${exam.id}@${session.startedAt}/${task.id}`);
   const answeredCount = exam.tasks.filter((t) => isAnswered(session.answers[t.id])).length;
   const unanswered = exam.tasks.length - answeredCount;
 
@@ -262,8 +267,8 @@ function ExamInProgress({ exam, initial, onFinished }: { exam: ExamSheet; initia
 
           <TaskScratch
             prompt={prompt}
-            items={notes[task.id] ?? []}
-            onChange={(items) => setNotes((n) => ({ ...n, [task.id]: items }))}
+            items={notes}
+            onChange={setNotes}
             template={template}
             onTemplateChange={setTemplate}
             formulaGroups={FORMULA_GROUPS}
@@ -476,3 +481,58 @@ function ExamTimer({ startedAt, durationMin, onTimeUp }: { startedAt: number; du
   );
 }
 
+/** Kod arkusza losowego – znajomy z tym kodem dostanie dokładnie ten sam arkusz. */
+function ShareCode({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const text = `Rozwiąż ze mną arkusz maturalny w aplikacji Matma – kod: ${code.toUpperCase()}`;
+
+  async function share() {
+    hapticTap();
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        return;
+      }
+      await navigator.clipboard.writeText(code.toUpperCase());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // anulowane udostępnianie albo brak schowka – kod i tak jest widoczny
+    }
+  }
+
+  return (
+    <div className="mt-5 flex items-center gap-3 rounded-2xl bg-subtle px-4 py-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-faint">Kod arkusza</p>
+        <p className="font-mono text-xl font-extrabold tracking-widest text-ink select-all">{code.toUpperCase()}</p>
+      </div>
+      <button onClick={() => void share()} className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-bold text-brand">
+        {copied ? "Skopiowano" : "Udostępnij"}
+      </button>
+    </div>
+  );
+}
+
+/** Czym arkusz różni się od oryginalnego układu – uczciwie, zanim uczeń zacznie. */
+function Relaxations({ exam }: { exam: ExamSheet }) {
+  const list = exam.relaxations ?? [];
+  return (
+    <details className="mt-3 rounded-2xl border border-line px-4 py-3 text-sm">
+      <summary className="cursor-pointer font-bold text-body">
+        Różnice względem matury {exam.layoutYear}: {list.length} {list.length === 1 ? "pozycja" : "pozycje"}
+      </summary>
+      <p className="mt-2 text-muted">
+        Arkusz odwzorowuje układ prawdziwej matury, ale nie dla każdej pozycji mamy jeszcze zadanie tego samego typu. Punktacja się nie zmienia.
+      </p>
+      <ul className="mt-2 flex flex-col gap-1 text-muted">
+        {list.map((r) => (
+          <li key={r.slot} className="flex gap-2">
+            <Icon name="info" className="mt-0.5 h-4 w-4 shrink-0" />
+            {r.note}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}

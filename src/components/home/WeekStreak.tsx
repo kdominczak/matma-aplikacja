@@ -1,11 +1,12 @@
 import Icon from "@/components/ui/Icon";
-import { currentWeek, streak } from "@/lib/stats";
+import { currentWeek, longestStreak, streak } from "@/lib/stats";
 import type { Progress } from "@/types/progress";
 
-/** Karta serii z kółkami dni bieżącego tygodnia. */
-export default function WeekStreak({ progress, className = "" }: { progress: Progress; className?: string }) {
+/** Karta serii z kółkami dni bieżącego tygodnia (opcjonalnie z rekordem – w profilu). */
+export default function WeekStreak({ progress, className = "", showRecord = false }: { progress: Progress; className?: string; showRecord?: boolean }) {
   const days = streak(progress);
   const week = currentWeek(progress);
+  const record = longestStreak(progress);
 
   return (
     <div className={`rounded-3xl border border-orange-500/25 bg-orange-500/10 p-5 ${className}`}>
@@ -15,7 +16,9 @@ export default function WeekStreak({ progress, className = "" }: { progress: Pro
         </span>
         <div>
           <p className="font-extrabold text-ink">{days > 0 ? `${days}-dniowa passa!` : "Zacznij serię dziś"}</p>
-          <p className="text-xs text-muted">Codziennie trochę. Na maturze dużo.</p>
+          <p className="text-xs text-muted">
+            {showRecord && record > 0 ? `Rekord: ${record} ${record === 1 ? "dzień" : "dni"} · ` : ""}Codziennie trochę. Na maturze dużo.
+          </p>
         </div>
       </div>
       <ol className="mt-4 grid grid-cols-7 gap-1 text-center">

@@ -1,4 +1,4 @@
-import type { PracticeRecord, Progress, TestRecord, TopicStat } from "@/types/progress";
+import type { PracticeRecord, Progress, ReviewItem, TestRecord, TopicStat } from "@/types/progress";
 
 // Scalanie postępu z dwóch miejsc (to urządzenie + kopia w chmurze, np. po zalogowaniu na nowym telefonie).
 // Zasada: nic nie ginie i nic nie liczy się podwójnie – liczniki biorą maksimum (nie sumę),
@@ -29,6 +29,9 @@ function betterPractice(x: PracticeRecord, y: PracticeRecord): PracticeRecord {
     lastAt: later(x.lastAt, y.lastAt)!,
   };
 }
+
+/** Powtórka: ostrożniej – niższe pudełko (pomyłka na którymś urządzeniu cofa zadanie), przy remisie wcześniejszy termin. */
+const saferReview = (x: ReviewItem, y: ReviewItem): ReviewItem => (x.box !== y.box ? (x.box < y.box ? x : y) : x.due <= y.due ? x : y);
 
 const moreAnswered = (x: TopicStat, y: TopicStat): TopicStat => (y.answered > x.answered ? y : x);
 
@@ -64,5 +67,8 @@ export function mergeProgress(local: Progress, remote: Progress, newer: "local" 
     topicStats: mergeRecords(local.topicStats, remote.topicStats, moreAnswered),
     placement,
     practice: mergeRecords(local.practice, remote.practice, betterPractice),
+    reviews: mergeRecords(local.reviews ?? {}, remote.reviews ?? {}, saferReview),
+    planDays: mergeRecords(local.planDays ?? {}, remote.planDays ?? {}, Math.max),
+    statsByDay: mergeRecords(local.statsByDay ?? {}, remote.statsByDay ?? {}, (x, y) => mergeRecords(x, y, (a, b) => (b[0] > a[0] ? b : a))),
   };
 }

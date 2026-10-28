@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
-import { findQuestion } from "@/data/topics";
+import { findQuestion, findTask } from "@/data/topics";
 import { newlyEarned, type Achievement } from "@/lib/achievements";
 import {
   fetchServerMistakes,
@@ -15,6 +15,7 @@ import {
 import { scorePlacement } from "@/lib/placement";
 import { mergeProgress } from "@/lib/progress-merge";
 import { readyMemberId } from "@/lib/ranking";
+import { scheduleReview } from "@/lib/reviews";
 import { dayKey, isPassed, starsFor, testKey } from "@/lib/stats";
 import type { ExamAttempt } from "@/types/exam";
 import type { Progress } from "@/types/progress";
@@ -43,11 +44,15 @@ const EMPTY_PROGRESS: Progress = {
     nightSessions: 0,
     earlySessions: 0,
     mistakesBeaten: 0,
+    reviewsMastered: 0,
   },
   achievements: {},
   mistakes: {},
   topicStats: {},
   practice: {},
+  reviews: {},
+  planDays: {},
+  statsByDay: {},
 };
 
 /** Wynik zapisu sesji – nowy stan i odznaki zdobyte właśnie teraz. */
@@ -126,10 +131,24 @@ function parseProgress(value: string): Progress | null {
     void _xp;
     void _xpByDay;
     // starsze zapisy nie mają nowszych pól – uzupełniamy domyślnymi
-    return { ...EMPTY_PROGRESS, ...rest, activityByDay, stats: { ...EMPTY_PROGRESS.stats, ...saved.stats } };
+    const statsByDay = saved.statsByDay ?? statsHistoryFromTotals(saved.topicStats ?? {});
+    return { ...EMPTY_PROGRESS, ...rest, activityByDay, statsByDay, stats: { ...EMPTY_PROGRESS.stats, ...saved.stats } };
   } catch {
     return null;
   }
+}
+
+/**
+ * Zapisy sprzed dziennej historii skuteczności: całą skuteczność działu przypisujemy dniowi ostatniej odpowiedzi
+ * (dokładniejszej informacji nie ma). Wykres pokaże wtedy skok w tym dniu zamiast stopniowego wzrostu.
+ */
+function statsHistoryFromTotals(topicStats: Progress["topicStats"]): Progress["statsByDay"] {
+  const history: Progress["statsByDay"] = {};
+  for (const [key, stat] of Object.entries(topicStats)) {
+    if (!stat.answered) continue;
+    (history[stat.lastAnswered] ??= {})[key] = [stat.answered, stat.correct];
+  }
+  return history;
 }
 
 /** Zapisuje stan; gdy Preferences zawiedzie – awaryjnie do localStorage (i ponawia przy następnym zapisie). */
@@ -209,6 +228,19 @@ export async function mergeRemoteProgress(data: unknown, newer: "local" | "remot
 
 // ── Zapis sesji ──
 
+/**
+ * Jedna odpowiedź w dziale i poziomie – skuteczność łączna i dzienna (z niej wykres szacowanego wyniku).
+ * Wszystkie rodzaje zadań (testy, „Zadania”, arkusze, plan, wyzwanie) zapisują się tędy.
+ */
+function countAnswer(progress: Pick<Progress, "topicStats" | "statsByDay">, key: string, correct: boolean, today: string) {
+  const stat = progress.topicStats[key] ?? { answered: 0, correct: 0, lastAnswered: today };
+  progress.topicStats[key] = { answered: stat.answered + 1, correct: stat.correct + (correct ? 1 : 0), lastAnswered: today };
+  const day = { ...progress.statsByDay[today] };
+  const [answered, right] = day[key] ?? [0, 0];
+  day[key] = [answered + 1, right + (correct ? 1 : 0)];
+  progress.statsByDay[today] = day;
+}
+
 /** Dzień nauki: licznik rozwiązanych zadań (z niego liczymy serię dni i „zadania w tym tygodniu”). */
 function addActivity(progress: Progress, count: number): Record<string, number> {
   if (count <= 0) return progress.activityByDay;
@@ -224,10 +256,12 @@ function addActivity(progress: Progress, count: number): Record<string, number> 
 function recordAnswers(progress: Progress, answers: QuizAnswer[]): Progress {
   const today = dayKey();
   const mistakes = { ...progress.mistakes };
-  const topicStats = { ...progress.topicStats };
+  const counted = { topicStats: { ...progress.topicStats }, statsByDay: { ...progress.statsByDay } };
+  const reviews = { ...progress.reviews };
   let answered = 0;
   let correct = 0;
   let beaten = 0;
+  let mastered = 0;
 
   for (const answer of answers) {
     const ref = findQuestion(answer.questionId);
@@ -235,9 +269,9 @@ function recordAnswers(progress: Progress, answers: QuizAnswer[]): Progress {
     answered++;
     if (answer.correct) correct++;
 
-    const key = testKey(ref.topic.id, ref.difficulty);
-    const stat = topicStats[key] ?? { answered: 0, correct: 0, lastAnswered: today };
-    topicStats[key] = { answered: stat.answered + 1, correct: stat.correct + (answer.correct ? 1 : 0), lastAnswered: today };
+    countAnswer(counted, testKey(ref.topic.id, ref.difficulty), answer.correct, today);
+
+    if (scheduleReview(reviews, answer.questionId, answer.correct, today) === "mastered") mastered++;
 
     const existing = mistakes[answer.questionId];
     if (!answer.correct) {
@@ -252,13 +286,15 @@ function recordAnswers(progress: Progress, answers: QuizAnswer[]): Progress {
   return {
     ...progress,
     mistakes,
-    topicStats,
+    ...counted,
+    reviews,
     activityByDay: addActivity(progress, answered),
     stats: {
       ...stats,
       answered: stats.answered + answered,
       correct: stats.correct + correct,
       mistakesBeaten: stats.mistakesBeaten + beaten,
+      reviewsMastered: stats.reviewsMastered + mastered,
     },
   };
 }
@@ -321,6 +357,16 @@ export function saveDailyResult(result: QuizResult) {
   });
 }
 
+/** Plan na dziś – zwykła sesja (powtórki, statystyki, ranking) plus licznik ukończonych planów dnia. */
+export function savePlanResult(result: QuizResult) {
+  return saveSession(result, "training", (progress) => {
+    const next = recordSession(progress, result);
+    const today = dayKey();
+    next.planDays = { ...progress.planDays, [today]: (progress.planDays[today] ?? 0) + 1 };
+    return next;
+  });
+}
+
 /** Trening z „Pudełka porażek” – liczy się jak każda sesja (seria, wyjmowanie błędów, ranking). */
 export function saveMistakeTraining(result: QuizResult) {
   return saveSession(result, "training", (progress) => recordSession(progress, result));
@@ -357,13 +403,15 @@ export async function savePracticeTask(attempt: PracticeAttempt): Promise<SaveOu
     if (attempt.kind === "closed" && attempt.chosen) {
       next = recordAnswers(progress, [{ questionId: attempt.taskId, chosen: attempt.chosen, correct: solved }]);
     } else {
-      // zadanie otwarte: do skuteczności działu liczy się jako poprawne tylko pełne rozwiązanie
-      const key = testKey(attempt.topicId, attempt.difficulty);
-      const stat = progress.topicStats[key] ?? { answered: 0, correct: 0, lastAnswered: today };
+      // zadanie otwarte: do skuteczności działu liczy się jako poprawne tylko pełne rozwiązanie sprawdzone przez
+      // aplikację – samoocena wg schematu nie podnosi szacowanego wyniku (tak jak nie liczy się do rankingu)
+      const correct = solved && attempt.verified;
+      const counted = { topicStats: { ...progress.topicStats }, statsByDay: { ...progress.statsByDay } };
+      countAnswer(counted, testKey(attempt.topicId, attempt.difficulty), correct, today);
       next = {
         ...progress,
-        topicStats: { ...progress.topicStats, [key]: { answered: stat.answered + 1, correct: stat.correct + (solved ? 1 : 0), lastAnswered: today } },
-        stats: { ...progress.stats, answered: progress.stats.answered + 1, correct: progress.stats.correct + (solved ? 1 : 0) },
+        ...counted,
+        stats: { ...progress.stats, answered: progress.stats.answered + 1, correct: progress.stats.correct + (correct ? 1 : 0) },
         activityByDay: addActivity(progress, 1),
       };
     }
@@ -398,18 +446,17 @@ export async function saveExamResult(attempt: ExamAttempt): Promise<SaveOutcome>
   const answered = attempt.results.filter((r) => r.status !== "skipped");
   return update((progress) => {
     const today = dayKey();
-    const topicStats = { ...progress.topicStats };
+    const counted = { topicStats: { ...progress.topicStats }, statsByDay: { ...progress.statsByDay } };
     for (const result of answered) {
-      const ref = findQuestion(result.taskId);
-      if (!ref) continue; // zadania otwarte i spoza bazy zamkniętych liczą się tylko do ogólnych statystyk
-      const key = testKey(ref.topic.id, ref.difficulty);
-      const stat = topicStats[key] ?? { answered: 0, correct: 0, lastAnswered: today };
-      topicStats[key] = { answered: stat.answered + 1, correct: stat.correct + (result.status === "correct" ? 1 : 0), lastAnswered: today };
+      const ref = findTask(result.taskId);
+      if (!ref) continue; // zadania spoza bazy (np. usunięte) liczą się tylko do ogólnych statystyk
+      // otwarte: poprawne = pełna liczba punktów za wynik sprawdzony przez aplikację
+      countAnswer(counted, testKey(ref.topic.id, ref.difficulty), result.status === "correct", today);
     }
     const correct = answered.filter((r) => r.status === "correct").length;
     return {
       ...progress,
-      topicStats,
+      ...counted,
       activityByDay: addActivity(progress, answered.length),
       stats: { ...progress.stats, answered: progress.stats.answered + answered.length, correct: progress.stats.correct + correct },
     };
