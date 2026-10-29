@@ -404,7 +404,7 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${selected ? "bg-brand text-white" : "bg-subtle text-muted"}`}>
                 {label}
               </span>
-              <MathText text={text} className="min-w-0 flex-1" />
+              <MathText display text={text} className="min-w-0 flex-1" />
               {selected && <Icon name="checkCircle" className="h-5 w-5 shrink-0" />}
             </button>
           );

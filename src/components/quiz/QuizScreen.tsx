@@ -314,7 +314,7 @@ export default function QuizScreen(props: Props) {
                   soundSelect();
                 }} disabled={checked} className={optionClasses(key)}>
                 <span className={badgeClasses(key)}>{label}</span>
-                <MathText text={text} className="flex-1" />
+                <MathText display text={text} className="flex-1" />
                 {!checked && key === selected && <Icon name="checkCircle" className="h-5 w-5 shrink-0" />}
               </button>
             ))}

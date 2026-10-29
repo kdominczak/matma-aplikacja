@@ -113,7 +113,7 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
                 }`}
               >
                 <span className="font-bold">{label}.</span>
-                <MathText text={text} />
+                <MathText display text={text} />
               </li>
             ))}
           </ul>
