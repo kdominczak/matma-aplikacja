@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import Countdown from "@/components/layout/Countdown";
 import GlowBackground from "@/components/layout/GlowBackground";
@@ -11,6 +11,7 @@ import { ThemeSwitcher, ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AVATAR_COLORS, useAppSettings } from "@/lib/app-settings";
 import { streak, syncLearning, useProgress } from "@/lib/progress";
 import { avatarUrl, useRanking } from "@/lib/ranking";
+import { onReminderTap, syncReminders } from "@/lib/reminders";
 
 interface NavItem {
   href: string;
@@ -136,6 +137,17 @@ function TopBar({ active }: { active: string }) {
   );
 }
 
+/** Przypomnienia o planie: przeliczane po każdej zmianie postępu; dotknięcie powiadomienia otwiera plan. */
+function useReminders() {
+  const progress = useProgress();
+  const settings = useAppSettings();
+  const router = useRouter();
+  useEffect(() => {
+    if (progress && settings) void syncReminders(progress, settings.reminder);
+  }, [progress, settings]);
+  useEffect(() => onReminderTap((href) => router.push(href)), [router]);
+}
+
 /**
  * Układ aplikacji: na desktopie stały panel boczny, na telefonie dolny pasek.
  * Treść ma własną maksymalną szerokość – na dużych ekranach nie rozciąga się „mobilnie”.
@@ -143,6 +155,7 @@ function TopBar({ active }: { active: string }) {
 export default function AppShell({ children }: { children: ReactNode }) {
   const active = useActiveHref();
   const tab = bottomTab(active);
+  useReminders();
   const pathname = usePathname().replace(/(.)\/$/, "$1");
 
   // Uczeń z kontem (ranking): wyrównujemy Pudełko porażek i historię odpowiedzi z Supabase

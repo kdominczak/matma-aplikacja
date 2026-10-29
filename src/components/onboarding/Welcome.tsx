@@ -2,12 +2,13 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { MATURA_DATE, useNow } from "@/components/layout/Countdown";
+import { useNow } from "@/components/layout/Countdown";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { PLACEMENT } from "@/data/placement";
 import { TARGETS } from "@/data/topics";
 import { saveAppSettings } from "@/lib/app-settings";
 import { hapticTap } from "@/lib/haptics";
+import { daysToMatura } from "@/lib/matura";
 import { plural } from "@/lib/plural";
 import { setTarget, skipPlacement } from "@/lib/progress";
 import type { Target } from "@/types/topic";
@@ -156,7 +157,7 @@ function Points({ items }: { items: { icon: IconName; text: string }[] }) {
 
 function PromiseSlide({ name, onName }: { name: string; onName: (name: string) => void }) {
   const now = useNow();
-  const days = now === null ? null : Math.max(0, Math.floor((MATURA_DATE.getTime() - now) / 86_400_000)) // jak w pasku odliczania;
+  const days = now === null ? null : daysToMatura(now);
   return (
     <>
       <div className="relative mb-5 overflow-hidden rounded-3xl bg-navy p-5 text-white">

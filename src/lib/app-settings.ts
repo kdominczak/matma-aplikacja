@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
+import { DEFAULT_REMINDER, type ReminderSettings } from "@/lib/reminders";
 
 // Ustawienia aplikacji i wygląd profilu – zapisane na urządzeniu (Preferences).
 // Zdjęcie profilowe trzymamy tu zawsze (działa bez rankingu); uczniowie w rankingu wgrywają je też do Supabase.
@@ -25,10 +26,14 @@ export interface AppSettings {
   /** Ciche dźwięki przy wyborze odpowiedzi. */
   sounds: boolean;
   confetti: boolean;
+  /** Codzienne przypomnienie o planie (lokalne powiadomienie, tylko w aplikacji na telefonie). */
+  reminder: ReminderSettings;
+  /** Czy pokazaliśmy już na ekranie głównym propozycję włączenia przypomnienia (pytamy raz). */
+  reminderAsked: boolean;
 }
 
 const STORAGE_KEY = "settings.v1";
-const DEFAULTS: AppSettings = { name: "", avatar: null, avatarColor: "brand", haptics: true, sounds: true, confetti: true };
+const DEFAULTS: AppSettings = { name: "", avatar: null, avatarColor: "brand", haptics: true, sounds: true, confetti: true, reminder: DEFAULT_REMINDER, reminderAsked: false };
 
 let current: AppSettings = DEFAULTS;
 let loaded = false;

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/layout/AppShell";
 import AccountCard from "@/components/settings/AccountCard";
+import ReminderSetting from "@/components/settings/ReminderSetting";
 import { IconTile, SettingsBlock, SettingsGroup, SettingsRow, StatusPill } from "@/components/settings/SettingsUI";
 import AiSettingsCard from "@/components/tutor/AiSettingsCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -69,9 +70,12 @@ export default function SettingsView() {
         <RankingRows />
       </SettingsGroup>
 
-      <SettingsGroup id="cel" title="Nauka" hint="Cel ustala, które działy są w planie na dziś i na stronie głównej.">
+      <SettingsGroup id="cel" title="Nauka" hint="Cel ustala, które działy są w planie na dziś i na stronie głównej. Przypomnienie pomaga nie przerwać serii.">
         <SettingsBlock>
           <TargetPicker progress={progress} />
+        </SettingsBlock>
+        <SettingsBlock>
+          <ReminderSetting settings={settings} />
         </SettingsBlock>
         <PlacementRow progress={progress} />
       </SettingsGroup>

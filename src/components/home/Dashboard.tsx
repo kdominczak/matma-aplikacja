@@ -5,6 +5,7 @@ import Link from "next/link";
 import NextBadge, { nextAchievement } from "@/components/achievements/NextBadge";
 import ContinueCard from "@/components/home/ContinueCard";
 import Greeting from "@/components/home/Greeting";
+import ReminderNudge from "@/components/home/ReminderNudge";
 import StudyTimeCard from "@/components/home/StudyTimeCard";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page } from "@/components/layout/AppShell";
@@ -46,6 +47,7 @@ export default function Dashboard() {
         <aside className="flex flex-col gap-4 lg:sticky lg:top-10 lg:col-start-2 lg:row-span-2 lg:row-start-1">
           {progress && <EstimateCard progress={progress} />}
           {progress && <WeekStreak progress={progress} />}
+          {progress && <ReminderNudge progress={progress} />}
           <StudyTimeCard />
           {progress && Object.keys(progress.mistakes).length > 0 && <MistakesCard progress={progress} />}
           {progress && <NextBadgeCard progress={progress} />}

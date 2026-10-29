@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mała ikona powiadomień (pasek stanu): biały znak Σ – Android barwi ją sam, kolor z capacitor.config.ts -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M5,3h14v4h-2.2l-0.4,-1.8H9.4l5,6.8l-5,6.8h7l0.4,-1.8H19v4H5v-1.6l6.1,-7.4L5,4.6z" />
+</vector>

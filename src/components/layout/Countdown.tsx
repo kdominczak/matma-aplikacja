@@ -2,13 +2,9 @@
 
 import { useSyncExternalStore } from "react";
 import Icon from "@/components/ui/Icon";
+import { MATURA_DATE } from "@/lib/matura";
 import { plural } from "@/lib/plural";
 
-/**
- * Matura z matematyki (poziom podstawowy) 2027: 5 maja, godz. 9:00 czasu polskiego.
- * Źródło: komunikat dyrektora CKE z 20 sierpnia 2026 r. – przy kolejnym roczniku zaktualizuj datę.
- */
-export const MATURA_DATE = new Date("2027-05-05T09:00:00+02:00");
 
 const MINUTE = 60_000;
 let now = Date.now();
