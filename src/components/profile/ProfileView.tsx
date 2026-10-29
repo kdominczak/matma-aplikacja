@@ -4,6 +4,7 @@ import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { BadgeIcon } from "@/components/achievements/Badge";
 import NextBadge, { nextAchievement } from "@/components/achievements/NextBadge";
+import StudyTimeCard from "@/components/home/StudyTimeCard";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/layout/AppShell";
 import EstimateChart from "@/components/progress/EstimateChart";
@@ -54,6 +55,7 @@ export default function ProfileView() {
           <AccuracyCard progress={progress} />
           <WeekStreak progress={progress} showRecord className="flex flex-col justify-between" />
         </div>
+        <StudyTimeCard />
         <StatTiles progress={progress} />
       </Section>
 
@@ -488,8 +490,8 @@ function StatTiles({ progress }: { progress: Progress }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Tile icon="tasks" tone="bg-brand-soft text-brand" value={practiceSolved} label={plural(practiceSolved, "zadanie rozwiązane", "zadania rozwiązane", "zadań rozwiązanych")} note="w zakładce Zadania" href="/zadania" />
-      <Tile icon="star" tone="bg-amber-500/15 text-amber-500" value={stars} label={plural(stars, "gwiazdka", "gwiazdki", "gwiazdek")} note="z testów działów" href="/" />
-      <Tile icon="layers" tone="bg-violet-500/15 text-violet-500" value={passed} label={plural(passed, "zaliczony test", "zaliczone testy", "zaliczonych testów")} note="działów z lekcjami" href="/" />
+      <Tile icon="star" tone="bg-amber-500/15 text-amber-500" value={stars} label={plural(stars, "gwiazdka", "gwiazdki", "gwiazdek")} note="z testów działów" href="/zadania/?widok=lekcje" />
+      <Tile icon="layers" tone="bg-violet-500/15 text-violet-500" value={passed} label={plural(passed, "zaliczony test", "zaliczone testy", "zaliczonych testów")} note="działów z lekcjami" href="/zadania/?widok=lekcje" />
       <Tile icon="calendar" tone="bg-teal-500/15 text-teal-500" value={planBest} label={plural(planBest, "dzień z planem", "dni z planem", "dni z planem")} note="najdłuższa seria planu" href="/plan" />
     </div>
   );

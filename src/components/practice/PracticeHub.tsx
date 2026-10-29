@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import CategoryTile from "@/components/topic/CategoryTile";
+import LearningPath from "@/components/topic/LearningPath";
 import Icon from "@/components/ui/Icon";
 import { practiceTasks, topics } from "@/data/topics";
 import { hapticTap } from "@/lib/haptics";
@@ -13,9 +15,22 @@ import type { Category, Topic } from "@/types/topic";
 
 const CATEGORIES: (Category | "Wszystkie")[] = ["Wszystkie", "Liczby", "Algebra", "Funkcje", "Geometria", "Statystyka"];
 
-/** Zakładka „Zadania”: wszystkie działy dostępne od razu – wybierasz dział i rozwiązujesz zadania zamknięte i otwarte. */
+type View = "zadania" | "lekcje";
+
+/** Widok w adresie (?widok=lekcje) – skróty z ekranu głównego i Profilu otwierają od razu lekcje, „wstecz” wraca do nich. */
+function useView(): [View, (view: View) => void] {
+  const router = useRouter();
+  const view: View = useSearchParams().get("widok") === "lekcje" ? "lekcje" : "zadania";
+  return [view, (next) => router.replace(next === "lekcje" ? "/zadania/?widok=lekcje" : "/zadania/", { scroll: false })];
+}
+
+/**
+ * Zakładka „Zadania”: wszystkie działy dostępne od razu. Dwa widoki: zadania z działów (zamknięte i otwarte)
+ * oraz ścieżka lekcji z testami na trzech poziomach (ułożona według celu ucznia).
+ */
 export default function PracticeHub() {
   const progress = useProgress();
+  const [view, setView] = useView();
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("Wszystkie");
   const shown = topics.filter((t) => practiceTasks(t).length > 0 && (category === "Wszystkie" || t.category === category));
 
@@ -23,7 +38,7 @@ export default function PracticeHub() {
     <Page>
       <PageHeader
         title="Zadania"
-        subtitle="Zadania maturalne z każdego działu – z brudnopisem i kalkulatorem."
+        subtitle="Zadania maturalne i lekcje z każdego działu – z brudnopisem i kalkulatorem."
         action={
           <Link
             href="/wzory"
@@ -35,26 +50,54 @@ export default function PracticeHub() {
         }
       />
 
-      <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Kategorie">
-        {CATEGORIES.map((c) => (
+      <div role="tablist" aria-label="Widok" className="grid grid-cols-2 gap-1 rounded-2xl bg-subtle p-1">
+        {(
+          [
+            ["zadania", "Zadania"],
+            ["lekcje", "Lekcje i testy"],
+          ] as const
+        ).map(([id, label]) => (
           <button
-            key={c}
-            onClick={() => setCategory(c)}
-            aria-pressed={category === c}
-            className={`min-h-11 shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-              category === c ? "border-brand bg-brand text-white shadow-float" : "border-line bg-card text-muted hover:text-ink"
-            }`}
+            key={id}
+            role="tab"
+            aria-selected={view === id}
+            onClick={() => {
+              hapticTap();
+              setView(id);
+            }}
+            className={`min-h-11 rounded-xl text-sm font-bold transition-colors ${view === id ? "bg-card text-ink shadow-card" : "text-muted hover:text-ink"}`}
           >
-            {c}
+            {label}
           </button>
         ))}
-      </nav>
-
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {shown.map((topic) => (
-          <TopicTasksCard key={topic.id} topic={topic} progress={progress} />
-        ))}
       </div>
+
+      {view === "lekcje" ? (
+        <LearningPath progress={progress} />
+      ) : (
+        <>
+          <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Kategorie">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCategory(c)}
+                aria-pressed={category === c}
+                className={`min-h-11 shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                  category === c ? "border-brand bg-brand text-white shadow-float" : "border-line bg-card text-muted hover:text-ink"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </nav>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {shown.map((topic) => (
+              <TopicTasksCard key={topic.id} topic={topic} progress={progress} />
+            ))}
+          </div>
+        </>
+      )}
     </Page>
   );
 }

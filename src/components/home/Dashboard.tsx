@@ -2,33 +2,28 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import NextBadge, { nextAchievement } from "@/components/achievements/NextBadge";
 import ContinueCard from "@/components/home/ContinueCard";
 import Greeting from "@/components/home/Greeting";
 import ReminderNudge from "@/components/home/ReminderNudge";
-import StudyTimeCard from "@/components/home/StudyTimeCard";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page } from "@/components/layout/AppShell";
-import MistakesCard from "@/components/mistakes/MistakesCard";
 import Welcome from "@/components/onboarding/Welcome";
 import EstimateCard from "@/components/progress/EstimateCard";
-import TopicCard from "@/components/topic/TopicCard";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
-import { DIFFICULTIES, getDifficulty, TARGETS, topicsForTarget } from "@/data/topics";
+import { getDifficulty } from "@/data/topics";
 import { DAILY_QUESTION_COUNT } from "@/lib/daily";
 import { buildPlan, planStreak, type DailyPlan, type PlanFocus } from "@/lib/planner";
 import { plural } from "@/lib/plural";
 import { needsPlacement } from "@/lib/placement";
 import { hapticTap } from "@/lib/haptics";
-import { dayKey, passedLevels, useProgress } from "@/lib/progress";
+import { dayKey, useProgress } from "@/lib/progress";
 import type { Progress } from "@/types/progress";
-import type { Target } from "@/types/topic";
 
 /**
- * Strona główna. Na telefonie kolejność: powitanie → plan na dziś → „wróć do…” → wynik, passa, czas, pudełko,
- * odznaka → ścieżka działów. Na komputerze karty statusu są w prawej kolumnie obok planu.
- * Każda liczba jest pokazana raz (seria – w karcie passy i przy awatarze, rozwiązane w tygodniu – w powitaniu).
+ * Strona główna – tylko to, co prowadzi do nauki dziś: powitanie → plan na dziś → „wróć do…” → wejście do lekcji,
+ * a obok wynik i seria. Ścieżka działów jest w zakładce Zadania (widok „Lekcje”), czas nauki, odznaki i Pudełko
+ * porażek – w Profilu. Na komputerze karty statusu są w prawej kolumnie obok planu.
  */
 export default function Dashboard() {
   const progress = useProgress();
@@ -42,74 +37,31 @@ export default function Dashboard() {
           <Greeting progress={progress} plan={plan} />
           <PlanCard progress={progress} plan={plan} />
           <ContinueCard progress={progress} />
+          <Link
+            href="/zadania/?widok=lekcje"
+            className="card card-hover flex min-h-11 items-center gap-3 p-4 hover:border-brand/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+              <Icon name="layers" className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-extrabold text-ink">Lekcje i testy działów</span>
+              <span className="block text-sm text-muted">Ścieżka na {progress?.target ?? 30}% – teoria, przykłady, testy na 3 poziomach</span>
+            </span>
+            <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint" />
+          </Link>
         </div>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-10 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-10">
           {progress && <EstimateCard progress={progress} />}
           {progress && <WeekStreak progress={progress} />}
           {progress && <ReminderNudge progress={progress} />}
-          <StudyTimeCard />
-          {progress && Object.keys(progress.mistakes).length > 0 && <MistakesCard progress={progress} />}
-          {progress && <NextBadgeCard progress={progress} />}
         </aside>
-
-        <LearningPath progress={progress} />
       </div>
       {/* Pierwsze uruchomienie: powitanie w 4 krokach, na końcu test na start albo „Pomiń” */}
       {progress && needsPlacement(progress) && <Welcome />}
     </Page>
   );
-}
-
-/** Ścieżka nauki: działy z lekcjami ułożone według celu (testy na trzech poziomach). */
-function LearningPath({ progress }: { progress: Progress | null }) {
-  const target: Target = progress?.target ?? 30;
-  const pathTopics = topicsForTarget(target).filter((t) => t.content);
-  const passed = progress ? pathTopics.reduce((sum, t) => sum + passedLevels(progress, t.id), 0) : 0;
-  const total = pathTopics.length * DIFFICULTIES.length;
-
-  return (
-    <section className="flex min-w-0 flex-col gap-4 lg:col-start-1">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-extrabold text-ink">Ścieżka nauki na {target}%</h2>
-          <p className="text-sm text-muted">
-            Działy z lekcjami według wagi na maturze ·{" "}
-            <Link href="/ustawienia#cel" className="font-bold text-brand hover:underline">
-              zmień cel
-            </Link>
-          </p>
-        </div>
-        <span className="shrink-0 text-sm font-bold text-brand">
-          {passed}/{total} {plural(total, "test", "testy", "testów")}
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-subtle">
-        <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${total ? (passed / total) * 100 : 0}%` }} />
-      </div>
-
-      {TARGETS.filter((t) => t.value <= target).map((group) => (
-        <div key={group.value} className="mt-2 flex flex-col gap-3">
-          <div className="flex items-baseline gap-2">
-            <p className="text-xs font-extrabold uppercase tracking-widest text-brand">{group.label}</p>
-            <p className="text-sm font-semibold text-muted">{group.subtitle}</p>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {topicsForTarget(group.value)
-              .filter((topic) => topic.target === group.value)
-              .map((topic) => (
-                <TopicCard key={topic.id} topic={topic} progress={progress} />
-              ))}
-          </div>
-        </div>
-      ))}
-    </section>
-  );
-}
-
-function NextBadgeCard({ progress }: { progress: Progress }) {
-  const achievement = nextAchievement(progress);
-  return achievement ? <NextBadge progress={progress} achievement={achievement} card /> : null;
 }
 
 /** Skuteczność w dziale dnia: przy kilku odpowiedziach liczby („Ostatnio 1/3”), a nie zniechęcający procent. */

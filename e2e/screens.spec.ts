@@ -8,6 +8,7 @@ const SCREENS: [string, string][] = [
   ["glowna", "/"],
   ["plan", "/plan/"],
   ["zadania", "/zadania/"],
+  ["lekcje", "/zadania/?widok=lekcje"],
   ["zadania-ciagi", "/zadania/ciagi/"],
   ["dzial-potegi", "/dzial/potegi-i-pierwiastki/"],
   ["dzial-funkcja-kwadratowa", "/dzial/funkcja-kwadratowa/"],
@@ -40,7 +41,7 @@ const DEVICES = {
 } as const;
 
 /** Ekrany, na których stan „nowy uczeń” wygląda inaczej (puste stany). */
-const FRESH_SCREENS = new Set(["glowna", "plan", "bledy", "profil", "odznaki", "ranking", "arkusze"]);
+const FRESH_SCREENS = new Set(["glowna", "lekcje", "plan", "bledy", "profil", "odznaki", "ranking", "arkusze"]);
 
 async function prepare(page: Page, progress: object, theme: Theme) {
   await page.route(/supabase\.co|groq\.com/, (route) => route.abort());

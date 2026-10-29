@@ -31,12 +31,18 @@ test("nowy uczeń przechodzi powitanie i trafia na plan", async ({ page }) => {
   await dialog.getByRole("button", { name: "Pomiń test – zacznę od planu" }).click();
   await expect(dialog).toBeHidden();
 
-  // imię w powitaniu, cel w ścieżce nauki – i po odświeżeniu powitanie już nie wraca
+  // imię w powitaniu, cel w skrócie do lekcji – i po odświeżeniu powitanie już nie wraca
   await expect(page.getByRole("heading", { name: "Cześć, Kuba!" })).toBeVisible();
-  await expect(page.getByText("Ścieżka nauki na 60%")).toBeVisible();
+  await expect(page.getByText("Ścieżka na 60%")).toBeVisible();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Cześć, Kuba!" })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // skrót prowadzi do ścieżki lekcji w zakładce Zadania
+  await page.getByRole("link", { name: /Lekcje i testy działów/ }).click();
+  await expect(page).toHaveURL(/\/zadania\/\?widok=lekcje$/);
+  await expect(page.getByRole("tab", { name: "Lekcje i testy", selected: true })).toBeVisible();
+  await expect(page.getByText("Ścieżka nauki na 60%")).toBeVisible();
 });
 
 test("„Pomiń” przeskakuje do wyboru celu, a test na start otwiera /start", async ({ page }) => {
