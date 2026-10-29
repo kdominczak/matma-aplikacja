@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { accountState, subscribeAccount } from "@/lib/account";
 import { supabase, SUPABASE_ANON_KEY, SUPABASE_ENABLED, SUPABASE_URL } from "@/lib/supabase";
 
 // Premium, dzienny limit AI i kody poleceń. O wszystkim decyduje serwer (migracja 20261102120000_premium_referrals):
@@ -9,12 +10,6 @@ import { supabase, SUPABASE_ANON_KEY, SUPABASE_ENABLED, SUPABASE_URL } from "@/l
 
 export const AI_FREE_DAILY_LIMIT = 5;
 export const REFERRAL_DAYS = 2;
-
-/** Ceny do wyświetlenia. Po podłączeniu sklepu (RevenueCat) zastąpi je cena pobrana z Google Play. */
-export const PLANS = {
-  pass: { title: "Pakiet Matura 2027", price: "149 zł", note: "jednorazowo, ważny do 31 maja 2027" },
-  monthly: { title: "Premium miesięcznie", price: "29,99 zł", note: "co miesiąc, można anulować w Google Play" },
-} as const;
 
 export interface PremiumState {
   status: "unavailable" | "no-account" | "loading" | "ready" | "error";
@@ -89,10 +84,28 @@ export function refreshPremium(): Promise<void> {
   return loading;
 }
 
+let watchingAccount = false;
+
 function subscribe(listener: () => void) {
   listeners.add(listener);
   loading ??= refreshPremium();
+  // inne konto (logowanie e-mailem na istniejące konto, wylogowanie, nowe konto anonimowe) = inny stan Premium
+  if (!watchingAccount) {
+    watchingAccount = true;
+    let last = currentUserId();
+    subscribeAccount(() => {
+      const id = currentUserId();
+      if (id === last) return;
+      last = id;
+      void refreshPremium();
+    });
+  }
   return () => listeners.delete(listener);
+}
+
+function currentUserId(): string | null {
+  const account = accountState();
+  return account.status === "anonymous" || account.status === "email" ? account.userId : null;
 }
 
 export function usePremium(): PremiumState {

@@ -167,3 +167,61 @@ describe("kody poleceń", () => {
   });
 });
 
+describe("zakupy (webhook RevenueCat → set_purchase_premium)", () => {
+  const setPurchase = (id: string, until: string | null, event = "RENEWAL") =>
+    t.as<{ until: string | null }>("service_role", null, `select public.set_purchase_premium($1, $2, 'premium_monthly', $3) as until`, [id, until, event]);
+  const inDays = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString();
+
+  it("zakup włącza Premium; kolejne zdarzenie nadpisuje datę, a nie dodaje dni", async () => {
+    await setPurchase(A, inDays(30), "INITIAL_PURCHASE");
+    expect((await consume(A)).premium).toBe(true);
+    await setPurchase(A, inDays(30)); // duplikat webhooka
+    await setPurchase(A, inDays(60)); // odnowienie
+    const until = new Date((await status(A)).premium_until!).getTime();
+    expect(until).toBeGreaterThan(Date.now() + 59 * 86_400_000);
+    expect(until).toBeLessThan(Date.now() + 61 * 86_400_000);
+    expect((await status(A)).ai_limit).toBe(200);
+  });
+
+  it("zwrot albo wygaśnięcie odbiera Premium z zakupu, ale nie dni z poleceń", async () => {
+    await setPurchase(A, inDays(30));
+    await setPurchase(A, null, "CANCELLATION");
+    expect((await status(A)).premium_until).toBeNull();
+    expect((await consume(A)).premium).toBe(false);
+
+    await t.admin(`select public.grant_premium($1, 2, 'referral')`, [B]);
+    await setPurchase(B, inDays(30));
+    await setPurchase(B, inDays(-1), "EXPIRATION");
+    const until = new Date((await status(B)).premium_until!).getTime();
+    expect(until).toBeGreaterThan(Date.now() + 86_400_000); // zostały 2 dni z polecenia
+    expect((await consume(B)).premium).toBe(true);
+  });
+
+  it("dni z polecenia po zakupie nie skracają zakupu (Premium do późniejszej z dat)", async () => {
+    await setPurchase(A, inDays(30));
+    await t.admin(`select public.grant_premium($1, 2, 'referral')`, [A]);
+    expect(new Date((await status(A)).premium_until!).getTime()).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+  });
+
+  it("każde zdarzenie trafia do dziennika", async () => {
+    await setPurchase(A, inDays(30), "INITIAL_PURCHASE");
+    await setPurchase(A, null, "CANCELLATION");
+    const rows = await t.admin<{ event_type: string }>(`select event_type from public.purchase_events where user_id = $1 order by id`, [A]);
+    expect(rows.map((r) => r.event_type)).toEqual(["INITIAL_PURCHASE", "CANCELLATION"]);
+  });
+
+  it("migracja zakupów jest idempotentna – ponowne uruchomienie w SQL Editorze nie psuje danych", async () => {
+    await setPurchase(A, inDays(30), "INITIAL_PURCHASE");
+    await t.applyMigration("20261104120000_purchases.sql");
+    await t.applyMigration("20261103120000_ai_quota_refund.sql");
+    expect((await consume(A)).premium).toBe(true);
+    expect((await t.admin<{ n: number }>(`select count(*)::int as n from public.purchase_events`))[0].n).toBe(1);
+  });
+
+  it("uczeń nie może ustawić sobie zakupu ani czytać dziennika", async () => {
+    expect(await t.errorCode("authenticated", A, `select public.set_purchase_premium($1, now() + interval '1 year', 'x', 'x')`, [A])).toBe("42501");
+    expect(await t.errorCode("authenticated", A, `select * from public.purchase_events`)).toBe("42501");
+    expect(await t.errorCode("authenticated", A, `select public.premium_until_of($1)`, [A])).toBe("42501");
+    expect(await t.errorCode("authenticated", A, `update public.entitlements set purchase_until = now() + interval '1 year'`)).toBe("42501");
+  });
+});

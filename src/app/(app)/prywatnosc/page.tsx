@@ -48,6 +48,11 @@ export default function PrivacyPage() {
             </p>
           )}
           <p>
+            <strong className="text-ink">Zakup Premium (jeśli kupisz):</strong> zakup wymaga konta z e-mailem, żeby Premium nie przepadło po zmianie
+            telefonu. Zapisujemy rodzaj pakietu, datę końca Premium i historię zdarzeń zakupu (zakup, odnowienie, zwrot). Danych karty ani płatności
+            nie dostajemy – płatność obsługuje Google Play.
+          </p>
+          <p>
             <strong className="text-ink">Ranking (jeśli dołączysz):</strong> anonimowe konto bez e-maila, nick, opcjonalne zdjęcie, historia odpowiedzi
             (które zadanie, wybrana litera, czas) i seria dni. Historia jest potrzebna, żeby serwer sam sprawdzał odpowiedzi i ranking był uczciwy.
           </p>
@@ -72,6 +77,13 @@ export default function PrivacyPage() {
               przekazujemy przez nasz serwer do Groq tylko po to, żeby powstała odpowiedź; serwer ich nie zapisuje. Nie wysyłaj w czacie danych
               osobowych.
             </li>
+            <li>
+              <strong className="text-ink">Google Play</strong> – przyjmuje płatność za Premium (według własnej polityki prywatności Google).
+            </li>
+            <li>
+              <strong className="text-ink">RevenueCat</strong> – potwierdza zakupy ze sklepu i ich odnowienia. Dostaje identyfikator Twojego konta
+              (bez imienia i e-maila) i dane transakcji ze sklepu.
+            </li>
           </ul>
         </Section>
 
@@ -80,6 +92,10 @@ export default function PrivacyPage() {
             Dopóki masz konto. Po usunięciu konta (Ustawienia → Strefa niebezpieczna → Usunięcie konta) serwer od razu kasuje profil, zdjęcie, historię odpowiedzi, kopię postępu
             i historię arkuszy; automatyczne kopie zapasowe bazy wygasają najpóźniej po {LEGAL.backupRetentionDays} dniach. Wypisanie się z rankingu usuwa
             profil, zdjęcie i historię odpowiedzi.
+          </p>
+          <p>
+            Usunięcie konta kasuje też okres Premium i historię zakupów u nas, ale nie anuluje subskrypcji w Google Play – anuluj ją w Google Play
+            (Płatności i subskrypcje), żeby nie została pobrana kolejna opłata.
           </p>
         </Section>
 

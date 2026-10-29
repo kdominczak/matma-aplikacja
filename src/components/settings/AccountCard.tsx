@@ -12,9 +12,10 @@ const RESEND_SECONDS = 60;
 
 /**
  * Konto z e-mailem i kopia postępu w chmurze – zabezpieczenie przed zmianą albo wyczyszczeniem telefonu.
- * `embedded` – bez własnej karty i nagłówka (wewnątrz grupy w ustawieniach).
+ * `embedded` – bez własnej karty i nagłówka (wewnątrz grupy w ustawieniach); `intro` – własny tekst nad formularzem
+ * (np. przed zakupem Premium).
  */
-export default function AccountCard({ embedded = false }: { embedded?: boolean }) {
+export default function AccountCard({ embedded = false, intro }: { embedded?: boolean; intro?: string }) {
   const account = useAccount();
   if (account.status === "disabled") return null;
 
@@ -22,7 +23,7 @@ export default function AccountCard({ embedded = false }: { embedded?: boolean }
     <>
       {account.status === "loading" && <Skeleton className="mt-3 h-24" />}
       {account.status === "email" && <SignedIn email={account.email} />}
-      {(account.status === "signed-out" || account.status === "anonymous") && <SignInFlow anonymous={account.status === "anonymous"} />}
+      {(account.status === "signed-out" || account.status === "anonymous") && <SignInFlow anonymous={account.status === "anonymous"} intro={intro} />}
     </>
   );
   if (embedded) return content;
@@ -87,7 +88,7 @@ function SignedIn({ email }: { email: string }) {
   );
 }
 
-function SignInFlow({ anonymous }: { anonymous: boolean }) {
+function SignInFlow({ anonymous, intro }: { anonymous: boolean; intro?: string }) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<{ mode: CodeMode; existing?: boolean } | null>(null);
@@ -129,9 +130,10 @@ function SignInFlow({ anonymous }: { anonymous: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-muted">
-        {anonymous
-          ? "Twoje konto w rankingu nie ma e-maila – po zmianie albo wyczyszczeniu telefonu przepadnie razem z postępem. Dodaj e-mail, a zrobimy kopię w chmurze."
-          : "Postęp, odznaki i Pudełko porażek są tylko na tym telefonie. Zaloguj się kodem z e-maila – zrobimy kopię w chmurze i przeniesiesz ją na nowy telefon."}
+        {intro ??
+          (anonymous
+            ? "Twoje konto w rankingu nie ma e-maila – po zmianie albo wyczyszczeniu telefonu przepadnie razem z postępem. Dodaj e-mail, a zrobimy kopię w chmurze."
+            : "Postęp, odznaki i Pudełko porażek są tylko na tym telefonie. Zaloguj się kodem z e-maila – zrobimy kopię w chmurze i przeniesiesz ją na nowy telefon.")}
       </p>
 
       {!step ? (

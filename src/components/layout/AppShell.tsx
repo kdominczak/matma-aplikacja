@@ -10,6 +10,7 @@ import Icon, { type IconName } from "@/components/ui/Icon";
 import { ThemeSwitcher, ThemeToggle } from "@/components/ui/ThemeToggle";
 import { forgetLegacyAiKey } from "@/lib/ai-config";
 import { AVATAR_COLORS, useAppSettings } from "@/lib/app-settings";
+import { startPurchases } from "@/lib/purchases";
 import { streak, syncLearning, useProgress } from "@/lib/progress";
 import { avatarUrl, useRanking } from "@/lib/ranking";
 import { onReminderTap, syncReminders } from "@/lib/reminders";
@@ -168,6 +169,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void forgetLegacyAiKey().catch(() => {});
+    // zakupy: konto RevenueCat = konto Supabase z e-mailem (logowanie/wylogowanie przełącza je samo)
+    return startPurchases();
   }, []);
 
   return (
