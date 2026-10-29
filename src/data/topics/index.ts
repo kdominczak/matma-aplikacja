@@ -10,7 +10,6 @@ import przeksztalceniaWykresowPractice from "@/data/practice/przeksztalcenia-wyk
 import funkcjaWykladniczaILogarytmicznaPractice from "@/data/practice/funkcja-wykladnicza-i-logarytmiczna";
 import trygonometriaPractice from "@/data/practice/trygonometria";
 import twierdzenieCosinusowPractice from "@/data/practice/twierdzenie-cosinusow";
-import geometriaPrzestrzennaPractice from "@/data/practice/geometria-przestrzenna";
 import optymalizacjaPractice from "@/data/practice/optymalizacja";
 import ukladyRownanPractice from "@/data/practice/uklady-rownan";
 import kombinatorykaPractice from "@/data/practice/kombinatoryka";
@@ -18,6 +17,7 @@ import prawdopodobienstwoPractice from "@/data/practice/prawdopodobienstwo";
 import ciagi from "./ciagi";
 import funkcjaKwadratowa from "./funkcja-kwadratowa";
 import funkcjaLiniowa from "./funkcja-liniowa";
+import geometriaPrzestrzenna from "./geometria-przestrzenna";
 import logarytmy from "./logarytmy";
 import nierownosciKwadratowe from "./nierownosci-kwadratowe";
 import nierownosciLiniowe from "./nierownosci-liniowe";
@@ -66,7 +66,7 @@ export const topics: Topic[] = withGenerated([
   { id: "trygonometria", section: "VII", lesson: "Lekcja 28", title: "Podstawy trygonometrii", icon: "sin", category: "Geometria", target: 85, priority: "A", examShare: 100, points: 2, studyHours: 3, practice: trygonometriaPractice },
   { id: "twierdzenie-cosinusow", section: "VII", lesson: "Lekcja 29", title: "Twierdzenie cosinusów i wzór na pole trójkąta", icon: "cos", category: "Geometria", target: 85, priority: "A", examShare: 30, points: 1, studyHours: 1, practice: twierdzenieCosinusowPractice },
   { id: "trojkaty-i-czworokaty", section: "VIII", lesson: "Lekcje 31–34", title: "Trójkąty, czworokąty, podobieństwo i Tales", icon: "△", category: "Geometria", target: 85, priority: "S", examShare: 100, points: 4, studyHours: 10, content: trojkatyICzworokaty },
-  { id: "geometria-przestrzenna", section: "X", lesson: "Lekcje 38–42", title: "Geometria przestrzenna", icon: "▱", category: "Geometria", target: 85, priority: "B", examShare: 100, points: 4, studyHours: 10, practice: geometriaPrzestrzennaPractice },
+  { id: "geometria-przestrzenna", section: "X", lesson: "Lekcje 38–42", title: "Geometria przestrzenna", icon: "▱", category: "Geometria", target: 85, priority: "B", examShare: 100, points: 4, studyHours: 10, content: geometriaPrzestrzenna },
   { id: "optymalizacja", section: "XIII", lesson: "Lekcja 46", title: "Zadania optymalizacyjne", icon: "max", category: "Funkcje", target: 85, priority: "S", examShare: 100, points: 3, studyHours: 5, practice: optymalizacjaPractice },
 ]);
 
