@@ -2,8 +2,6 @@ import type { Difficulty, FormulaGroup, Target, Topic } from "@/types/topic";
 import type { OpenQuestion, QuizQuestion } from "@/types/quiz";
 import { PLACEMENT } from "@/data/placement";
 import { generatedTasks } from "@/data/templates";
-import okragIKoloPractice from "@/data/practice/okrag-i-kolo";
-import punktyIProstePractice from "@/data/practice/punkty-i-proste";
 import rownanieOkreguPractice from "@/data/practice/rownanie-okregu";
 import statystykaPractice from "@/data/practice/statystyka";
 import przeksztalceniaWykresowPractice from "@/data/practice/przeksztalcenia-wykresow";
@@ -21,7 +19,9 @@ import geometriaPrzestrzenna from "./geometria-przestrzenna";
 import logarytmy from "./logarytmy";
 import nierownosciKwadratowe from "./nierownosci-kwadratowe";
 import nierownosciLiniowe from "./nierownosci-liniowe";
+import okragIKolo from "./okrag-i-kolo";
 import potegiIPierwiastki from "./potegi-i-pierwiastki";
+import punktyIProste from "./punkty-i-proste";
 import rownaniaWymierne from "./rownania-wymierne";
 import trojkatyICzworokaty from "./trojkaty-i-czworokaty";
 import wartoscBezwzgledna from "./wartosc-bezwzgledna";
@@ -54,8 +54,8 @@ export const topics: Topic[] = withGenerated([
   { id: "kombinatoryka", section: "XI", lesson: "Nowy dział", title: "Kombinatoryka", icon: "n!", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 1, studyHours: 2, practice: kombinatorykaPractice },
   { id: "prawdopodobienstwo", section: "XII", lesson: "Nowy dział", title: "Rachunek prawdopodobieństwa", icon: "P(A)", category: "Statystyka", target: 60, priority: "S+", examShare: 100, points: 2, studyHours: 2, practice: prawdopodobienstwoPractice },
   { id: "ciagi", section: "VI", lesson: "Lekcje 23–25", title: "Ciągi", icon: "aₙ", category: "Algebra", target: 60, priority: "S+", examShare: 100, points: 5, studyHours: 3, content: ciagi },
-  { id: "okrag-i-kolo", section: "VIII", lesson: "Lekcja 30", title: "Okrąg i koło", icon: "○", category: "Geometria", target: 60, priority: "S+", examShare: 100, points: 1, studyHours: 2, practice: okragIKoloPractice },
-  { id: "punkty-i-proste", section: "IX", lesson: "Lekcja 35", title: "Punkty, odcinki i proste na płaszczyźnie", icon: "AB", category: "Geometria", target: 60, priority: "S+", examShare: 90, points: 2, studyHours: 1, practice: punktyIProstePractice },
+  { id: "okrag-i-kolo", section: "VIII", lesson: "Lekcja 30", title: "Okrąg i koło", icon: "○", category: "Geometria", target: 60, priority: "S+", examShare: 100, points: 1, studyHours: 2, content: okragIKolo },
+  { id: "punkty-i-proste", section: "IX", lesson: "Lekcja 35", title: "Punkty, odcinki i proste na płaszczyźnie", icon: "AB", category: "Geometria", target: 60, priority: "S+", examShare: 90, points: 2, studyHours: 1, content: punktyIProste },
   { id: "rownanie-okregu", section: "IX", lesson: "Lekcja 36", title: "Równanie okręgu", icon: "r²", category: "Geometria", target: 60, priority: "S", examShare: 50, points: 1, studyHours: 2, practice: rownanieOkreguPractice },
   { id: "statystyka", section: "XII", lesson: "Lekcja 45", title: "Statystyka", icon: "x̄", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 2, studyHours: 2, practice: statystykaPractice },
   { id: "przeksztalcenia-wykresow", section: "V", lesson: "Lekcja 15", title: "Przekształcenia wykresów funkcji", icon: "↔", category: "Funkcje", target: 60, priority: "A", examShare: 80, points: 1, studyHours: 1, practice: przeksztalceniaWykresowPractice },
