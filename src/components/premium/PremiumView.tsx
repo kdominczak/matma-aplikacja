@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useAccount } from "@/lib/account";
 import { trackFunnel } from "@/lib/funnel";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
-import { AI_FREE_DAILY_LIMIT, formatPremiumUntil, isPremium, usePremium } from "@/lib/premium";
+import { AI_FREE_DAILY_LIMIT, formatPremiumUntil, GRADING_DAILY_LIMIT, isPremium, usePremium } from "@/lib/premium";
 import {
   buyPlan,
   manageSubscription,
@@ -21,8 +21,13 @@ import {
   type PlanId,
 } from "@/lib/purchases";
 
-// Tylko to, co działa dziś – wszystkie trzy korzyści to ten sam dzienny limit AI, widziany w trzech miejscach aplikacji.
+// Tylko to, co działa dziś.
 const BENEFITS: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: "camera",
+    title: "Zdjęcie rozwiązania → punkty jak na maturze",
+    text: `Robisz zdjęcie kartki z zadaniem otwartym z arkusza, a korepetytor przyznaje punkty za kolejne kroki według schematu CKE – z uzasadnieniem. Do ${GRADING_DAILY_LIMIT} ocen dziennie.`,
+  },
   { icon: "sparkles", title: "Korepetytor AI bez limitu", text: `Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości dziennie. Z Premium piszesz, ile potrzebujesz – także ze zdjęciem zadania albo PDF-em.` },
   { icon: "book", title: "Wyjaśnienie każdego błędu", text: "Po złej odpowiedzi korepetytor tłumaczy krok po kroku, gdzie był haczyk – w testach, planie i Pudełku porażek." },
   { icon: "bolt", title: "Podpowiedzi stopniowane", text: "Nie wiesz, jak zacząć? Kolejne podpowiedzi naprowadzają na rozwiązanie, ale nie zdradzają wyniku." },
@@ -37,7 +42,7 @@ export default function PremiumView() {
 
   return (
     <Page width="reading">
-      <PageHeader title="Premium" subtitle="Nauka zostaje za darmo. Premium zdejmuje limit z korepetytora AI – na finisz przed maturą." />
+      <PageHeader title="Premium" subtitle="Nauka zostaje za darmo. Premium zdejmuje limit z korepetytora AI i ocenia Twoje rozwiązania ze zdjęcia – na finisz przed maturą." />
 
       <section className="relative overflow-hidden rounded-3xl bg-navy p-6 text-white shadow-card lg:p-8">
         <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-brand/30 blur-3xl" />

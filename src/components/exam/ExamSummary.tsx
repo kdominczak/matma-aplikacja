@@ -231,7 +231,12 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                                     <span className="shrink-0 text-xs font-extrabold text-brand">
                                       {result.assessment ? `${awarded ?? 0}/${step.points}` : `+${step.points}`} pkt
                                     </span>
-                                    <MathText text={step.step} className="min-w-0 text-body" />
+                                    <span className="min-w-0">
+                                      <MathText text={step.step} className="text-body" />
+                                      {result.assessment?.reasons?.[i] && (
+                                        <span className="mt-1 block text-xs text-muted">AI: {result.assessment.reasons[i]}</span>
+                                      )}
+                                    </span>
                                   </li>
                                 );
                               })}

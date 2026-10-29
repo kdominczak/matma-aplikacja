@@ -1,9 +1,9 @@
 import { explainMessage, hintMessage, SYSTEM, type QuestionPayload } from "@/lib/ai-prompts";
-import { GRADING_SYSTEM, gradingUserMessage, parseGrading, type Grading } from "@/lib/ai-grading";
+import { gradingUserMessage, NO_SOLUTION, parseGrading, type Grading } from "@/lib/ai-grading";
 import { AI_ENABLED, TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
 import { MAX_IMAGES } from "@/lib/attachments";
 import { displayedOptions, displayKey } from "@/lib/options";
-import { AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, noteAiRemaining } from "@/lib/premium";
+import { AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, GradingLimitError, noteAiRemaining, noteGradingRemaining, PremiumRequiredError } from "@/lib/premium";
 import type { OpenQuestion, OptionKey, QuizQuestion } from "@/types/quiz";
 
 // AI idzie wyłącznie przez naszą funkcję serwerową `ai` (supabase/functions/ai): token ucznia → dzienny limit
@@ -32,7 +32,8 @@ export type AiRequest =
   | { mode: "tutor"; messages: ChatMessage[] }
   | { mode: "explain"; question: QuestionPayload }
   | { mode: "hint"; question: QuestionPayload; level: number; previousHints: string[] }
-  | { mode: "grade"; task: OpenQuestion; solution: string };
+  | { mode: "grade"; task: OpenQuestion; solution: string }
+  | { mode: "transcribe"; images: string[] };
 
 export function toAiQuestion(question: QuizQuestion, chosen?: OptionKey): QuestionPayload {
   // litery jak na ekranie ucznia (odpowiedzi są tam wymieszane – src/lib/options.ts)
@@ -94,6 +95,8 @@ interface BuiltRequest {
   effort: Effort;
   maxTokens: number;
   vision?: boolean;
+  /** Ocena zdjęć (Premium): serwer sam ustawia prompt, model i osobny licznik. */
+  purpose?: "grade" | "transcribe";
 }
 
 function buildRequest(request: AiRequest): BuiltRequest {
@@ -118,14 +121,15 @@ function buildRequest(request: AiRequest): BuiltRequest {
         maxTokens: 1500,
       };
     case "grade":
-      // ocena wg schematu – JSON, rozumowanie modelu ukryte; zapas tokenów, bo rozumowanie też je zużywa
+      // prompt egzaminatora i model ustawia serwer (_shared/grading.ts) – wysyłamy tylko treść do oceny
+      return { messages: [{ role: "user", content: gradingUserMessage(request.task, request.solution) }], effort: "medium", maxTokens: 4096, purpose: "grade" };
+    case "transcribe":
       return {
-        messages: [
-          { role: "system", content: GRADING_SYSTEM },
-          { role: "user", content: gradingUserMessage(request.task, request.solution) },
-        ],
-        effort: "medium",
-        maxTokens: 4096,
+        messages: [{ role: "user", content: request.images.slice(0, MAX_IMAGES).map((url) => ({ type: "image_url" as const, image_url: { url } })) }],
+        effort: "low",
+        maxTokens: 3000,
+        vision: true,
+        purpose: "transcribe",
       };
     case "hint":
       return {
@@ -176,10 +180,11 @@ export async function streamAi(
 ): Promise<string> {
   if (!AI_ENABLED) throw new Error("Korepetytor AI nie jest dostępny w tej wersji aplikacji.");
 
-  const { messages, effort, maxTokens, vision } = buildRequest(request);
+  const { messages, effort, maxTokens, vision, purpose } = buildRequest(request);
   // tekst – model najlepszy z matematyki; zdjęcia – model z obsługą obrazów
   const model = vision ? VISION_MODEL : TEXT_MODEL;
   const payload = JSON.stringify({
+    ...(purpose ? { purpose } : {}),
     model,
     messages,
     stream: true,
@@ -203,9 +208,14 @@ export async function streamAi(
   if (response.headers.has("x-ai-remaining")) {
     noteAiRemaining(Number(response.headers.get("x-ai-remaining")), response.headers.get("x-ai-premium") === "1");
   }
-  if (response.status === 429) {
+  if (response.headers.has("x-grading-remaining")) noteGradingRemaining(Number(response.headers.get("x-grading-remaining")));
+  if (!response.ok) {
     const body = await response.clone().json().catch(() => null);
-    if (body?.error === "limit") throw new AiLimitError();
+    if (response.status === 429 && body?.error === "limit") throw new AiLimitError();
+    if (response.status === 429 && body?.error === "grading_limit") throw new GradingLimitError();
+    if (response.status === 403 && body?.error === "premium_required") throw new PremiumRequiredError();
+    // Groq przeciążony (jego limit zapytań) – zapytanie wróciło do limitu ucznia, można ponowić
+    if (body?.error === "upstream" && body.status === 429) throw new AiBusyError(await errorMessage(response, vision));
   }
   if (!response.ok || !response.body) throw new Error(await errorMessage(response, vision));
 
@@ -235,13 +245,44 @@ export async function streamAi(
   return text;
 }
 
+/** Groq chwilowo przeciążony (429 po stronie Groq) – zapytanie nie zmniejszyło limitu, warto ponowić za chwilę. */
+export class AiBusyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AiBusyError";
+  }
+}
+
+/** Przerwy między ponowieniami przy przeciążonym Groq (ms) – przy ocenie kilku zadań pod rząd to się zdarza. */
+export const BUSY_RETRY_DELAYS = [3_000, 8_000];
+
+async function retryWhenBusy<T>(run: () => Promise<T>, signal?: AbortSignal, delays = BUSY_RETRY_DELAYS): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await run();
+    } catch (error) {
+      if (!(error instanceof AiBusyError) || attempt >= delays.length || signal?.aborted) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+    }
+  }
+}
+
 /**
- * Ocena rozwiązania zadania otwartego przez AI według schematu (src/lib/ai-grading.ts). Zużywa jedną wiadomość
- * z limitu. null = odpowiedź modelu nieczytelna (pokaż samoocenę). Punkty trzeba jeszcze przepuścić przez
+ * Zdjęcie kartki → tekst rozwiązania (Premium, licznik ocen). Uczeń widzi wynik i może go poprawić przed oceną.
+ * null = na zdjęciu nie ma rozwiązania.
+ */
+export async function transcribeSolution(images: string[], signal?: AbortSignal, delays?: number[]): Promise<string | null> {
+  const text = (await retryWhenBusy(() => streamAi({ mode: "transcribe", images }, () => {}, signal), signal, delays)).trim();
+  return !text || text.includes(NO_SOLUTION) ? null : text;
+}
+
+/**
+ * Ocena rozwiązania zadania otwartego przez AI według schematu (src/lib/ai-grading.ts; Premium, licznik ocen).
+ * null = odpowiedź modelu nieczytelna (pokaż samoocenę). Punkty trzeba jeszcze przepuścić przez
  * applyAssessment (obcięcie do schematu). Trafność mierzy `npm run grading:eval`.
  */
-export async function gradeSolution(task: OpenQuestion, solution: string, signal?: AbortSignal): Promise<Grading | null> {
-  const text = await streamAi({ mode: "grade", task, solution }, () => {}, signal);
+export async function gradeSolution(task: OpenQuestion, solution: string, signal?: AbortSignal, delays?: number[]): Promise<Grading | null> {
+  const text = await retryWhenBusy(() => streamAi({ mode: "grade", task, solution }, () => {}, signal), signal, delays);
   return parseGrading(text, task);
 }
 

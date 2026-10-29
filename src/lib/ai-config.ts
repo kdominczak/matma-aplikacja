@@ -9,11 +9,7 @@ import { SUPABASE_ENABLED } from "@/lib/supabase";
 export const AI_ENABLED = SUPABASE_ENABLED;
 
 // Modele wybiera aplikacja według rodzaju zapytania; serwer i tak przepuszcza tylko te dwa (ALLOWED_MODELS).
-/** Tekst: najlepszy z matematyki model dostępny w Groq. */
-export const TEXT_MODEL = "openai/gpt-oss-120b";
-/** Zdjęcia i skany – korepetytor przełącza się na niego sam, gdy wiadomość ma obrazy. */
-export const VISION_MODEL = "qwen/qwen3.8-27b";
-export const VISION_MODEL_LABEL = "Qwen 3.8 27B";
+export { TEXT_MODEL, VISION_MODEL, VISION_MODEL_LABEL } from "../../supabase/functions/_shared/models";
 
 /**
  * Dawny tryb „własny klucz Groq ucznia” zapisywał klucz w Preferences pod `ai.v1`. Klucz nie jest już używany,

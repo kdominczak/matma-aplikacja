@@ -56,3 +56,12 @@ describe("ocena kroków zadań otwartych", () => {
     expect(attempt.points).toBe(results.reduce((sum, r) => sum + r.points, 0));
   });
 });
+
+it("ocena AI zachowuje uzasadnienia przy krokach (przycięte), samoocena – bez nich", () => {
+  const [, wrong] = scoreExam(exam, session("12345"));
+  const reasons = extended.task.solution.map((_, i) => (i === 0 ? "x".repeat(500) : `krok ${i + 1}`));
+  const ai = applyAssessment(extended, wrong, { by: "ai", steps: [1], reasons });
+  expect(ai.assessment?.reasons?.[0]).toHaveLength(400);
+  expect(ai.assessment?.reasons).toHaveLength(extended.task.solution.length);
+  expect(applyAssessment(extended, wrong, { by: "self", steps: [1], reasons }).assessment?.reasons).toBeUndefined();
+});

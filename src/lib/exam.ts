@@ -54,7 +54,8 @@ export function needsAssessment(task: PracticeTask, result: ExamTaskResult): tas
 export function applyAssessment(task: PracticeTask & { kind: "open" }, result: ExamTaskResult, assessment: StepAssessment): ExamTaskResult {
   const steps = task.task.solution.map((step, i) => Math.max(0, Math.min(step.points, Math.round(assessment.steps[i] ?? 0))));
   const points = Math.min(task.points, steps.reduce((sum, p) => sum + p, 0));
-  return { ...result, points, status: points > 0 ? "partial" : result.status, assessment: { by: assessment.by, steps } };
+  const reasons = assessment.by === "ai" && assessment.reasons ? task.task.solution.map((_, i) => (assessment.reasons![i] ?? "").slice(0, 400)) : undefined;
+  return { ...result, points, status: points > 0 ? "partial" : result.status, assessment: { by: assessment.by, steps, ...(reasons ? { reasons } : {}) } };
 }
 
 export function finishExam(exam: ExamSheet, session: ExamSession, now = Date.now(), results = scoreExam(exam, session)): ExamAttempt {

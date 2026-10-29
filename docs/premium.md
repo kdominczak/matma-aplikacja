@@ -12,6 +12,10 @@
 - **Kody poleceń:** każdy ma stały 6-znakowy kod (`my_referral_code()`). Wpisanie kodu znajomego (`redeem_referral()`) daje poleconemu 2 dni Premium od razu – tylko w pierwszym tygodniu konta i raz. Polecający dostaje 2 dni za każde polecenie, najwyżej 5 razy w sezonie (od 1 września) i 2 razy dziennie. Limity są po to, by jedna osoba nie „polecała” sama siebie z kolejnych anonimowych kont.
 - **Konto:** jeśli uczeń nie ma sesji, aplikacja zakłada konto anonimowe przy pierwszej akcji, która go wymaga (wiadomość do AI, własny kod, wpisanie kodu). Zakup wymaga konta z e-mailem (kod OTP, `src/lib/account.ts`) – zakup na koncie anonimowym przepadłby po zmianie telefonu.
 
+## Migracje – zasada
+
+Uruchamiaj w SQL Editorze tylko nowe pliki, po kolei. Każdy plik od `20261103…` można bezpiecznie powtórzyć, ale **razem ze wszystkimi nowszymi, w kolejności** – sama starsza migracja nadpisałaby nowsze wersje funkcji (np. `account_status`, `consume_ai_quota`). Pilnuje tego test w `tests/db/premium.test.ts`.
+
 ## AI – wdrożenie
 
 1. W Supabase SQL Editor uruchom migracje `20261102120000_premium_referrals.sql` i `20261103120000_ai_quota_refund.sql` (w tej kolejności).
@@ -32,6 +36,10 @@
      ```
 
    - `ai: Groq odrzucił zapytanie 404 model_not_found` – Groq wycofał model; zmień `TEXT_MODEL`/`VISION_MODEL` i `ALLOWED_MODELS` na dostępne (lista: `curl https://api.groq.com/openai/v1/models -H "Authorization: Bearer gsk_..."`).
+
+## Ocena zadań ze zdjęcia (Premium)
+
+Opis i pomiar trafności: `docs/ocenianie-ai.md`. Wdrożenie: migracja `20261108120000_photo_grading.sql`, potem ponowne `supabase functions deploy ai` (funkcja importuje `_shared/grading.ts` i `_shared/models.ts`).
 
 ## Zakupy
 

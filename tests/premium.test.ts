@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { isPremium, normalizeReferralCode, REFERRAL_CODE_PATTERN, type PremiumState } from "@/lib/premium";
 
-const base: PremiumState = { status: "ready", premiumUntil: null, aiUsed: 0, aiLimit: 5, referralCode: null, referralCount: 0 };
+const base: PremiumState = { status: "ready", premiumUntil: null, aiUsed: 0, aiLimit: 5, referralCode: null, referralCount: 0, gradingUsed: 0, gradingLimit: 0 };
 
 describe("kod polecenia", () => {
   it("wielkość liter, spacje i myślniki nie mają znaczenia", () => {

@@ -1,6 +1,6 @@
 // Premium, dzienny limit AI i kody poleceń – liczy wyłącznie serwer, klient nie może niczego „dopisać”.
 import { beforeEach, describe, expect, it } from "vitest";
-import { createTestDb, userId, type TestDb } from "./harness";
+import { createTestDb, MIGRATIONS, userId, type TestDb } from "./harness";
 
 let t: TestDb;
 const A = userId(11);
@@ -210,11 +210,12 @@ describe("zakupy (webhook RevenueCat → set_purchase_premium)", () => {
     expect(rows.map((r) => r.event_type)).toEqual(["INITIAL_PURCHASE", "CANCELLATION"]);
   });
 
-  it("migracja zakupów jest idempotentna – ponowne uruchomienie w SQL Editorze nie psuje danych", async () => {
+  it("migracje od zakupów wzwyż można powtórzyć po kolei – dane i nowsze funkcje zostają", async () => {
     await setPurchase(A, inDays(30), "INITIAL_PURCHASE");
-    await t.applyMigration("20261104120000_purchases.sql");
-    await t.applyMigration("20261103120000_ai_quota_refund.sql");
+    // powtórka = ta migracja i wszystkie nowsze w kolejności (sama starsza cofnęłaby nowsze wersje funkcji)
+    for (const file of MIGRATIONS.filter((f) => f >= "20261103120000")) await t.applyMigration(file);
     expect((await consume(A)).premium).toBe(true);
+    expect(await status(A)).toHaveProperty("grading_limit");
     expect((await t.admin<{ n: number }>(`select count(*)::int as n from public.purchase_events`))[0].n).toBe(1);
   });
 

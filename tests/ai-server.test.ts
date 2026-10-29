@@ -15,8 +15,8 @@ vi.mock("@/lib/premium", async (original) => ({
   noteAiRemaining: () => {},
 }));
 
-const { streamAi } = await import("@/lib/ai");
-const { AiLimitError } = await import("@/lib/premium");
+const { gradeSolution, streamAi, transcribeSolution } = await import("@/lib/ai");
+const { AiLimitError, GradingLimitError, PremiumRequiredError } = await import("@/lib/premium");
 
 const ok = () => new Response('data: {"choices":[{"delta":{"content":"OK"}}]}\n\ndata: [DONE]\n\n', { status: 200 });
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status });
@@ -60,5 +60,50 @@ describe("AI przez serwer", () => {
 
     vi.stubGlobal("fetch", async () => json(502, { error: "upstream", status: 429 }));
     await expect(ask()).rejects.toThrow(/obciążony.*nie zmniejszyła/);
+  });
+});
+
+describe("ocena zdjęć (Premium)", () => {
+  const task = { id: "t", prompt: "x", points: 2, answers: ["1"], solution: [{ step: "a", points: 1 }, { step: "b", points: 1 }] };
+  const sse = (text: string) => new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`, { status: 200 });
+
+  it("bez Premium → PremiumRequiredError, po limicie → GradingLimitError", async () => {
+    vi.stubGlobal("fetch", async () => json(403, { error: "premium_required" }));
+    await expect(gradeSolution(task, "x")).rejects.toBeInstanceOf(PremiumRequiredError);
+    vi.stubGlobal("fetch", async () => json(429, { error: "grading_limit" }));
+    await expect(transcribeSolution(["data:image/jpeg;base64,AA"])).rejects.toBeInstanceOf(GradingLimitError);
+  });
+
+  it("przeciążony Groq (upstream 429) – ponowienie z przerwą, potem wynik", async () => {
+    const responses = [json(502, { error: "upstream", status: 429 }), json(502, { error: "upstream", status: 429 }), sse('{"steps":[{"points":1},{"points":1}]}')];
+    let calls = 0;
+    vi.stubGlobal("fetch", async () => {
+      calls++;
+      return responses.shift()!;
+    });
+    expect((await gradeSolution(task, "x", undefined, [0, 0]))?.steps).toEqual([1, 1]);
+    expect(calls).toBe(3);
+  });
+
+  it("przeciążenie dłużej niż ponowienia – błąd dla ucznia, bez pętli", async () => {
+    let calls = 0;
+    vi.stubGlobal("fetch", async () => {
+      calls++;
+      return json(502, { error: "upstream", status: 429 });
+    });
+    await expect(gradeSolution(task, "x", undefined, [0, 0])).rejects.toThrow(/obciążony/);
+    expect(calls).toBe(3);
+  });
+
+  it("przepisanie: tekst ze zdjęcia, a „brak rozwiązania” → null; tryb transcribe", async () => {
+    let sent: { purpose?: string } = {};
+    vi.stubGlobal("fetch", async (_u: string, init: { body: string }) => {
+      sent = JSON.parse(init.body);
+      return sse("$x = 2$");
+    });
+    expect(await transcribeSolution(["data:image/jpeg;base64,AA"])).toBe("$x = 2$");
+    expect(sent.purpose).toBe("transcribe");
+    vi.stubGlobal("fetch", async () => sse("BRAK_ROZWIAZANIA"));
+    expect(await transcribeSolution(["data:image/jpeg;base64,AA"])).toBeNull();
   });
 });

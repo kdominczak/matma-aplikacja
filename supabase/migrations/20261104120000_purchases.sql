@@ -65,9 +65,12 @@ $$;
 revoke all on function public.set_purchase_premium(uuid, timestamptz, text, text) from public, anon, authenticated;
 grant execute on function public.set_purchase_premium(uuid, timestamptz, text, text) to service_role;
 
--- account_status i consume_ai_quota liczą Premium z obu źródeł (sygnatury bez zmian)
+-- account_status i consume_ai_quota liczą Premium z obu źródeł (sygnatury bez zmian).
+-- drop przed create: przy powtórce migracji po 20261108 (account_status ma tam więcej kolumn) samo
+-- CREATE OR REPLACE by się wywróciło; nowsza migracja i tak odtworzy pełną wersję.
 
-create or replace function public.account_status()
+drop function if exists public.account_status();
+create function public.account_status()
 returns table (premium_until timestamptz, ai_used integer, ai_limit integer, referral_code text, referral_count integer)
 language plpgsql
 stable
@@ -89,6 +92,9 @@ begin
   return next;
 end;
 $$;
+
+revoke all on function public.account_status() from public, anon;
+grant execute on function public.account_status() to authenticated;
 
 create or replace function public.consume_ai_quota()
 returns table (allowed boolean, remaining integer, premium boolean)

@@ -76,9 +76,8 @@ describe("zapytania korepetytora", () => {
 });
 
 describe("ocena rozwiązania (grade)", () => {
-  it("model tekstowy, prompt egzaminatora, odczyt punktów z odpowiedzi", async () => {
+  it("tryb grade (prompt egzaminatora dokłada serwer), odczyt punktów z odpowiedzi", async () => {
     const { gradeSolution } = await import("@/lib/ai");
-    const { GRADING_SYSTEM } = await import("@/lib/ai-grading");
     const json = JSON.stringify({ steps: [{ points: 1, reason: "a" }, { points: 0, reason: "b" }] });
     vi.stubGlobal("fetch", async (_url: string, init: { body: string }) => {
       bodies.push(JSON.parse(init.body));
@@ -88,8 +87,9 @@ describe("ocena rozwiązania (grade)", () => {
     expect(await gradeSolution(task, "moje rozwiązanie")).toEqual({ steps: [1, 0], reasons: ["a", "b"] });
     const body = bodies.at(-1)!;
     expect(body.model).toBe(TEXT_MODEL);
-    expect(body.messages[0].content).toBe(GRADING_SYSTEM);
-    expect(String(body.messages[1].content)).toContain("<rozwiazanie_ucznia>\nmoje rozwiązanie");
+    expect((body as unknown as { purpose: string }).purpose).toBe("grade");
+    expect(body.messages).toHaveLength(1);
+    expect(String(body.messages[0].content)).toContain("<rozwiazanie_ucznia>\nmoje rozwiązanie");
   });
 });
 

@@ -2,7 +2,8 @@
 //
 //   GROQ_API_KEY=gsk_... npm run grading:eval              – wszystkie przypadki prosto do Groq (klucz tylko w terminalu,
 //                                                             nigdy w .env aplikacji)
-//   MATMA_TOKEN=<JWT> npm run grading:eval -- --przez-funkcje --limit 2   (albo --tylko id1,id2)
+//   MATMA_TOKEN=<JWT> npm run grading:eval -- --przez-funkcje --limit 2   (albo --tylko id1,id2; konto z Premium)
+//   --przerwa 2500   – ms między zapytaniami (domyślnie 2,5 s); przy 429 skrypt sam czeka (Retry-After / 5–20 s)
 //                                                           – przez funkcję `ai` (pełna ścieżka produkcyjna; zużywa limit
 //                                                             konta, więc najlepiej konto testowe z Premium)
 //
@@ -26,6 +27,27 @@ const limitArg = args.indexOf("--limit");
 const limit = limitArg >= 0 ? Number(args[limitArg + 1]) : Infinity;
 const onlyArg = args.indexOf("--tylko");
 const only = onlyArg >= 0 ? new Set(args[onlyArg + 1].split(",")) : null;
+// przerwa między zapytaniami (ms) – darmowy plan Groq ma limit zapytań i tokenów na minutę
+const pauseArg = args.indexOf("--przerwa");
+const pauseMs = pauseArg >= 0 ? Number(args[pauseArg + 1]) : 2_500;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Zapytanie z ponowieniem przy przeciążeniu (Groq 429 albo nasza funkcja 502 z „status: 429”): czeka tyle, ile każe
+ * nagłówek Retry-After, a bez niego coraz dłużej (5 s, 10 s, 20 s). Inne błędy – od razu.
+ */
+async function withRetry(send: () => Promise<Response>, label: string): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const res = await send();
+    const busy = res.status === 429 || (res.status === 502 && (await res.clone().json().catch(() => null))?.status === 429);
+    if (!busy || attempt >= 3) return res;
+    const retryAfter = Number(res.headers.get("retry-after"));
+    const wait = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 5_000 * 2 ** attempt;
+    console.log(`   (${label}: limit zapytań, czekam ${Math.round(wait / 1000)} s)`);
+    await sleep(wait);
+  }
+}
 
 function env(name: string): string | undefined {
   if (process.env[name]) return process.env[name];
@@ -54,11 +76,15 @@ function body(task: OpenQuestion, solution: string) {
 async function askGroq(task: OpenQuestion, solution: string): Promise<string> {
   const key = process.env.GROQ_API_KEY;
   if (!key) throw new Error("Brak GROQ_API_KEY w zmiennych środowiskowych (albo użyj --przez-funkcje z MATMA_TOKEN).");
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body(task, solution)),
-  });
+  const res = await withRetry(
+    () =>
+      fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body(task, solution)),
+      }),
+    "Groq",
+  );
   if (!res.ok) throw new Error(`Groq ${res.status}: ${await res.text()}`);
   return (await res.json()).choices[0].message.content as string;
 }
@@ -68,11 +94,17 @@ async function askFunction(task: OpenQuestion, solution: string): Promise<string
   const anon = env("NEXT_PUBLIC_SUPABASE_ANON_KEY");
   const token = process.env.MATMA_TOKEN;
   if (!url || !anon || !token) throw new Error("Tryb --przez-funkcje potrzebuje NEXT_PUBLIC_SUPABASE_URL/ANON_KEY (.env.local) i MATMA_TOKEN.");
-  const res = await fetch(`${url}/functions/v1/ai`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, apikey: anon, "Content-Type": "application/json" },
-    body: JSON.stringify({ ...body(task, solution), stream: true }),
-  });
+  // jak aplikacja: tryb „grade” (licznik ocen Premium, prompt i model ustawia serwer) – wysyłamy tylko treść do oceny
+  const res = await withRetry(
+    () =>
+      fetch(`${url}/functions/v1/ai`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, apikey: anon, "Content-Type": "application/json" },
+        body: JSON.stringify({ purpose: "grade", messages: [{ role: "user", content: gradingUserMessage(task, solution) }], stream: true }),
+      }),
+    "funkcja ai",
+  );
+  if (res.status === 403) throw new Error("Konto z MATMA_TOKEN nie ma Premium – ocena przez funkcję wymaga Premium (np. grant_premium dla konta testowego).");
   if (!res.ok) throw new Error(`Funkcja ai ${res.status}: ${await res.text()}`);
   // strumień SSE → tekst
   let text = "";
@@ -93,7 +125,8 @@ async function main() {
   let unreadable = 0;
   const misses: string[] = [];
 
-  for (const c of cases) {
+  for (const [index, c] of cases.entries()) {
+    if (index > 0) await sleep(pauseMs);
     const task = OPEN_TASKS.get(c.taskId);
     if (!task) throw new Error(`Brak zadania otwartego ${c.taskId}`);
     const raw = await (viaFunction ? askFunction(task, c.solution) : askGroq(task, c.solution));

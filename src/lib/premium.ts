@@ -10,6 +10,8 @@ import { supabase, SUPABASE_ANON_KEY, SUPABASE_ENABLED, SUPABASE_URL } from "@/l
 
 export const AI_FREE_DAILY_LIMIT = 5;
 export const REFERRAL_DAYS = 2;
+/** Ocena zdjęć rozwiązań (Premium): dzienny limit przepisań i osobno ocen – SQL ai_grading_daily_limit(), zmieniaj razem. */
+export const GRADING_DAILY_LIMIT = 30;
 
 export interface PremiumState {
   status: "unavailable" | "no-account" | "loading" | "ready" | "error";
@@ -18,6 +20,9 @@ export interface PremiumState {
   aiLimit: number;
   referralCode: string | null;
   referralCount: number;
+  /** Oceny zdjęć dziś / dzienny limit (0 bez Premium). */
+  gradingUsed: number;
+  gradingLimit: number;
 }
 
 const INITIAL: PremiumState = {
@@ -27,6 +32,8 @@ const INITIAL: PremiumState = {
   aiLimit: AI_FREE_DAILY_LIMIT,
   referralCode: null,
   referralCount: 0,
+  gradingUsed: 0,
+  gradingLimit: 0,
 };
 
 let state: PremiumState = INITIAL;
@@ -57,6 +64,9 @@ interface StatusRow {
   ai_limit: number;
   referral_code: string | null;
   referral_count: number;
+  /** Od migracji 20261108120000 – na starszej bazie brak (wtedy 0). */
+  grading_used?: number;
+  grading_limit?: number;
 }
 
 /** Wczytuje stan z serwera (bez zakładania konta). */
@@ -76,6 +86,8 @@ export function refreshPremium(): Promise<void> {
         aiLimit: row.ai_limit,
         referralCode: row.referral_code,
         referralCount: row.referral_count,
+        gradingUsed: row.grading_used ?? 0,
+        gradingLimit: row.grading_limit ?? 0,
       });
     } catch {
       setState({ status: "error" });
@@ -191,5 +203,28 @@ export class AiLimitError extends Error {
   constructor() {
     super(`Na dziś wykorzystano ${AI_FREE_DAILY_LIMIT} darmowych wiadomości do AI. Wróć jutro albo odblokuj Premium – także kodem polecenia.`);
     this.name = "AiLimitError";
+  }
+}
+
+/** Po odpowiedzi serwera na przepisanie/ocenę: ile ocen zostało na dziś (nagłówek `x-grading-remaining`). */
+export function noteGradingRemaining(remaining: number) {
+  if (!Number.isFinite(remaining)) return;
+  const limit = state.gradingLimit || GRADING_DAILY_LIMIT;
+  setState({ gradingLimit: limit, gradingUsed: Math.max(0, limit - remaining) });
+}
+
+/** Ocena zdjęć jest w Premium – serwer odmówił (403 premium_required). */
+export class PremiumRequiredError extends Error {
+  constructor() {
+    super("Ocena rozwiązania ze zdjęcia jest w Premium.");
+    this.name = "PremiumRequiredError";
+  }
+}
+
+/** Dzienny limit ocen zdjęć wyczerpany (429 grading_limit). */
+export class GradingLimitError extends Error {
+  constructor() {
+    super(`Na dziś wykorzystano limit ${GRADING_DAILY_LIMIT} ocen zdjęć. Wróć jutro – a teraz oceń kroki samodzielnie.`);
+    this.name = "GradingLimitError";
   }
 }

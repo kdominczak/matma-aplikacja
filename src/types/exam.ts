@@ -53,6 +53,8 @@ export interface ExamSession {
 export interface StepAssessment {
   by: "self" | "ai";
   steps: number[];
+  /** Uzasadnienie korepetytora AI dla każdego kroku (tylko `by: "ai"`). */
+  reasons?: string[];
 }
 
 export interface ExamTaskResult {
