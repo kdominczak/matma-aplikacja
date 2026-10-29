@@ -7,15 +7,17 @@ const PAD = 14;
 export default function FunctionPlot({ plot }: { plot: Plot }) {
   const [xMin, xMax] = plot.x;
   const [yMin, yMax] = plot.y;
-  const width = (xMax - xMin) * UNIT + PAD * 2;
+  const ys = range(Math.ceil(yMin), Math.floor(yMax));
+  // oś OY przy lewej krawędzi (x od 0): podpisy osi stoją na lewo od niej – robimy im miejsce
+  const left = xMin > -0.5 ? PAD + Math.max(1, ...ys.map((y) => String(y).length)) * 6 : PAD;
+  const width = (xMax - xMin) * UNIT + left + PAD;
   const height = (yMax - yMin) * UNIT + PAD * 2;
-  const px = (x: number) => PAD + (x - xMin) * UNIT;
+  const px = (x: number) => left + (x - xMin) * UNIT;
   const py = (y: number) => PAD + (yMax - y) * UNIT;
   // id z wymiarów: kilka wykresów na stronie nie nadpisze sobie obszaru przycięcia
   const clipId = `plot-${xMin}-${xMax}-${yMin}-${yMax}`;
 
   const xs = range(Math.ceil(xMin), Math.floor(xMax));
-  const ys = range(Math.ceil(yMin), Math.floor(yMax));
 
   return (
     <svg
@@ -26,7 +28,7 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
     >
       <defs>
         <clipPath id={clipId}>
-          <rect x={PAD} y={PAD} width={width - PAD * 2} height={height - PAD * 2} />
+          <rect x={left} y={PAD} width={width - left - PAD} height={height - PAD * 2} />
         </clipPath>
       </defs>
 
@@ -36,13 +38,13 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
           <line key={`gx${x}`} x1={px(x)} x2={px(x)} y1={PAD} y2={height - PAD} />
         ))}
         {ys.map((y) => (
-          <line key={`gy${y}`} x1={PAD} x2={width - PAD} y1={py(y)} y2={py(y)} />
+          <line key={`gy${y}`} x1={left} x2={width - PAD} y1={py(y)} y2={py(y)} />
         ))}
       </g>
 
       {/* osie */}
       <g className="stroke-muted" strokeWidth={1.5}>
-        <line x1={PAD - 6} x2={width - PAD + 6} y1={py(0)} y2={py(0)} />
+        <line x1={left - 6} x2={width - PAD + 6} y1={py(0)} y2={py(0)} />
         <line x1={px(0)} x2={px(0)} y1={height - PAD + 6} y2={PAD - 6} />
       </g>
       <g className="fill-muted">
