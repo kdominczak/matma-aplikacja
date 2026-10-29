@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Projekty natywne Capacitora (zawierają skopiowany build z out/)
     "android/**",
     "ios/**",
+    // Funkcje serwerowe Supabase – Deno, osobne środowisko (importy jsr:, Deno.env)
+    "supabase/functions/**",
   ]),
 ]);
 

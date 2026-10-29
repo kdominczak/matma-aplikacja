@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import { ContactEmail, LegalSection as Section, Missing } from "@/components/legal/LegalParts";
 import { LEGAL } from "@/data/legal";
+import { AI_SERVER } from "@/lib/ai-mode";
 import { formatDay } from "@/lib/stats";
 
 export const metadata = { title: "Polityka prywatności – Matma" };
@@ -38,8 +39,14 @@ export default function PrivacyPage() {
         <Section title="Jakie dane i po co">
           <p>
             <strong className="text-ink">Na urządzeniu (zawsze):</strong> postęp nauki, wyniki testów i arkuszy, Pudełko porażek, ustawienia, imię i zdjęcie
-            z profilu, klucz Groq. Te dane nie opuszczają telefonu, dopóki nie założysz konta.
+            z profilu{AI_SERVER ? "" : ", klucz Groq"}. Te dane nie opuszczają telefonu, dopóki nie założysz konta.
           </p>
+          {AI_SERVER && (
+            <p>
+              <strong className="text-ink">Korepetytor AI i Premium (jeśli korzystasz):</strong> anonimowe konto bez e-maila, liczba wiadomości do AI
+              w danym dniu (dzienny limit), okres Premium, Twój kod polecenia i to, kto kogo polecił. Treści rozmów nie zapisujemy.
+            </p>
+          )}
           <p>
             <strong className="text-ink">Ranking (jeśli dołączysz):</strong> anonimowe konto bez e-maila, nick, opcjonalne zdjęcie, historia odpowiedzi
             (które zadanie, wybrana litera, czas) i seria dni. Historia jest potrzebna, żeby serwer sam sprawdzał odpowiedzi i ranking był uczciwy.
@@ -60,11 +67,19 @@ export default function PrivacyPage() {
               <strong className="text-ink">Supabase</strong> – baza danych i logowanie (konto, ranking, kopia postępu). Region serwerów:{" "}
               {LEGAL.serverRegion || <Missing what="region serwerów Supabase" />}.
             </li>
+            {AI_SERVER ? (
+              <li>
+                <strong className="text-ink">Groq</strong> – generuje odpowiedzi korepetytora AI. Treść rozmowy, załączone zdjęcia i tekst z plików PDF
+                przekazujemy przez nasz serwer do Groq tylko po to, żeby powstała odpowiedź; serwer ich nie zapisuje. Nie wysyłaj w czacie danych
+                osobowych.
+              </li>
+            ) : (
             <li>
               <strong className="text-ink">Groq</strong> – tylko jeśli sam podłączysz klucz do korepetytora AI. Wtedy treść rozmowy, załączone zdjęcia i
               tekst z plików PDF trafiają do Groq, który generuje odpowiedź. Groq działa na Twoim koncie i według własnej polityki prywatności. Nie
               wysyłaj w czacie danych osobowych.
             </li>
+            )}
           </ul>
         </Section>
 

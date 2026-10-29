@@ -9,6 +9,9 @@ const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 /** Adres projektu Supabase (np. do publicznych zdjęć profilowych w Storage). */
 export const SUPABASE_URL = URL;
 
+/** Publiczny klucz „anon” – nagłówek `apikey` przy wywołaniu funkcji serwerowych (np. AI). */
+export const SUPABASE_ANON_KEY = ANON_KEY;
+
 /** Czy ranking jest skonfigurowany w tej wersji aplikacji. */
 export const SUPABASE_ENABLED = Boolean(URL && ANON_KEY);
 

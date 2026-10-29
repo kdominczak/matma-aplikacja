@@ -12,6 +12,7 @@ import Icon, { type IconName } from "@/components/ui/Icon";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { DIFFICULTIES, practiceTasks, topics } from "@/data/topics";
 import { useAccount } from "@/lib/account";
+import { AI_SERVER } from "@/lib/ai-settings";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AVATAR_COLORS, prepareAvatar, saveAppSettings, useAppSettings, type AvatarColor } from "@/lib/app-settings";
 import { answersToEstimate, currentEstimate } from "@/lib/estimate";
@@ -20,6 +21,7 @@ import { hapticTap } from "@/lib/haptics";
 import { topicMastery } from "@/lib/mastery";
 import { longestPlanStreak } from "@/lib/planner";
 import { plural } from "@/lib/plural";
+import { formatPremiumUntil, isPremium, REFERRAL_DAYS, usePremium } from "@/lib/premium";
 import { streak, testKey, totalStars, useProgress, weekSolved } from "@/lib/progress";
 import {
   NICK_PATTERN,
@@ -45,6 +47,7 @@ export default function ProfileView() {
       <ProfileCard progress={progress} />
       <SecureAccountNudge />
       <QuickLinks progress={progress} />
+      <PremiumStrip />
 
       <Section title="Statystyki">
         <div className="grid gap-3 lg:grid-cols-2">
@@ -85,6 +88,30 @@ export default function ProfileView() {
         </section>
       </Section>
     </Page>
+  );
+}
+
+/** Premium w profilu: stan albo zachęta do polecenia znajomemu. */
+function PremiumStrip() {
+  const premium = usePremium();
+  const active = isPremium(premium);
+  // Premium ma sens dopiero z AI na serwerze (bez niego AI działa na własnym kluczu ucznia, bez limitu)
+  if (!AI_SERVER || premium.status === "unavailable") return null;
+  return (
+    <Link href="/premium" className="card card-hover flex items-center gap-4 p-4 hover:border-brand/40">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-float">
+        <Icon name="sparkles" className="h-5 w-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-extrabold text-ink">{active ? "Premium aktywne" : "Premium"}</span>
+        <span className="block text-sm text-muted">
+          {active && premium.premiumUntil
+            ? `Do ${formatPremiumUntil(premium.premiumUntil)}`
+            : `Poleć znajomemu – oboje dostaniecie ${REFERRAL_DAYS} dni Premium`}
+        </span>
+      </span>
+      <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint" />
+    </Link>
   );
 }
 

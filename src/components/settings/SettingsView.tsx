@@ -15,10 +15,11 @@ import { ThemeSwitcher } from "@/components/ui/ThemeToggle";
 import { CKE_ARCHIVE_URL } from "@/data/cke-sheets";
 import { TARGETS } from "@/data/topics";
 import { useAccount } from "@/lib/account";
-import { useAiSettings } from "@/lib/ai-settings";
+import { AI_SERVER, useAiSettings } from "@/lib/ai-settings";
 import { saveAppSettings, useAppSettings } from "@/lib/app-settings";
 import { resetCloudData, useCloudStatus } from "@/lib/cloud-sync";
 import { deleteAccountAndData } from "@/lib/delete-account";
+import { AI_FREE_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
 import { hapticTap } from "@/lib/haptics";
 import { formatDay, resetProgress, setTarget, useProgress } from "@/lib/progress";
 import { leaveRanking, useRanking } from "@/lib/ranking";
@@ -93,11 +94,17 @@ export default function SettingsView() {
         </SettingsBlock>
       </SettingsGroup>
 
-      <SettingsGroup id="ustawienia-ai" title="Korepetytor AI" hint="Wyjaśnienia, podpowiedzi i czat działają na Twoim darmowym kluczu Groq.">
-        <SettingsBlock>
-          <AiSettingsCard embedded />
-        </SettingsBlock>
-      </SettingsGroup>
+      {AI_SERVER ? (
+        <SettingsGroup id="ustawienia-ai" title="Korepetytor AI i Premium" hint={`Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości do AI dziennie, z Premium – bez limitu.`}>
+          <SettingsRow icon="sparkles" title="Premium i kody poleceń" description={`${REFERRAL_DAYS} dni Premium dla Ciebie i znajomego za polecenie`} href="/premium" />
+        </SettingsGroup>
+      ) : (
+        <SettingsGroup id="ustawienia-ai" title="Korepetytor AI" hint="Wyjaśnienia, podpowiedzi i czat działają na Twoim darmowym kluczu Groq.">
+          <SettingsBlock>
+            <AiSettingsCard embedded />
+          </SettingsBlock>
+        </SettingsGroup>
+      )}
 
       <SettingsGroup id="dane" title="Prywatność i dane">
         <SettingsRow icon="lock" tone="sky" title="Polityka prywatności" description="Jakie dane zbieramy i po co" href="/prywatnosc" />

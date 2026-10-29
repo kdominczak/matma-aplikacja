@@ -4,11 +4,12 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import { TypingDots } from "@/components/quiz/ExplainSheet";
+import AiLimitCard from "@/components/premium/AiLimitCard";
 import AiSettingsCard from "@/components/tutor/AiSettingsCard";
 import Icon from "@/components/ui/Icon";
 import RichText from "@/components/ui/RichText";
 import { streamAi, takeTutorDraft, type ChatMessage } from "@/lib/ai";
-import { GROQ_MODELS, useAiSettings, VISION_MODEL_LABEL } from "@/lib/ai-settings";
+import { AI_SERVER, GROQ_MODELS, useAiSettings, VISION_MODEL_LABEL } from "@/lib/ai-settings";
 import {
   imageCount,
   isImage,
@@ -24,14 +25,15 @@ import {
   type ImageAttachment,
   type PdfAttachment,
 } from "@/lib/attachments";
+import { AiLimitError, isPremium, usePremium } from "@/lib/premium";
 
 const MAX_HISTORY = 29; // nieparzysta: rozmowa zawsze kończy się wiadomością ucznia; do modelu i tak idzie przycięta końcówka
 const MAX_ATTACHMENTS = 3;
-const DEFAULT_PROMPT = "Pomóż mi z tym, co załączyłem – wytłumacz krok po kroku.";
+const DEFAULT_PROMPT = "Pomóż mi z tym, co jest w załączniku – wytłumacz krok po kroku.";
 
 const SUGGESTIONS = [
   { title: "Wklej zadanie", text: "Mam takie zadanie i nie wiem, od czego zacząć:\n\n" },
-  { title: "Sprawdź moje rozwiązanie", text: "Rozwiązałem zadanie, ale nie wiem, czy dobrze. Treść:\n\n\nMoje rozwiązanie:\n\n" },
+  { title: "Sprawdź moje rozwiązanie", text: "Mam rozwiązanie zadania, ale nie wiem, czy jest dobre. Treść:\n\n\nMoje rozwiązanie:\n\n" },
   { title: "Wytłumacz deltę", text: "Wytłumacz mi prosto, po co jest delta i jak z niej korzystać w równaniach kwadratowych." },
   { title: "Dziedzina w równaniach", text: "Dlaczego w równaniach wymiernych trzeba wyznaczać dziedzinę? Pokaż na przykładzie." },
 ];
@@ -52,8 +54,15 @@ export default function TutorView() {
         title="Korepetytor AI"
         subtitle="Wklej zadanie ze szkoły albo z próbnej matury – tekstem, zdjęciem albo PDF-em. Przejdziemy przez nie krok po kroku."
       />
-      {settings && !settings.apiKey && <AiSettingsCard intro />}
-      {settings?.apiKey && isClient && (
+      {/* tryb serwerowy: bez własnego klucza, z dziennym limitem */}
+      {AI_SERVER && isClient && (
+        <>
+          <Chat />
+          <AiQuotaLine />
+        </>
+      )}
+      {!AI_SERVER && settings && !settings.apiKey && <AiSettingsCard intro />}
+      {!AI_SERVER && settings?.apiKey && isClient && (
         <>
           <Chat />
           <p className="-mt-3 text-center text-xs text-faint">
@@ -68,8 +77,24 @@ export default function TutorView() {
   );
 }
 
+/** „Zostały 3 z 5 wiadomości na dziś” pod czatem – limit nie zaskakuje ucznia. */
+function AiQuotaLine() {
+  const premium = usePremium();
+  if (premium.status !== "ready") return null;
+  const left = Math.max(0, premium.aiLimit - premium.aiUsed);
+  return (
+    <p className="-mt-3 text-center text-xs text-faint">
+      {isPremium(premium) ? "Premium – korepetytor bez limitu" : `Zostało ${left} z ${premium.aiLimit} wiadomości na dziś`} ·{" "}
+      <Link href="/premium" className="font-bold underline">
+        {isPremium(premium) ? "szczegóły" : "więcej z Premium"}
+      </Link>
+    </p>
+  );
+}
+
 function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [limited, setLimited] = useState(false);
   const [input, setInput] = useState(takeTutorDraft);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +181,8 @@ function Chat() {
         controller.signal,
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Nie udało się połączyć z korepetytorem.");
+      if (e instanceof AiLimitError) setLimited(true);
+      else setError(e instanceof Error ? e.message : "Nie udało się połączyć z korepetytorem.");
       setMessages(history.slice(0, -1));
       setInput(text);
       setAttachments(sent);
@@ -227,6 +253,7 @@ function Chat() {
         )}
       </ol>
 
+      {limited && <AiLimitCard />}
       {error && (
         <p className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm font-semibold text-rose-700 dark:text-rose-300">
           {error}

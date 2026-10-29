@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
+import { AI_SERVER } from "@/lib/ai-mode";
 
 // Klucz Groq ucznia trzymamy wyłącznie na jego urządzeniu (Preferences: natywny storage / localStorage).
 // Aplikacja nie ma serwera, więc nie ma też wspólnego klucza – każdy uczeń korzysta z własnego darmowego limitu.
@@ -67,9 +68,12 @@ export function useAiSettings(): AiSettings | null {
   return useSyncExternalStore(subscribe, () => current, () => null);
 }
 
-/** Czy uczeń podłączył klucz Groq – od tego zależą przyciski AI w całej aplikacji. */
+export { AI_SERVER } from "@/lib/ai-mode";
+
+/** Czy AI jest dostępne – od tego zależą przyciski AI w całej aplikacji. */
 export function useAiReady(): boolean {
-  return Boolean(useAiSettings()?.apiKey);
+  const settings = useAiSettings();
+  return AI_SERVER || Boolean(settings?.apiKey);
 }
 
 /** Aktualne ustawienia dla wywołań API (poza Reactem). */

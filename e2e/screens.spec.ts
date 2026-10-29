@@ -28,6 +28,7 @@ const SCREENS: [string, string][] = [
   ["odznaki", "/odznaki/"],
   ["profil", "/profil/"],
   ["ustawienia", "/ustawienia/"],
+  ["premium", "/premium/"],
   ["start", "/start/"],
   ["wyzwanie", "/wyzwanie/"],
   ["prywatnosc", "/prywatnosc/"],

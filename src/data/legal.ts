@@ -8,7 +8,7 @@ export const LEGAL = {
   /** Administrator danych (współadministratorzy): imiona i nazwiska albo nazwa firmy. */
   controller: "Kacper Domińczak i Oskar Piskulak",
   /** Adres do korespondencji administratora (RODO, art. 13). */
-  address: "",
+  address: "ul. Prosta 12/4, 00-850 Warszawa",
   /** E-mail do spraw danych osobowych (wnioski o dostęp, usunięcie, sprzeciw). */
   contactEmail: "matma.aplikacja@gmail.com",
   /** Region serwerów Supabase (Project Settings → General: eu-west-1). */
