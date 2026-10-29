@@ -71,7 +71,7 @@ function mockExams(): ExamSheet[] {
 }
 
 /**
- * Oficjalne arkusze CKE przepisane do aplikacji. Format zadań – jak `PracticeTask` (patrz src/data/practice).
+ * Oficjalne arkusze CKE przepisane do aplikacji. Format zadań – jak `PracticeTask` (patrz src/data/topics).
  * Przykład wpisu: { id: "cke-2024-maj", kind: "cke", year: 2024, title: "Matura maj 2024", … , pdf: { … } }.
  */
 const CKE_EXAMS: ExamSheet[] = [];
