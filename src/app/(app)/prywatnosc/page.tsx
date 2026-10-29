@@ -44,7 +44,9 @@ export default function PrivacyPage() {
           {AI_ENABLED && (
             <p>
               <strong className="text-ink">Korepetytor AI i Premium (jeśli korzystasz):</strong> anonimowe konto bez e-maila, liczba wiadomości do AI
-              w danym dniu (dzienny limit), okres Premium, Twój kod polecenia i to, kto kogo polecił. Treści rozmów nie zapisujemy.
+              w danym dniu (dzienny limit), okres Premium, Twój kod polecenia i to, kto kogo polecił. Treści rozmów nie zapisujemy. Do statystyk
+              zapisujemy też, czy danego dnia konto wyczerpało limit AI, otworzyło ekran Premium albo zaczęło zakup (bez innych szczegółów; usuwamy
+              to po 180 dniach) – żeby wiedzieć, czy Premium jest dobrze ustawione.
             </p>
           )}
           <p>

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import ReferralCard from "@/components/premium/ReferralCard";
 import AccountCard from "@/components/settings/AccountCard";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useAccount } from "@/lib/account";
+import { trackFunnel } from "@/lib/funnel";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
 import { AI_FREE_DAILY_LIMIT, formatPremiumUntil, isPremium, usePremium } from "@/lib/premium";
 import {
@@ -31,6 +32,8 @@ const BENEFITS: { icon: IconName; title: string; text: string }[] = [
 export default function PremiumView() {
   const premium = usePremium();
   const active = isPremium(premium);
+
+  useEffect(() => void trackFunnel("premium_view"), []);
 
   return (
     <Page width="reading">
@@ -86,6 +89,7 @@ function BuySection() {
 
   async function buy() {
     hapticTap();
+    void trackFunnel("buy_start");
     setBusy("buy");
     setMessage(null);
     const result = await buyPlan(plan);
@@ -153,7 +157,7 @@ function BuySection() {
           )}
 
           {canBuy && !hasEmail && account.status !== "loading" && (
-            <div className="card p-5">
+            <EmailGate>
               <h3 className="flex items-center gap-2 font-extrabold text-ink">
                 <Icon name="lock" className="h-5 w-5 text-brand" />
                 Najpierw konto z e-mailem
@@ -164,7 +168,7 @@ function BuySection() {
                   intro="Premium przypiszemy do Twojego e-maila – po zmianie telefonu wystarczy się zalogować i nic nie przepadnie. Wpisz adres, wyślemy 6-cyfrowy kod."
                 />
               </div>
-            </div>
+            </EmailGate>
           )}
 
           {canBuy && hasEmail && (
@@ -197,6 +201,12 @@ function BuySection() {
       )}
     </section>
   );
+}
+
+/** Formularz e-maila przed zakupem – jego pokazanie to krok lejka (ile osób odpada na wymogu konta). */
+function EmailGate({ children }: { children: ReactNode }) {
+  useEffect(() => void trackFunnel("email_gate"), []);
+  return <div className="card p-5">{children}</div>;
 }
 
 function PlanCard({ offer, selected, selectable, onSelect }: { offer: Offer; selected: boolean; selectable: boolean; onSelect: () => void }) {

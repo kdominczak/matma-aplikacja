@@ -64,3 +64,14 @@
 ### Usuwanie konta
 
 `delete_my_account()` kasuje `entitlements` i `purchase_events` (kaskada od `auth.users`), ale nie anuluje subskrypcji w Google Play – mówią o tym ekran usuwania konta i polityka prywatności. Klienta w RevenueCat usuwa się ręcznie (panel → Customer → Delete) przy zgłoszeniu RODO.
+
+## Lejek Premium
+
+Migracja `20261107120000_funnel.sql`: tabela `funnel_events` (dzień, krok, konto – raz na konto, krok i dzień, wpisy starsze niż 180 dni znikają). Kroki: `ai_limit` (zapisuje serwer w `consume_ai_quota()`), `premium_view`, `email_gate`, `buy_start` (aplikacja przez `track_funnel()`, `src/lib/funnel.ts` – tylko z istniejącym kontem). Zakupy i polecenia raport bierze z `purchase_events` i `referrals`.
+
+Raport dzień po dniu z ostatnich 30 dni: `supabase/admin/lejek.sql` w SQL Editorze. Na co patrzeć:
+- `ekran_premium / limit_ai` – czy limit prowadzi do Premium (link w czacie, podpowiedziach i wyjaśnieniach),
+- `wymog_emaila` przy niskim `klik_kup` – ile osób odpada na logowaniu e-mailem,
+- `pierwsze_zakupy / ekran_premium` – konwersja ekranu; przy bardzo niskiej sprawdź ceny i opis korzyści,
+- dużo `limit_ai` i mało `ekran_premium` – limit 5 może być za niski (uczniowie odchodzą zamiast kupować) albo komunikat jest niewidoczny.
+
