@@ -105,9 +105,14 @@ export default function TopicView({ topicId }: { topicId: string }) {
                         <p className="mt-1 font-semibold text-ink">
                           <MathText text={section.example.prompt} />
                         </p>
-                        <p className="mt-2 text-body">
-                          <MathText text={section.example.solution} />
-                        </p>
+                        {/* kolejne kroki rozwiązania w osobnych linijkach („\n” w danych) */}
+                        <div className="mt-2 flex flex-col gap-1.5 text-body">
+                          {section.example.solution.split("\n").map((step, k) => (
+                            <p key={k}>
+                              <MathText text={step} />
+                            </p>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </article>

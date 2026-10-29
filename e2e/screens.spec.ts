@@ -10,6 +10,7 @@ const SCREENS: [string, string][] = [
   ["zadania", "/zadania/"],
   ["zadania-ciagi", "/zadania/ciagi/"],
   ["dzial-potegi", "/dzial/potegi-i-pierwiastki/"],
+  ["dzial-funkcja-kwadratowa", "/dzial/funkcja-kwadratowa/"],
   ["nie-ma-strony", "/nie-ma-takiej-strony/"],
   ["test", "/dzial/potegi-i-pierwiastki/test/podstawowy/"],
   ["wzory", "/wzory/"],
