@@ -2,18 +2,17 @@ import type { Difficulty, FormulaGroup, Target, Topic } from "@/types/topic";
 import type { OpenQuestion, QuizQuestion } from "@/types/quiz";
 import { PLACEMENT } from "@/data/placement";
 import { generatedTasks } from "@/data/templates";
-import funkcjaWykladniczaILogarytmicznaPractice from "@/data/practice/funkcja-wykladnicza-i-logarytmiczna";
-import twierdzenieCosinusowPractice from "@/data/practice/twierdzenie-cosinusow";
-import optymalizacjaPractice from "@/data/practice/optymalizacja";
 import ciagi from "./ciagi";
 import funkcjaKwadratowa from "./funkcja-kwadratowa";
 import funkcjaLiniowa from "./funkcja-liniowa";
+import funkcjaWykladniczaILogarytmiczna from "./funkcja-wykladnicza-i-logarytmiczna";
 import geometriaPrzestrzenna from "./geometria-przestrzenna";
 import kombinatoryka from "./kombinatoryka";
 import logarytmy from "./logarytmy";
 import nierownosciKwadratowe from "./nierownosci-kwadratowe";
 import nierownosciLiniowe from "./nierownosci-liniowe";
 import okragIKolo from "./okrag-i-kolo";
+import optymalizacja from "./optymalizacja";
 import potegiIPierwiastki from "./potegi-i-pierwiastki";
 import prawdopodobienstwo from "./prawdopodobienstwo";
 import przeksztalceniaWykresow from "./przeksztalcenia-wykresow";
@@ -23,6 +22,7 @@ import rownanieOkregu from "./rownanie-okregu";
 import statystyka from "./statystyka";
 import trojkatyICzworokaty from "./trojkaty-i-czworokaty";
 import trygonometria from "./trygonometria";
+import twierdzenieCosinusow from "./twierdzenie-cosinusow";
 import ukladyRownan from "./uklady-rownan";
 import wartoscBezwzgledna from "./wartosc-bezwzgledna";
 import wykresFunkcji from "./wykres-funkcji";
@@ -60,14 +60,14 @@ export const topics: Topic[] = withGenerated([
   { id: "statystyka", section: "XII", lesson: "Lekcja 45", title: "Statystyka", icon: "x̄", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 2, studyHours: 2, content: statystyka },
   { id: "przeksztalcenia-wykresow", section: "V", lesson: "Lekcja 15", title: "Przekształcenia wykresów funkcji", icon: "↔", category: "Funkcje", target: 60, priority: "A", examShare: 80, points: 1, studyHours: 1, content: przeksztalceniaWykresow },
   { id: "funkcja-kwadratowa", section: "V", lesson: "Lekcja 16", title: "Funkcja kwadratowa", icon: "∪", category: "Funkcje", target: 60, priority: "S", examShare: 100, points: 4, studyHours: 5, content: funkcjaKwadratowa },
-  { id: "funkcja-wykladnicza-i-logarytmiczna", section: "V", lesson: "Lekcja 22", title: "Funkcja wykładnicza i logarytmiczna", icon: "aˣ", category: "Funkcje", target: 60, priority: "B", examShare: 15, points: 1, studyHours: 1, practice: funkcjaWykladniczaILogarytmicznaPractice },
+  { id: "funkcja-wykladnicza-i-logarytmiczna", section: "V", lesson: "Lekcja 22", title: "Funkcja wykładnicza i logarytmiczna", icon: "aˣ", category: "Funkcje", target: 60, priority: "B", examShare: 15, points: 1, studyHours: 1, content: funkcjaWykladniczaILogarytmiczna },
 
   // ── Na 85% ──
   { id: "trygonometria", section: "VII", lesson: "Lekcja 28", title: "Podstawy trygonometrii", icon: "sin", category: "Geometria", target: 85, priority: "A", examShare: 100, points: 2, studyHours: 3, content: trygonometria },
-  { id: "twierdzenie-cosinusow", section: "VII", lesson: "Lekcja 29", title: "Twierdzenie cosinusów i wzór na pole trójkąta", icon: "cos", category: "Geometria", target: 85, priority: "A", examShare: 30, points: 1, studyHours: 1, practice: twierdzenieCosinusowPractice },
+  { id: "twierdzenie-cosinusow", section: "VII", lesson: "Lekcja 29", title: "Twierdzenie cosinusów i wzór na pole trójkąta", icon: "cos", category: "Geometria", target: 85, priority: "A", examShare: 30, points: 1, studyHours: 1, content: twierdzenieCosinusow },
   { id: "trojkaty-i-czworokaty", section: "VIII", lesson: "Lekcje 31–34", title: "Trójkąty, czworokąty, podobieństwo i Tales", icon: "△", category: "Geometria", target: 85, priority: "S", examShare: 100, points: 4, studyHours: 10, content: trojkatyICzworokaty },
   { id: "geometria-przestrzenna", section: "X", lesson: "Lekcje 38–42", title: "Geometria przestrzenna", icon: "▱", category: "Geometria", target: 85, priority: "B", examShare: 100, points: 4, studyHours: 10, content: geometriaPrzestrzenna },
-  { id: "optymalizacja", section: "XIII", lesson: "Lekcja 46", title: "Zadania optymalizacyjne", icon: "max", category: "Funkcje", target: 85, priority: "S", examShare: 100, points: 3, studyHours: 5, practice: optymalizacjaPractice },
+  { id: "optymalizacja", section: "XIII", lesson: "Lekcja 46", title: "Zadania optymalizacyjne", icon: "max", category: "Funkcje", target: 85, priority: "S", examShare: 100, points: 3, studyHours: 5, content: optymalizacja },
 ]);
 
 export const TARGETS: { value: Target; label: string; subtitle: string }[] = [
