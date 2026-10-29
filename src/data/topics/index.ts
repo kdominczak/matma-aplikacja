@@ -7,23 +7,23 @@ import przeksztalceniaWykresowPractice from "@/data/practice/przeksztalcenia-wyk
 import funkcjaWykladniczaILogarytmicznaPractice from "@/data/practice/funkcja-wykladnicza-i-logarytmiczna";
 import twierdzenieCosinusowPractice from "@/data/practice/twierdzenie-cosinusow";
 import optymalizacjaPractice from "@/data/practice/optymalizacja";
-import ukladyRownanPractice from "@/data/practice/uklady-rownan";
-import kombinatorykaPractice from "@/data/practice/kombinatoryka";
-import prawdopodobienstwoPractice from "@/data/practice/prawdopodobienstwo";
 import ciagi from "./ciagi";
 import funkcjaKwadratowa from "./funkcja-kwadratowa";
 import funkcjaLiniowa from "./funkcja-liniowa";
 import geometriaPrzestrzenna from "./geometria-przestrzenna";
+import kombinatoryka from "./kombinatoryka";
 import logarytmy from "./logarytmy";
 import nierownosciKwadratowe from "./nierownosci-kwadratowe";
 import nierownosciLiniowe from "./nierownosci-liniowe";
 import okragIKolo from "./okrag-i-kolo";
 import potegiIPierwiastki from "./potegi-i-pierwiastki";
+import prawdopodobienstwo from "./prawdopodobienstwo";
 import punktyIProste from "./punkty-i-proste";
 import rownaniaWymierne from "./rownania-wymierne";
 import statystyka from "./statystyka";
 import trojkatyICzworokaty from "./trojkaty-i-czworokaty";
 import trygonometria from "./trygonometria";
+import ukladyRownan from "./uklady-rownan";
 import wartoscBezwzgledna from "./wartosc-bezwzgledna";
 import wykresFunkcji from "./wykres-funkcji";
 import wzorySkroconegoMnozenia from "./wzory-skroconego-mnozenia";
@@ -50,9 +50,9 @@ export const topics: Topic[] = withGenerated([
   { id: "funkcja-liniowa", section: "V", lesson: "Lekcja 11", title: "Funkcja liniowa", icon: "ax+b", category: "Funkcje", target: 30, priority: "S", examShare: 100, points: 1, studyHours: 1, content: funkcjaLiniowa },
 
   // ── Na 60% ──
-  { id: "uklady-rownan", section: "IV", lesson: "Nowy dział", title: "Układy równań", icon: "{ }", category: "Algebra", target: 30, priority: "S", examShare: 100, points: 2, studyHours: 2, practice: ukladyRownanPractice },
-  { id: "kombinatoryka", section: "XI", lesson: "Nowy dział", title: "Kombinatoryka", icon: "n!", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 1, studyHours: 2, practice: kombinatorykaPractice },
-  { id: "prawdopodobienstwo", section: "XII", lesson: "Nowy dział", title: "Rachunek prawdopodobieństwa", icon: "P(A)", category: "Statystyka", target: 60, priority: "S+", examShare: 100, points: 2, studyHours: 2, practice: prawdopodobienstwoPractice },
+  { id: "uklady-rownan", section: "IV", lesson: "Lekcja 13", title: "Układy równań", icon: "{ }", category: "Algebra", target: 30, priority: "S", examShare: 100, points: 2, studyHours: 2, content: ukladyRownan },
+  { id: "kombinatoryka", section: "XI", lesson: "Lekcja 43", title: "Kombinatoryka", icon: "n!", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 1, studyHours: 2, content: kombinatoryka },
+  { id: "prawdopodobienstwo", section: "XII", lesson: "Lekcja 44", title: "Rachunek prawdopodobieństwa", icon: "P(A)", category: "Statystyka", target: 60, priority: "S+", examShare: 100, points: 2, studyHours: 2, content: prawdopodobienstwo },
   { id: "ciagi", section: "VI", lesson: "Lekcje 23–25", title: "Ciągi", icon: "aₙ", category: "Algebra", target: 60, priority: "S+", examShare: 100, points: 5, studyHours: 3, content: ciagi },
   { id: "okrag-i-kolo", section: "VIII", lesson: "Lekcja 30", title: "Okrąg i koło", icon: "○", category: "Geometria", target: 60, priority: "S+", examShare: 100, points: 1, studyHours: 2, content: okragIKolo },
   { id: "punkty-i-proste", section: "IX", lesson: "Lekcja 35", title: "Punkty, odcinki i proste na płaszczyźnie", icon: "AB", category: "Geometria", target: 60, priority: "S+", examShare: 90, points: 2, studyHours: 1, content: punktyIProste },
