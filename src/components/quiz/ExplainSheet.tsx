@@ -10,6 +10,7 @@ import MathText from "@/components/ui/MathText";
 import RichText from "@/components/ui/RichText";
 import { questionAsText, setTutorDraft, streamAi, toAiQuestion } from "@/lib/ai";
 import { useAiReady } from "@/lib/ai-settings";
+import { displayKey } from "@/lib/options";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
 type Props = {
@@ -41,7 +42,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
   const fallback = (
     <div className="flex flex-col gap-3">
       <p className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-        Poprawna odpowiedź: {question.correct}
+        Poprawna odpowiedź: {displayKey(question, question.correct)}
       </p>
       <p className="leading-relaxed text-body">
         <MathText text={question.explanation} />
@@ -55,8 +56,8 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
         <div className="rounded-2xl bg-subtle p-4 text-sm font-semibold text-body">
           <MathText text={question.prompt} />
           <p className="mt-2 text-xs font-bold text-muted">
-            Twoja odpowiedź: <span className="text-rose-500">{chosen}</span> · poprawna:{" "}
-            <span className="text-emerald-600 dark:text-emerald-400">{question.correct}</span>
+            Twoja odpowiedź: <span className="text-rose-500">{displayKey(question, chosen)}</span> · poprawna:{" "}
+            <span className="text-emerald-600 dark:text-emerald-400">{displayKey(question, question.correct)}</span>
           </p>
         </div>
 

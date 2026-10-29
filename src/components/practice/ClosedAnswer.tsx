@@ -3,10 +3,10 @@
 import TrapCard from "@/components/quiz/TrapCard";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
+import { displayedOptions, displayKey } from "@/lib/options";
 import { soundSelect } from "@/lib/sounds";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
-const KEYS: OptionKey[] = ["A", "B", "C", "D"];
 
 export interface ClosedState {
   selected?: OptionKey;
@@ -52,13 +52,13 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
       <div>
         <p className="mb-2 text-sm font-bold text-body">Wybierz odpowiedź</p>
         <div className="flex flex-col gap-3">
-          {KEYS.map((key) => (
+          {displayedOptions(question).map(({ label, key, text }) => (
             <button key={key} onClick={() => {
                 onChange({ ...state, selected: key });
                 soundSelect();
               }} disabled={checked} className={optionClasses(key)}>
-              <span className={badgeClasses(key)}>{key}</span>
-              <MathText text={question.options[key]} className="flex-1" />
+              <span className={badgeClasses(key)}>{label}</span>
+              <MathText text={text} className="flex-1" />
               {!checked && key === selected && <Icon name="checkCircle" className="h-5 w-5 shrink-0" />}
             </button>
           ))}
@@ -82,7 +82,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
         >
           <p className={`flex items-center gap-2 font-extrabold ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
             <Icon name={isCorrect ? "checkCircle" : "close"} className="h-5 w-5" />
-            {isCorrect ? "Dobrze!" : `Poprawna odpowiedź: ${question.correct}`}
+            {isCorrect ? "Dobrze!" : `Poprawna odpowiedź: ${displayKey(question, question.correct)}`}
           </p>
           <p className={`text-sm ${isCorrect ? "text-emerald-800 dark:text-emerald-200" : "text-rose-800 dark:text-rose-200"}`}>
             <MathText text={question.explanation} />

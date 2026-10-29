@@ -10,6 +10,7 @@ import MathText from "@/components/ui/MathText";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { getDifficulty } from "@/data/topics";
 import { daysAgo, mistakeEntries, TRAINING_SIZE, type MistakeEntry } from "@/lib/mistakes";
+import { displayedOptions, displayKey } from "@/lib/options";
 import { useProgress } from "@/lib/progress";
 
 export default function MistakesView() {
@@ -89,7 +90,7 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
           </p>
           <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted">
             <span>
-              Twoja odpowiedź: <span className="text-rose-500">{mistake.chosen}</span>
+              Twoja odpowiedź: <span className="text-rose-500">{displayKey(question, mistake.chosen)}</span>
             </span>
             <span>{daysAgo(mistake.lastWrong)}</span>
             {mistake.count > 1 && <span className="text-rose-500">pomyłek: {mistake.count}</span>}
@@ -100,7 +101,7 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
       {open && (
         <div className="mt-4 flex animate-fade-in flex-col gap-3">
           <ul className="grid gap-2 sm:grid-cols-2">
-            {(["A", "B", "C", "D"] as const).map((key) => (
+            {displayedOptions(question).map(({ label, key, text }) => (
               <li
                 key={key}
                 className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
@@ -111,8 +112,8 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
                       : "border-line text-muted"
                 }`}
               >
-                <span className="font-bold">{key}.</span>
-                <MathText text={question.options[key]} />
+                <span className="font-bold">{label}.</span>
+                <MathText text={text} />
               </li>
             ))}
           </ul>

@@ -17,13 +17,12 @@ import { examKindLabel, examMaxPoints, getExam } from "@/data/exams";
 import { formulaGroup, topics, type PracticeTask } from "@/data/topics";
 import { clearSession, finishExam, formatDuration, isAnswered, loadSession, saveAttempt, saveSession } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
+import { displayedOptions } from "@/lib/options";
 import { saveExamResult } from "@/lib/progress";
 import { useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
 import type { ExamAttempt, ExamSession, ExamSheet } from "@/types/exam";
-import type { OptionKey } from "@/types/quiz";
 
-const KEYS: OptionKey[] = ["A", "B", "C", "D"];
 
 // Karta wzorów na cały arkusz (jak „Wybrane wzory matematyczne” CKE) – ze wszystkich działów.
 const FORMULA_GROUPS = topics.map(formulaGroup).filter((g) => g.formulas.length > 0);
@@ -387,7 +386,7 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
             </button>
           )}
         </div>
-        {KEYS.map((key) => {
+        {displayedOptions(task.question).map(({ label, key, text }) => {
           const selected = chosen === key;
           return (
             <button
@@ -403,9 +402,9 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
               }`}
             >
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${selected ? "bg-brand text-white" : "bg-subtle text-muted"}`}>
-                {key}
+                {label}
               </span>
-              <MathText text={task.question.options[key]} className="min-w-0 flex-1" />
+              <MathText text={text} className="min-w-0 flex-1" />
               {selected && <Icon name="checkCircle" className="h-5 w-5 shrink-0" />}
             </button>
           );

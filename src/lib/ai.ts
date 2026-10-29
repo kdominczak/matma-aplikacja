@@ -1,6 +1,7 @@
 import { explainMessage, hintMessage, SYSTEM, type QuestionPayload } from "@/lib/ai-prompts";
 import { getAiSettings, VISION_MODEL } from "@/lib/ai-settings";
 import { MAX_IMAGES } from "@/lib/attachments";
+import { displayedOptions, displayKey } from "@/lib/options";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
 // Groq (API zgodne z OpenAI) wołany prosto z aplikacji – Groq zezwala na CORS z przeglądarki i WebView.
@@ -31,12 +32,14 @@ export type AiRequest =
   | { mode: "hint"; question: QuestionPayload; level: number; previousHints: string[] };
 
 export function toAiQuestion(question: QuizQuestion, chosen?: OptionKey): QuestionPayload {
+  // litery jak na ekranie ucznia (odpowiedzi są tam wymieszane – src/lib/options.ts)
+  const options = Object.fromEntries(displayedOptions(question).map((o) => [o.label, o.text])) as Record<OptionKey, string>;
   return {
     label: question.label,
     prompt: question.prompt,
-    options: question.options,
-    correct: question.correct,
-    chosen,
+    options,
+    correct: displayKey(question, question.correct),
+    chosen: chosen && displayKey(question, chosen),
     explanation: question.explanation,
     trap: question.trap,
   };
@@ -249,7 +252,9 @@ export function takeTutorDraft(): string {
 
 /** Treść zadania gotowa do wklejenia w czat. */
 export function questionAsText(question: QuizQuestion, chosen?: OptionKey): string {
-  const options = (["A", "B", "C", "D"] as const).map((k) => `${k}. ${question.options[k]}`).join("\n");
-  const answer = chosen ? `\n\nZaznaczyłem odpowiedź ${chosen}, a poprawna to ${question.correct}. Nie rozumiem dlaczego.` : "";
+  const options = displayedOptions(question).map((o) => `${o.label}. ${o.text}`).join("\n");
+  const answer = chosen
+    ? `\n\nMoja odpowiedź: ${displayKey(question, chosen)}, a poprawna to ${displayKey(question, question.correct)}. Nie rozumiem dlaczego.`
+    : "";
   return `${question.prompt}\n\n${options}${answer}`;
 }

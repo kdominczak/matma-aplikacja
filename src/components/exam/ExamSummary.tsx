@@ -9,6 +9,7 @@ import MathText from "@/components/ui/MathText";
 import { findQuestion, type PracticeTask } from "@/data/topics";
 import { formatDuration, PASS_PERCENT, useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
+import { displayKey } from "@/lib/options";
 import { addMistakes } from "@/lib/progress";
 import type { ExamAttempt, ExamSheet, ExamTaskResult } from "@/types/exam";
 import type { OptionKey } from "@/types/quiz";
@@ -185,8 +186,8 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                       {task.kind === "closed" ? (
                         <>
                           <p className="text-body">
-                            Twoja odpowiedź: <strong className="text-ink">{result.given ?? "–"}</strong> · Poprawna:{" "}
-                            <strong className="text-emerald-600 dark:text-emerald-400">{task.question.correct}</strong>{" "}
+                            Twoja odpowiedź: <strong className="text-ink">{result.given ? displayKey(task.question, result.given as OptionKey) : "–"}</strong> · Poprawna:{" "}
+                            <strong className="text-emerald-600 dark:text-emerald-400">{displayKey(task.question, task.question.correct)}</strong>{" "}
                             <MathText text={`(${task.question.options[task.question.correct]})`} />
                           </p>
                           <p className="leading-relaxed text-body">

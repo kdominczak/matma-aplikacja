@@ -84,7 +84,7 @@ const content: TopicContent = {
           "Podziel obie strony przez $-3$ i odwróć znak: $\\le$ zmienia się w $\\ge$.",
         ],
         explanation: "Dzielimy przez $-3$ i zmieniamy zwrot: $x \\ge -3$.",
-        trap: "Dzielisz przez minus? Odwracasz znak. Zapomnisz – CKE ma już przygotowaną odpowiedź A specjalnie dla Ciebie.",
+        trap: "Dzielisz przez minus? Odwracasz znak. Zapomnisz – CKE ma już przygotowaną błędną odpowiedź specjalnie dla Ciebie.",
       },
       {
         id: "nl-p3",

@@ -16,13 +16,13 @@ import RichText from "@/components/ui/RichText";
 import { streamAi, toAiQuestion } from "@/lib/ai";
 import { useAiReady } from "@/lib/ai-settings";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
+import { displayedOptions, displayKey } from "@/lib/options";
 import type { SaveOutcome } from "@/lib/progress";
 import { clearScratchNotes, useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
 import type { OptionKey, QuizAnswer, QuizQuestion, QuizResult } from "@/types/quiz";
 import type { FormulaGroup } from "@/types/topic";
 
-const KEYS: OptionKey[] = ["A", "B", "C", "D"];
 const MAX_HEARTS = 3;
 /** Ile stopni podpowiedzi maksymalnie (z klucza, a dalej generowane przez AI). */
 const MAX_HINT_STEPS = 3;
@@ -308,13 +308,13 @@ export default function QuizScreen(props: Props) {
             {selected && !checked && <span className="text-brand">1 wybrana</span>}
           </div>
           <div className="flex flex-col gap-3">
-            {KEYS.map((key) => (
+            {displayedOptions(question).map(({ label, key, text }) => (
               <button key={key} onClick={() => {
                   setSelected(key);
                   soundSelect();
                 }} disabled={checked} className={optionClasses(key)}>
-                <span className={badgeClasses(key)}>{key}</span>
-                <MathText text={question.options[key]} className="flex-1" />
+                <span className={badgeClasses(key)}>{label}</span>
+                <MathText text={text} className="flex-1" />
                 {!checked && key === selected && <Icon name="checkCircle" className="h-5 w-5 shrink-0" />}
               </button>
             ))}
@@ -343,7 +343,7 @@ export default function QuizScreen(props: Props) {
                   }`}
                 >
                   <Icon name={isCorrect ? "checkCircle" : "close"} className="h-5 w-5" />
-                  {isCorrect ? "Dobrze!" : `Poprawna odpowiedź: ${question.correct}`}
+                  {isCorrect ? "Dobrze!" : `Poprawna odpowiedź: ${displayKey(question, question.correct)}`}
                 </p>
                 <p className={`mt-1 text-sm ${isCorrect ? "text-emerald-800 dark:text-emerald-200" : "text-rose-800 dark:text-rose-200"}`}>
                   <MathText text={question.explanation} />
