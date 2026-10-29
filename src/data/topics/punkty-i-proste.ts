@@ -18,6 +18,8 @@ const content: TopicContent = {
             [0, 1],
             [3, 5],
           ],
+        ],
+        guides: [
           [
             [0, 1],
             [3, 1],

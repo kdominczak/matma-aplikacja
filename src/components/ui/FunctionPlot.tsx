@@ -71,6 +71,15 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
         <text x={px(0) - 5} y={py(0) + 13} textAnchor="end">0</text>
       </g>
 
+      {/* linie pomocnicze – przerywane, pod wykresem */}
+      {plot.guides && (
+        <g clipPath={`url(#${clipId})`} className="stroke-faint" fill="none" strokeWidth={2} strokeDasharray="6 5" strokeLinecap="round">
+          {plot.guides.map((line, i) => (
+            <polyline key={i} points={line.map(([x, y]) => `${px(x)},${py(y)}`).join(" ")} />
+          ))}
+        </g>
+      )}
+
       {/* wykres */}
       <g
         clipPath={`url(#${clipId})`}

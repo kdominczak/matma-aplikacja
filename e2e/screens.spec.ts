@@ -15,6 +15,8 @@ const SCREENS: [string, string][] = [
   ["dzial-trojkaty", "/dzial/trojkaty-i-czworokaty/"],
   ["dzial-punkty", "/dzial/punkty-i-proste/"],
   ["dzial-uklady", "/dzial/uklady-rownan/"],
+  ["dzial-okrag", "/dzial/rownanie-okregu/"],
+  ["dzial-przeksztalcenia", "/dzial/przeksztalcenia-wykresow/"],
   ["nie-ma-strony", "/nie-ma-takiej-strony/"],
   ["test", "/dzial/potegi-i-pierwiastki/test/podstawowy/"],
   ["wzory", "/wzory/"],

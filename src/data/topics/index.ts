@@ -2,8 +2,6 @@ import type { Difficulty, FormulaGroup, Target, Topic } from "@/types/topic";
 import type { OpenQuestion, QuizQuestion } from "@/types/quiz";
 import { PLACEMENT } from "@/data/placement";
 import { generatedTasks } from "@/data/templates";
-import rownanieOkreguPractice from "@/data/practice/rownanie-okregu";
-import przeksztalceniaWykresowPractice from "@/data/practice/przeksztalcenia-wykresow";
 import funkcjaWykladniczaILogarytmicznaPractice from "@/data/practice/funkcja-wykladnicza-i-logarytmiczna";
 import twierdzenieCosinusowPractice from "@/data/practice/twierdzenie-cosinusow";
 import optymalizacjaPractice from "@/data/practice/optymalizacja";
@@ -18,8 +16,10 @@ import nierownosciLiniowe from "./nierownosci-liniowe";
 import okragIKolo from "./okrag-i-kolo";
 import potegiIPierwiastki from "./potegi-i-pierwiastki";
 import prawdopodobienstwo from "./prawdopodobienstwo";
+import przeksztalceniaWykresow from "./przeksztalcenia-wykresow";
 import punktyIProste from "./punkty-i-proste";
 import rownaniaWymierne from "./rownania-wymierne";
+import rownanieOkregu from "./rownanie-okregu";
 import statystyka from "./statystyka";
 import trojkatyICzworokaty from "./trojkaty-i-czworokaty";
 import trygonometria from "./trygonometria";
@@ -56,9 +56,9 @@ export const topics: Topic[] = withGenerated([
   { id: "ciagi", section: "VI", lesson: "Lekcje 23–25", title: "Ciągi", icon: "aₙ", category: "Algebra", target: 60, priority: "S+", examShare: 100, points: 5, studyHours: 3, content: ciagi },
   { id: "okrag-i-kolo", section: "VIII", lesson: "Lekcja 30", title: "Okrąg i koło", icon: "○", category: "Geometria", target: 60, priority: "S+", examShare: 100, points: 1, studyHours: 2, content: okragIKolo },
   { id: "punkty-i-proste", section: "IX", lesson: "Lekcja 35", title: "Punkty, odcinki i proste na płaszczyźnie", icon: "AB", category: "Geometria", target: 60, priority: "S+", examShare: 90, points: 2, studyHours: 1, content: punktyIProste },
-  { id: "rownanie-okregu", section: "IX", lesson: "Lekcja 36", title: "Równanie okręgu", icon: "r²", category: "Geometria", target: 60, priority: "S", examShare: 50, points: 1, studyHours: 2, practice: rownanieOkreguPractice },
+  { id: "rownanie-okregu", section: "IX", lesson: "Lekcja 36", title: "Równanie okręgu", icon: "r²", category: "Geometria", target: 60, priority: "S", examShare: 50, points: 1, studyHours: 2, content: rownanieOkregu },
   { id: "statystyka", section: "XII", lesson: "Lekcja 45", title: "Statystyka", icon: "x̄", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 2, studyHours: 2, content: statystyka },
-  { id: "przeksztalcenia-wykresow", section: "V", lesson: "Lekcja 15", title: "Przekształcenia wykresów funkcji", icon: "↔", category: "Funkcje", target: 60, priority: "A", examShare: 80, points: 1, studyHours: 1, practice: przeksztalceniaWykresowPractice },
+  { id: "przeksztalcenia-wykresow", section: "V", lesson: "Lekcja 15", title: "Przekształcenia wykresów funkcji", icon: "↔", category: "Funkcje", target: 60, priority: "A", examShare: 80, points: 1, studyHours: 1, content: przeksztalceniaWykresow },
   { id: "funkcja-kwadratowa", section: "V", lesson: "Lekcja 16", title: "Funkcja kwadratowa", icon: "∪", category: "Funkcje", target: 60, priority: "S", examShare: 100, points: 4, studyHours: 5, content: funkcjaKwadratowa },
   { id: "funkcja-wykladnicza-i-logarytmiczna", section: "V", lesson: "Lekcja 22", title: "Funkcja wykładnicza i logarytmiczna", icon: "aˣ", category: "Funkcje", target: 60, priority: "B", examShare: 15, points: 1, studyHours: 1, practice: funkcjaWykladniczaILogarytmicznaPractice },
 

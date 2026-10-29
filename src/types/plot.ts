@@ -6,6 +6,8 @@ export interface Plot {
   y: [min: number, max: number];
   /** Łamane/krzywe – kolejne punkty łączone odcinkami. */
   lines: Point[][];
+  /** Linie pomocnicze (przerywane, w tle): np. wykres przed przekształceniem, przyprostokątne do Pitagorasa. */
+  guides?: Point[][];
   /** Wyróżnione punkty; `open` = puste kółko (punkt nie należy do wykresu). */
   dots?: { at: Point; open?: boolean }[];
 }
