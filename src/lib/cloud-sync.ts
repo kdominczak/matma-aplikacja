@@ -11,8 +11,8 @@ import type { ExamAttempt, ExamTaskResult } from "@/types/exam";
 // kopia SCALA się z tym, co jest na urządzeniu (progress-merge.ts), więc nic nie znika.
 //
 // Kolejność ma znaczenie: najpierw pobranie i scalenie, dopiero potem wysyłanie – inaczej świeży,
-// pusty telefon nadpisałby kopię. Przed każdą wysyłką sprawdzamy, czy inne urządzenie nie zapisało
-// w międzyczasie nowszej kopii (wtedy najpierw ją scalamy).
+// pusty telefon nadpisałby kopię. Zapis idzie przez save_progress() z updated_at ostatnio widzianej kopii:
+// jeśli inne urządzenie zapisało w międzyczasie, serwer odrzuca zapis (MA020), a my najpierw scalamy.
 
 const PUSH_DELAY_MS = 4_000;
 const LOCAL_SAVED_KEY = "cloud.localSavedAt";
@@ -97,23 +97,33 @@ async function pullProgress(id: string): Promise<boolean> {
   return true;
 }
 
+/** Konflikt wersji kopii: inne urządzenie zapisało po naszym odczycie (MA020) albo równolegle założyło kopię (23505). */
+function isVersionConflict(error: { code?: string } | null): boolean {
+  return error?.code === "MA020" || error?.code === "23505";
+}
+
+const MAX_PUSH_ATTEMPTS = 3;
+
+/**
+ * Wysyła kopię z optymistyczną blokadą (save_progress): serwer zapisze tylko wtedy, gdy kopia ma updated_at,
+ * który ostatnio widzieliśmy. Przy konflikcie pobieramy nowszą kopię, scalamy i próbujemy ponownie –
+ * zmiany z drugiego urządzenia nigdy nie zostają nadpisane bez scalenia.
+ */
 async function pushProgress(id: string) {
   const db = await supabase();
   if (!db || pulledFor !== id || !dirty) return;
-  // inne urządzenie zapisało kopię po naszym ostatnim odczycie – najpierw ją scalamy
-  const { data: head, error: headError } = await db.from("user_progress").select("updated_at").eq("user_id", id).maybeSingle();
-  if (headError) throw headError;
-  if (head && head.updated_at !== remoteUpdatedAt) await pullProgress(id);
-
-  const progress = await readProgress();
-  const { data, error } = await db
-    .from("user_progress")
-    .upsert({ user_id: id, data: progress, updated_at: new Date().toISOString() })
-    .select("updated_at")
-    .single();
-  if (error) throw error;
-  remoteUpdatedAt = data.updated_at as string;
-  dirty = false;
+  for (let attempt = 1; ; attempt++) {
+    const progress = await readProgress();
+    const { data, error } = await db.rpc("save_progress", { p_data: progress, p_expected: remoteUpdatedAt });
+    if (!error) {
+      remoteUpdatedAt = data as string;
+      dirty = false;
+      return;
+    }
+    if (!isVersionConflict(error) || attempt >= MAX_PUSH_ATTEMPTS) throw error;
+    remoteUpdatedAt = null;
+    await pullProgress(id); // scala nowszą kopię z urządzeniem i ustawia remoteUpdatedAt (albo null, gdy kopii nie ma)
+  }
 }
 
 function toAttempt(row: {
@@ -260,15 +270,12 @@ export function resetCloudData(): Promise<void> {
     if (db && id) {
       // bez sesji nie skasujemy kopii, a potem wróciłaby przy synchronizacji – nie resetujemy wcale
       if (!(await hasSessionFor(id))) throw new Error("Brak aktywnej sesji – zaloguj się ponownie i spróbuj jeszcze raz.");
-      const { data, error } = await db
-        .from("user_progress")
-        .upsert({ user_id: id, data: {}, updated_at: new Date().toISOString() })
-        .select("updated_at")
-        .single();
+      // świadome nadpisanie bez względu na wersję (p_force) – reset ma wygrać z każdą kopią
+      const { data, error } = await db.rpc("save_progress", { p_data: {}, p_expected: remoteUpdatedAt, p_force: true });
       if (error) throw error;
       const { error: deleteError } = await db.from("exam_attempts").delete().eq("user_id", id);
       if (deleteError) throw deleteError;
-      remoteUpdatedAt = data.updated_at as string;
+      remoteUpdatedAt = data as string;
       pulledFor = id;
       dirty = false;
     }

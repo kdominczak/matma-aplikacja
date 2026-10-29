@@ -116,8 +116,8 @@ describe("ranking", () => {
 });
 
 describe("kopia postępu i arkusze – prywatne dane", () => {
-  it("uczeń zapisuje i czyta tylko swoją kopię", async () => {
-    await t.as("authenticated", A, `insert into public.user_progress (user_id, data) values ($1, '{"x": 1}')`, [A]);
+  it("uczeń zapisuje (przez save_progress) i czyta tylko swoją kopię", async () => {
+    await t.as("authenticated", A, `select public.save_progress('{"x": 1}', null)`);
     expect(await t.as("authenticated", A, `select data from public.user_progress`)).toHaveLength(1);
     expect(await t.as("authenticated", B, `select data from public.user_progress`)).toHaveLength(0);
     expect(await t.errorCode("authenticated", B, `insert into public.user_progress (user_id, data) values ($1, '{}')`, [A])).toBe("42501");
