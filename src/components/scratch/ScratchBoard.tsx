@@ -38,7 +38,7 @@ const Calculator = dynamic(() => import("@/components/scratch/Calculator"), { ss
 export type { ScratchItem } from "@/types/scratch";
 export type { ScratchTemplate } from "@/components/scratch/ScratchBackground";
 
-type Tool = "pen" | "eraser" | "line" | "shape" | "angle" | "mark" | "select";
+type Tool = "pen" | "eraser" | "line" | "shape" | "angle" | "mark" | "select" | "pan";
 
 const TEMPLATES: { id: ScratchTemplate; label: string; icon: IconName }[] = [
   { id: "grid", label: "Kratka", icon: "grid" },
@@ -90,7 +90,19 @@ type Gesture =
   | { kind: "new-shape"; from: Vec; id: string }
   | { kind: "move"; base: ShapeItem; start: Vec; moved: boolean }
   | { kind: "scale"; base: ShapeItem }
-  | { kind: "rotate"; base: ShapeItem };
+  | { kind: "rotate"; base: ShapeItem }
+  | { kind: "pan"; startPan: Vec; startPoint: Vec };
+
+/**
+ * Widok kartki: przybliżenie i przesunięcie (lewy górny róg widoku w jednostkach kartki). Model notatek się nie
+ * zmienia – widok nakłada tylko transformację, więc stare notatki wyglądają tak samo przy 100%.
+ */
+type View = { zoom: number; pan: Vec };
+const MIN_ZOOM = 0.4;
+const MAX_ZOOM = 2.5;
+const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+/** Szczypanie dwoma palcami: punkty startowe na ekranie i widok z chwili rozpoczęcia. */
+type Pinch = { startDist: number; startMid: Vec; startView: View };
 
 /**
  * Historia zmian (cofnij / ponów). Zmiana notatek z zewnątrz (np. inne zadanie) czyści historię –
@@ -165,9 +177,33 @@ export default function ScratchBoard(props: Props) {
   const { isDark } = useTheme();
 
   const formulas = formulaGroups.flatMap((g) => g.formulas);
+  const [view, setView] = useState<View>({ zoom: 1, pan: [0, 0] });
+  const pointers = useRef(new Map<number, Vec>());
+  const pinch = useRef<Pinch | null>(null);
   const W = size.width || 1;
-  const units = (p: Vec): Vec => [p[0] / W, p[1] / W];
-  const pixels = (p: Vec): Vec => [p[0] * W, p[1] * W];
+  /** Piksele ekranu na jednostkę kartki – z przybliżeniem. Tolerancje dotyku dzielimy przez Z (stałe na ekranie). */
+  const Z = W * view.zoom;
+  const units = (p: Vec): Vec => [p[0] / Z + view.pan[0], p[1] / Z + view.pan[1]];
+  const pixels = (p: Vec): Vec => [(p[0] - view.pan[0]) * Z, (p[1] - view.pan[1]) * Z];
+  /** Piksele „kartki przy 100%” (tak rysuje scratch-draw) → piksele ekranu. */
+  const onScreen = (p: Vec): Vec => pixels([p[0] / W, p[1] / W]);
+
+  /** Rysowanie na płótnie w układzie kartki przy 100% – widok (przybliżenie, przesunięcie) jako transformacja. */
+  function withView(ctx: CanvasRenderingContext2D, draw: () => void) {
+    const dpr = window.devicePixelRatio || 1;
+    ctx.save();
+    ctx.setTransform(dpr * view.zoom, 0, 0, dpr * view.zoom, -view.pan[0] * Z * dpr, -view.pan[1] * Z * dpr);
+    draw();
+    ctx.restore();
+  }
+
+  /** Przybliżenie z punktem `at` (piksele ekranu) w miejscu – to, co pod palcem/kursorem, zostaje pod nim. */
+  function zoomAt(at: Vec, zoom: number, base: View = view) {
+    const next = clampZoom(zoom);
+    const z = W * base.zoom;
+    const world: Vec = [at[0] / z + base.pan[0], at[1] / z + base.pan[1]];
+    setView({ zoom: next, pan: [world[0] - at[0] / (W * next), world[1] - at[1] / (W * next)] });
+  }
 
   /** Scena z uwzględnieniem podglądu – kąty i przypięte linie jadą razem z przesuwaną figurą. */
   const scene = useMemo(() => buildScene(items, draft), [items, draft]);
@@ -179,8 +215,14 @@ export default function ScratchBoard(props: Props) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const w = canvas.clientWidth;
+    ctx.restore();
+    withView(ctx, () => drawScene(ctx, canvas.clientWidth));
+  }
+
+  function drawScene(ctx: CanvasRenderingContext2D, w: number) {
     const dc: DrawContext = { isDark, width: w, scene };
     const accent = colorOf("blue", isDark);
     // kolejność warstw: pismo odręczne (z gumką) pod spodem, figury, linie i kąty nad nim – gumka nie ściera figur
@@ -218,7 +260,34 @@ export default function ScratchBoard(props: Props) {
     observer.observe(canvas);
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- redraw czyta aktualny stan kartki
-  }, [items, isDark, anglePoints, scene, selected, selectedLine, selectedEdge, tool, snap, linePreview]);
+  }, [items, isDark, anglePoints, scene, selected, selectedLine, selectedEdge, tool, snap, linePreview, view]);
+
+  // Kółko myszy: Ctrl/⌘ + kółko (i szczypanie na gładziku) – przybliżenie w miejscu kursora; samo kółko przesuwa
+  // kartkę tylko na pełnym ekranie (w wersji w treści zadania przewija stronę jak zwykle).
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const onWheel = (e: WheelEvent) => {
+      const rect = board.getBoundingClientRect();
+      const at: Vec = [e.clientX - rect.left, e.clientY - rect.top];
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        zoomAt(at, view.zoom * Math.exp(-e.deltaY * 0.0025));
+      } else if (full) {
+        e.preventDefault();
+        const z = W * view.zoom;
+        setView({ zoom: view.zoom, pan: [view.pan[0] + (e.shiftKey ? e.deltaY : e.deltaX) / z, view.pan[1] + (e.shiftKey ? 0 : e.deltaY) / z] });
+      }
+    };
+    board.addEventListener("wheel", onWheel, { passive: false });
+    return () => board.removeEventListener("wheel", onWheel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- zoomAt czyta aktualny widok
+  }, [view, W, full]);
+
+  /** Przyciski −/+: przybliżenie względem środka widocznej części kartki. */
+  function zoomStep(factor: number) {
+    zoomAt([size.width / 2, size.height / 2], view.zoom * factor);
+  }
 
   /** Punkt ekranu → piksele kartki. */
   function boardPoint(clientX: number, clientY: number): Vec {
@@ -256,7 +325,7 @@ export default function ScratchBoard(props: Props) {
 
   /** Magnes: najlepszy punkt w zasięgu palca (tylko dla linii i kątów). */
   function snapAt(u: Vec): SnapTarget | null {
-    return nearestSnap(u, targets, SNAP_RADIUS / W);
+    return nearestSnap(u, targets, SNAP_RADIUS / Z);
   }
 
   /** Podświetlenie magnesu przy ruchu kursora bez naciskania (myszka) – tylko gdy zmienia się punkt. */
@@ -353,13 +422,33 @@ export default function ScratchBoard(props: Props) {
     setSelectedFormula(null);
     const p = boardPoint(e.clientX, e.clientY);
     const u = units(p);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    pointers.current.set(e.pointerId, p);
+
+    // drugi palec: oddalanie/przybliżanie i przesuwanie kartki – rozpoczęty gest (np. kreska) przepada
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()];
+      pinch.current = { startDist: Math.max(1, distance(a, b)), startMid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], startView: view };
+      gesture.current = null;
+      setDraft(null);
+      setLinePreview(null);
+      setSnap(null);
+      redraw();
+      return;
+    }
+    if (pointers.current.size > 2 || pinch.current) return;
+
+    if (tool === "pan") {
+      gesture.current = { kind: "pan", startPan: view.pan, startPoint: p };
+      return;
+    }
     const topShapes = [...shapes.values()].reverse();
 
     if (tool === "angle") {
       if (anglePoints.length === 0) {
         // wierzchołek figury: stuknięcie – kąt (albo kolejna para ramion), przeciągnięcie – kąt we wskazanym klinie
         for (const shape of topShapes) {
-          const vertex = nearestVertex(shape, u, SNAP_RADIUS / W);
+          const vertex = nearestVertex(shape, u, SNAP_RADIUS / Z);
           if (vertex === null) continue;
           e.currentTarget.setPointerCapture(e.pointerId);
           gesture.current = { kind: "angle-vertex", shapeId: shape.id, vertex, start: u };
@@ -380,7 +469,7 @@ export default function ScratchBoard(props: Props) {
     }
 
     if (tool === "mark") {
-      setSelectedEdge(nearestEdge(u, scene, HIT_TOLERANCE / W));
+      setSelectedEdge(nearestEdge(u, scene, HIT_TOLERANCE / Z));
       return;
     }
 
@@ -388,14 +477,14 @@ export default function ScratchBoard(props: Props) {
       // linie mają pierwszeństwo – leżą na figurach i trudniej je trafić
       const lineHit = [...scene.lines.values()].reverse().find((l) => {
         const ends = lineEnds(l, scene);
-        return distanceToSegment(u, ends.from, ends.to) <= HIT_TOLERANCE / W;
+        return distanceToSegment(u, ends.from, ends.to) <= HIT_TOLERANCE / Z;
       });
       setSelectedLine(lineHit?.id ?? null);
       if (lineHit) {
         setSelectedShape(null);
         return;
       }
-      const hit = topShapes.find((s) => hitShape(s, u, HIT_TOLERANCE / W));
+      const hit = topShapes.find((s) => hitShape(s, u, HIT_TOLERANCE / Z));
       setSelectedShape(hit?.id ?? null);
       if (hit) {
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -418,11 +507,12 @@ export default function ScratchBoard(props: Props) {
     const erase = tool === "eraser";
     const stroke: StrokeItem = { id: scratchId(), kind: "stroke", points: [u], color, width: erase ? width * ERASER_SCALE : width, erase };
     gesture.current = { kind: "stroke", item: stroke };
-    drawItem(e.currentTarget.getContext("2d")!, stroke, { isDark, width: W, scene });
+    const ctx = e.currentTarget.getContext("2d")!;
+    withView(ctx, () => drawItem(ctx, stroke, { isDark, width: W, scene }));
   }
 
   function newShape(id: string, from: Vec, to: Vec): ShapeItem {
-    const box = shapeFromDrag(shapeKind, from, to, MIN_DRAG / W);
+    const box = shapeFromDrag(shapeKind, from, to, MIN_DRAG / Z);
     return {
       id,
       kind: "shape",
@@ -440,6 +530,23 @@ export default function ScratchBoard(props: Props) {
     const g = gesture.current;
     const p = boardPoint(e.clientX, e.clientY);
     const u = units(p);
+    if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, p);
+    if (pinch.current) {
+      if (pointers.current.size < 2) return;
+      const [a, b] = [...pointers.current.values()];
+      const { startDist, startMid, startView } = pinch.current;
+      const mid: Vec = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      const zoom = clampZoom(startView.zoom * (distance(a, b) / startDist));
+      // punkt kartki spod środka palców na starcie zostaje pod środkiem palców teraz
+      const z0 = W * startView.zoom;
+      const world: Vec = [startMid[0] / z0 + startView.pan[0], startMid[1] / z0 + startView.pan[1]];
+      setView({ zoom, pan: [world[0] - mid[0] / (W * zoom), world[1] - mid[1] / (W * zoom)] });
+      return;
+    }
+    if (g?.kind === "pan") {
+      setView({ zoom: view.zoom, pan: [g.startPan[0] - (p[0] - g.startPoint[0]) / Z, g.startPan[1] - (p[1] - g.startPoint[1]) / Z] });
+      return;
+    }
     if (!g) {
       hover(u);
       return;
@@ -454,7 +561,8 @@ export default function ScratchBoard(props: Props) {
       const last = g.item.points.at(-1)!;
       g.item.points.push(u);
       // dorysowujemy tylko ostatni odcinek – płynniej niż przerysowanie całości
-      drawStrokeTail(e.currentTarget.getContext("2d")!, pixels(last), p, colorOf(color, isDark), g.item.width, g.item.erase);
+      const ctx = e.currentTarget.getContext("2d")!;
+      withView(ctx, () => drawStrokeTail(ctx, [last[0] * W, last[1] * W], [u[0] * W, u[1] * W], colorOf(color, isDark), g.item.width, g.item.erase));
     } else if (g.kind === "new-shape") {
       setDraft(newShape(g.id, g.from, u));
     } else if (g.kind === "move") {
@@ -464,9 +572,15 @@ export default function ScratchBoard(props: Props) {
   }
 
   function handleUp(e: ReactPointerEvent<HTMLCanvasElement>) {
+    pointers.current.delete(e.pointerId);
+    if (pinch.current) {
+      // koniec szczypania dopiero, gdy podniesie się ostatni palec – inaczej zostający palec zacząłby rysować
+      if (pointers.current.size === 0) pinch.current = null;
+      return;
+    }
     const g = gesture.current;
     gesture.current = null;
-    if (!g) return;
+    if (!g || g.kind === "pan") return;
     const u = units(boardPoint(e.clientX, e.clientY));
     if (g.kind === "line") {
       const to = snapAt(u);
@@ -604,7 +718,10 @@ export default function ScratchBoard(props: Props) {
   function formulaDrag(e: ReactPointerEvent<HTMLDivElement>) {
     if (!formulaMove) return;
     const u = units(boardPoint(e.clientX, e.clientY));
-    const at: Vec = [Math.max(0, Math.min(u[0] - formulaMove.offset[0], (size.width - 24) / W)), Math.max(0, Math.min(u[1] - formulaMove.offset[1], (size.height - 24) / W))];
+    const at: Vec = [
+      Math.max(view.pan[0], Math.min(u[0] - formulaMove.offset[0], view.pan[0] + (size.width - 24) / Z)),
+      Math.max(view.pan[1], Math.min(u[1] - formulaMove.offset[1], view.pan[1] + (size.height - 24) / Z)),
+    ];
     setFormulaMove({ ...formulaMove, at, moved: formulaMove.moved || distance(pixels(at), pixels(formulaMove.at)) > 2 });
   }
 
@@ -620,9 +737,11 @@ export default function ScratchBoard(props: Props) {
   const active = "bg-subtle text-ink ring-2 ring-brand";
   const previewSize = tool === "eraser" ? Math.min(width * ERASER_SCALE, 32) : width;
   const handles = tool === "select" && selected ? boxCorners(selected).map(pixels) : [];
-  const rotateAt = tool === "select" && selected && !isSolid(selected.shape) ? pixels(rotationHandle(selected, ROTATE_HANDLE_OFFSET / W)) : null;
+  const rotateAt = tool === "select" && selected && !isSolid(selected.shape) ? pixels(rotationHandle(selected, ROTATE_HANDLE_OFFSET / Z)) : null;
   const hint =
-    tool === "line"
+    tool === "pan"
+      ? "Przeciągnij, żeby przesunąć kartkę · dwa palce: oddal i przybliż"
+      : tool === "line"
       ? "Przeciągnij od punktu do punktu – końce przyciągają się do wierzchołków i środków"
       : tool === "angle"
       ? anglePoints.length === 0
@@ -741,7 +860,7 @@ export default function ScratchBoard(props: Props) {
       )}
 
       <div ref={boardRef} className={`relative overflow-hidden ${full ? "flex-1" : "h-80 lg:h-[26rem]"}`}>
-        <ScratchBackground template={template} width={size.width} height={size.height} />
+        <ScratchBackground template={template} width={size.width} height={size.height} zoom={view.zoom} pan={[view.pan[0] * W, view.pan[1] * W]} />
         <canvas
           ref={canvasRef}
           onPointerDown={handleDown}
@@ -749,7 +868,7 @@ export default function ScratchBoard(props: Props) {
           onPointerUp={handleUp}
           onPointerCancel={handleUp}
           onPointerLeave={() => !gesture.current && setSnap(null)}
-          className={`absolute inset-0 h-full w-full touch-none ${tool === "eraser" ? "cursor-cell" : tool === "select" ? "cursor-default" : "cursor-crosshair"}`}
+          className={`absolute inset-0 h-full w-full touch-none ${tool === "eraser" ? "cursor-cell" : tool === "select" ? "cursor-default" : tool === "pan" ? "cursor-grab" : "cursor-crosshair"}`}
           aria-label="Pole do rysowania"
         />
 
@@ -792,7 +911,7 @@ export default function ScratchBoard(props: Props) {
           if (item.kind !== "mark" || !item.label) return null;
           const segment = edgeSegment(item.target, scene);
           if (!segment) return null;
-          const [x, y] = markLabelPosition(segment, W);
+          const [x, y] = onScreen(markLabelPosition(segment, W));
           return (
             <span
               key={item.id}
@@ -848,6 +967,23 @@ export default function ScratchBoard(props: Props) {
           </p>
         )}
 
+        {/* przybliżenie: −, poziom (stuknięcie = 100% i powrót na początek kartki), + */}
+        <div className="absolute bottom-2 left-2 z-10 flex items-center rounded-xl border border-line bg-card/90 shadow-card backdrop-blur">
+          <button onClick={() => zoomStep(1 / 1.25)} disabled={view.zoom <= MIN_ZOOM} aria-label="Oddal kartkę" className="flex h-10 w-10 items-center justify-center text-muted hover:text-ink disabled:text-faint">
+            <Icon name="zoomOut" className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setView({ zoom: 1, pan: [0, 0] })}
+            aria-label="Przywróć 100% i początek kartki"
+            className="h-10 min-w-12 px-1 text-xs font-extrabold text-ink tabular-nums"
+          >
+            {Math.round(view.zoom * 100)}%
+          </button>
+          <button onClick={() => zoomStep(1.25)} disabled={view.zoom >= MAX_ZOOM} aria-label="Przybliż kartkę" className="flex h-10 w-10 items-center justify-center text-muted hover:text-ink disabled:text-faint">
+            <Icon name="zoomIn" className="h-5 w-5" />
+          </button>
+        </div>
+
         {calcOpen && (
           <div className="absolute right-2 bottom-2 z-20 max-h-[calc(100%-1rem)] overflow-y-auto">
             <Calculator onInsert={(value) => addFormula(value.replace(",", "{,}"))} onClose={() => setCalcOpen(false)} />
@@ -883,6 +1019,7 @@ export default function ScratchBoard(props: Props) {
               <ToolButton icon="angle" label="Kąt" selected={tool === "angle"} onClick={() => selectTool("angle")} />
               <ToolButton icon="mark" label="Oznacz bok (długość, równe odcinki, środek, wysokość)" selected={tool === "mark"} onClick={() => selectTool("mark")} />
               <ToolButton icon="pointer" label="Zaznacz i przesuń figurę" selected={tool === "select"} onClick={() => selectTool("select")} />
+              <ToolButton icon="hand" label="Przesuń kartkę (albo dwa palce)" selected={tool === "pan"} onClick={() => selectTool("pan")} />
               <span className="mx-0.5 h-6 w-px shrink-0 bg-line" aria-hidden />
               {formulas.length > 0 && (
                 <ToolButton icon="book" label="Wzory do przeciągnięcia" selected={formulasOpen} onClick={() => setFormulasOpen(!formulasOpen)} />
