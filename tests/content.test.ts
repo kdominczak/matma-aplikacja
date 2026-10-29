@@ -51,6 +51,27 @@ describe("treść zadań", () => {
         expect(errors).toEqual([]);
       });
 
+      it("teoria, przykłady, haczyki i pułapki zadań renderują się w KaTeX", () => {
+        const content = topic.content;
+        const texts = [
+          ...(content?.theory.flatMap((s) => [s.title, s.body, s.example?.prompt ?? "", ...(s.example?.solution.split("\n") ?? [])]) ?? []),
+          ...(content?.traps ?? []),
+          ...tasks.flatMap((t) => (t.kind === "closed" && t.question.trap ? [t.question.trap] : [])),
+        ];
+        expect(texts.flatMap((text) => texErrors(text))).toEqual([]);
+      });
+
+      it("bez znaków sterujących (zgubiony backslash w LaTeX, np. form feed zamiast \\frac)", () => {
+        // poza nową linią (kroki przykładów, zdania P/F) żaden tekst nie może zawierać znaków sterujących
+        const strings: string[] = [];
+        const collect = (value: unknown) => {
+          if (typeof value === "string") strings.push(value);
+          else if (value && typeof value === "object") Object.values(value).forEach(collect);
+        };
+        collect({ content: topic.content, tasks });
+        expect(strings.filter((s) => /[\x00-\x09\x0b-\x1f]/.test(s))).toEqual([]);
+      });
+
       it("zadania zamknięte: 4 różne odpowiedzi, poprawna wśród nich, wyjaśnienie, klucz w indeksie", () => {
         for (const task of tasks) {
           if (task.kind !== "closed") continue;

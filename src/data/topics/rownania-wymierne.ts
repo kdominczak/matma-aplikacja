@@ -61,6 +61,19 @@ const content: TopicContent = {
         { step: "Rozwiązanie $x = -1$ i sprawdzenie, że należy do dziedziny.", points: 1 },
       ],
     },
+    {
+      id: "rw-o3",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Rozwiąż równanie $\\frac{x + 4}{x - 2} = 3$.",
+      answers: ["5"],
+      answerLabel: "x =",
+      hints: ["Zacznij od dziedziny, potem pomnóż obie strony przez $x - 2$."],
+      solution: [
+        { step: "Dziedzina $x \\neq 2$ i przekształcenie: $x + 4 = 3(x - 2)$.", points: 1 },
+        { step: "Rozwiązanie: $2x = 10$, czyli $x = 5$ – należy do dziedziny.", points: 1 },
+      ],
+    },
   ],
   tests: {
     podstawowy: [

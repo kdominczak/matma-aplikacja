@@ -67,6 +67,18 @@ const content: TopicContent = {
         { step: "Nierówności nie spełniają liczby $1, 2, 3$ – są trzy.", points: 1 },
       ],
     },
+    {
+      id: "nk-o3",
+      difficulty: "podstawowy",
+      points: 2,
+      prompt: "Rozwiąż nierówność $x^2 - 9 > 0$. Ile liczb całkowitych z przedziału $\\langle -5, 5 \\rangle$ ją spełnia?",
+      answers: ["4"],
+      hints: ["Miejsca zerowe to $-3$ i $3$, a ramiona paraboli są skierowane w górę."],
+      solution: [
+        { step: "Rozwiązanie: $x \\in (-\\infty, -3) \\cup (3, +\\infty)$.", points: 1 },
+        { step: "W przedziale $\\langle -5, 5 \\rangle$: $-5, -4, 4, 5$ – cztery liczby.", points: 1 },
+      ],
+    },
   ],
   tests: {
     podstawowy: [

@@ -139,6 +139,19 @@ const content: TopicContent = {
         { step: "Pole: $\\frac{(14 + 6) \\cdot 3}{2} = 30$.", points: 1 },
       ],
     },
+    {
+      id: "tk-o4",
+      difficulty: "sredni",
+      points: 2,
+      prompt: "Przeciwprostokątna trójkąta prostokątnego ma długość $13$, a jedna z przyprostokątnych $5$. Oblicz pole tego trójkąta.",
+      answers: ["30"],
+      answerLabel: "P =",
+      hints: ["Najpierw z Pitagorasa policz drugą przyprostokątną."],
+      solution: [
+        { step: "Druga przyprostokątna: $\\sqrt{169 - 25} = 12$.", points: 1 },
+        { step: "Pole: $\\frac{1}{2} \\cdot 5 \\cdot 12 = 30$.", points: 1 },
+      ],
+    },
   ],
   tests: {
     podstawowy: [

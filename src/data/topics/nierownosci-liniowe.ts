@@ -59,6 +59,18 @@ const content: TopicContent = {
         { step: "Liczby $1, 2, \\ldots, 7$ – jest ich $7$.", points: 1 },
       ],
     },
+    {
+      id: "nl-o3",
+      difficulty: "zaawansowany",
+      points: 2,
+      prompt: "Rozwiąż nierówność $\\frac{2x + 1}{3} - \\frac{x}{2} > 1$. Podaj najmniejszą liczbę całkowitą, która ją spełnia.",
+      answers: ["5"],
+      hints: ["Pomnóż obie strony przez $6$ – każdy wyraz, także jedynkę po prawej."],
+      solution: [
+        { step: "Pomnożenie przez $6$: $2(2x + 1) - 3x > 6$, czyli $x + 2 > 6$.", points: 1 },
+        { step: "Rozwiązanie: $x > 4$ – najmniejsza liczba całkowita to $5$.", points: 1 },
+      ],
+    },
   ],
   tests: {
     podstawowy: [
