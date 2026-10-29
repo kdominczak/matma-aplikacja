@@ -16,7 +16,7 @@ import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import { examKindLabel, examMaxPoints, getExam } from "@/data/exams";
 import { formulaGroup, topics, type PracticeTask } from "@/data/topics";
-import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam } from "@/lib/exam";
+import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam, sessionElapsedMs } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import { displayedOptions } from "@/lib/options";
 import { saveExamResult } from "@/lib/progress";
@@ -156,7 +156,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
           </li>
           <li className="flex gap-2">
             <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-            Postęp zapisuje się na bieżąco – możesz zamknąć aplikację i wrócić później.
+            Postęp zapisuje się na bieżąco – możesz zamknąć aplikację i wrócić później. Czas egzaminu wtedy stoi.
           </li>
         </ul>
 
@@ -215,14 +215,42 @@ function ExamInProgress({
     [exam.tasks.length, update],
   );
 
+  // Czas egzaminu liczy się tylko przy otwartej aplikacji: w tle i po zamknięciu stoi. Zapis co 10 s i przy wyjściu,
+  // więc po „zabiciu” aplikacji giną najwyżej sekundy.
+  const [clock] = useState(() => new ActiveClock(sessionElapsedMs(initial, exam.durationMin)));
+  const elapsed = useCallback(() => clock.elapsed(), [clock]);
+  const sessionRef = useRef(session);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+  useEffect(() => {
+    const persist = () => void saveSession({ ...sessionRef.current, elapsedMs: clock.elapsed() });
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        clock.pause();
+        persist();
+      } else {
+        clock.resume();
+      }
+    };
+    const timer = window.setInterval(() => clock.running && persist(), 10_000);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", persist);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", persist);
+    };
+  }, [clock]);
+
   const finish = useCallback(async () => {
     if (finishing.current) return;
     finishing.current = true;
     // koniec egzaminu: od teraz czas stoi, a sesja (z odpowiedziami) czeka na sprawdzenie zadań otwartych
-    const finished = { ...session, finishedAt: Date.now() };
+    const finished = { ...session, elapsedMs: elapsed(), finishedAt: Date.now() };
     await saveSession(finished);
     onFinished(finished, scoreExam(exam, finished));
-  }, [exam, session, onFinished]);
+  }, [exam, session, onFinished, elapsed]);
 
   // ← → na klawiaturze (poza polem wpisywania)
   useEffect(() => {
@@ -259,7 +287,7 @@ function ExamInProgress({
                 Odpowiedzi: {answeredCount}/{exam.tasks.length}
               </p>
             </div>
-            <ExamTimer startedAt={session.startedAt} durationMin={exam.durationMin} onTimeUp={() => void finish()} />
+            <ExamTimer elapsed={elapsed} durationMin={exam.durationMin} onTimeUp={() => void finish()} />
             <button
               onClick={() => setPanel("finish")}
               className="flex min-h-11 shrink-0 items-center rounded-xl bg-brand px-3 text-sm font-bold text-white shadow-float active:bg-brand-dark"
@@ -504,14 +532,34 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
 }
 
 /** Pozostały czas (jak na maturze – liczony od startu, także gdy aplikacja jest w tle). Po upływie czasu arkusz się kończy. */
-function ExamTimer({ startedAt, durationMin, onTimeUp }: { startedAt: number; durationMin: number; onTimeUp: () => void }) {
-  const [now, setNow] = useState(() => Date.now());
+/** Czas aktywny arkusza: liczy się od `resume()` do `pause()`; start od czasu zapisanego w sesji. */
+class ActiveClock {
+  private since: number | null = Date.now();
+  constructor(private base: number) {}
+  get running() {
+    return this.since !== null;
+  }
+  elapsed(): number {
+    return this.base + (this.since === null ? 0 : Date.now() - this.since);
+  }
+  pause() {
+    this.base = this.elapsed();
+    this.since = null;
+  }
+  resume() {
+    if (this.since === null) this.since = Date.now();
+  }
+}
+
+/** Pozostały czas – z czasu aktywnego (`elapsed`), więc w tle zegar stoi. */
+function ExamTimer({ elapsed, durationMin, onTimeUp }: { elapsed: () => number; durationMin: number; onTimeUp: () => void }) {
+  const [elapsedMs, setElapsedMs] = useState(elapsed);
   const fired = useRef(false);
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    const timer = window.setInterval(() => setElapsedMs(elapsed()), 1000);
     return () => window.clearInterval(timer);
-  }, []);
-  const left = Math.max(0, durationMin * 60 - Math.floor((now - startedAt) / 1000));
+  }, [elapsed]);
+  const left = Math.max(0, durationMin * 60 - Math.floor(elapsedMs / 1000));
   useEffect(() => {
     if (left === 0 && !fired.current) {
       fired.current = true;

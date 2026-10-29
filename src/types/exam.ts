@@ -42,8 +42,13 @@ export interface ExamSession {
   answers: Record<string, ExamAnswer>;
   /** Zadania oznaczone „wrócę do tego”. */
   flagged: string[];
-  /** Moment „Zakończ” (ms) – potem jest już tylko sprawdzanie zadań otwartych; czas egzaminu liczy się do niego. */
+  /** Moment „Zakończ” (ms) – potem jest już tylko sprawdzanie zadań otwartych. */
   finishedAt?: number;
+  /**
+   * Czas rozwiązywania (ms) liczony tylko przy otwartej aplikacji – wyjście na obiad nie zjada czasu egzaminu.
+   * Brak (starsze sesje) = czas od `startedAt`, najwyżej czas egzaminu.
+   */
+  elapsedMs?: number;
 }
 
 /**

@@ -65,3 +65,17 @@ it("ocena AI zachowuje uzasadnienia przy krokach (przycięte), samoocena – bez
   expect(ai.assessment?.reasons).toHaveLength(extended.task.solution.length);
   expect(applyAssessment(extended, wrong, { by: "self", steps: [1], reasons }).assessment?.reasons).toBeUndefined();
 });
+
+describe("czas arkusza", () => {
+  it("liczy czas aktywny z sesji; arkusz zaczęty wczoraj i skończony dziś to nie 27 godzin", async () => {
+    const { sessionElapsedMs, examStats } = await import("@/lib/exam");
+    const base = { examId: "t", startedAt: 0, current: 0, answers: {}, flagged: [] };
+    expect(sessionElapsedMs({ ...base, elapsedMs: 20 * 60_000 }, 180, 27 * 3_600_000)).toBe(20 * 60_000);
+    // starsza sesja bez elapsedMs – od startu, ale najwyżej czas egzaminu
+    expect(sessionElapsedMs(base, 180, 27 * 3_600_000)).toBe(180 * 60_000);
+    expect(sessionElapsedMs({ ...base, finishedAt: 600_000 }, 180, 27 * 3_600_000)).toBe(600_000);
+    // statystyki: stare próby z zawyżonym czasem obcięte do 180 min
+    const attempt = (durationSec: number) => ({ id: "a", examId: "t", startedAt: "", finishedAt: "", durationSec, points: 0, maxPoints: 50, percent: 0, results: [] });
+    expect(examStats([attempt(27 * 3600), attempt(600)])?.totalSec).toBe(180 * 60 + 600);
+  });
+});

@@ -58,6 +58,15 @@ export function applyAssessment(task: PracticeTask & { kind: "open" }, result: E
   return { ...result, points, status: points > 0 ? "partial" : result.status, assessment: { by: assessment.by, steps, ...(reasons ? { reasons } : {}) } };
 }
 
+/**
+ * Czas rozwiązywania w ms: aktywny czas z sesji, a w starszych sesjach (bez `elapsedMs`) – od rozpoczęcia.
+ * Zawsze najwyżej czas egzaminu: arkusz zaczęty wczoraj i skończony dziś to nie 27 godzin.
+ */
+export function sessionElapsedMs(session: ExamSession, durationMin: number, now = Date.now()): number {
+  const raw = session.elapsedMs ?? (session.finishedAt ?? now) - session.startedAt;
+  return Math.max(0, Math.min(raw, durationMin * 60_000));
+}
+
 export function finishExam(exam: ExamSheet, session: ExamSession, now = Date.now(), results = scoreExam(exam, session)): ExamAttempt {
   const finishedAt = session.finishedAt ?? now;
   const points = results.reduce((sum, r) => sum + r.points, 0);
@@ -67,7 +76,7 @@ export function finishExam(exam: ExamSheet, session: ExamSession, now = Date.now
     examId: exam.id,
     startedAt: new Date(session.startedAt).toISOString(),
     finishedAt: new Date(finishedAt).toISOString(),
-    durationSec: Math.max(0, Math.round((finishedAt - session.startedAt) / 1000)),
+    durationSec: Math.round(sessionElapsedMs(session, exam.durationMin, finishedAt) / 1000),
     points,
     maxPoints,
     percent: maxPoints ? Math.round((points / maxPoints) * 100) : 0,
@@ -196,13 +205,17 @@ export interface ExamStats {
   totalSec: number;
 }
 
+/** Najdłuższa sensowna próba w statystykach: czas matury podstawowej (180 min). */
+const MAX_ATTEMPT_SEC = 180 * 60;
+
 export function examStats(list: ExamAttempt[]): ExamStats | null {
   if (list.length === 0) return null;
   return {
     count: list.length,
     bestPercent: Math.max(...list.map((a) => a.percent)),
     averagePercent: Math.round(list.reduce((sum, a) => sum + a.percent, 0) / list.length),
-    totalSec: list.reduce((sum, a) => sum + a.durationSec, 0),
+    // starsze próby liczyły też czas z zamkniętą aplikacją (np. 27 h) – w sumie najwyżej czas matury na próbę
+    totalSec: list.reduce((sum, a) => sum + Math.min(a.durationSec, MAX_ATTEMPT_SEC), 0),
   };
 }
 
