@@ -57,7 +57,7 @@ test.describe("dotyk", () => {
     const cx = box.x + box.width / 2;
     const cy = box.y + box.height / 2;
     const cdp = await page.context().newCDPSession(page);
-    const touch = (type: string, points: [number, number][]) =>
+    const touch = (type: "touchStart" | "touchMove" | "touchEnd", points: [number, number][]) =>
       cdp.send("Input.dispatchTouchEvent", { type, touchPoints: points.map(([x, y], id) => ({ x, y, id })) });
 
     // palce rozsunięte na 160 px → zsuwamy do 80 px: oddalenie ok. 2×

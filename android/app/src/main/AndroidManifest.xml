@@ -38,4 +38,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- zdjęcie zadania (korepetytor) i kartki z rozwiązaniem (ocena w arkuszu) prosto z aparatu; aparat nie jest wymagany do instalacji -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 </manifest>

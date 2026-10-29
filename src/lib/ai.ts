@@ -1,4 +1,4 @@
-import { explainMessage, hintMessage, SYSTEM, type QuestionPayload } from "@/lib/ai-prompts";
+import { explainMessage, hintMessage, SYSTEM, TUTOR_STYLES, type QuestionPayload, type TutorStyle } from "@/lib/ai-prompts";
 import { gradingUserMessage, NO_SOLUTION, parseGrading, type Grading } from "@/lib/ai-grading";
 import { AI_ENABLED, TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
 import { MAX_IMAGES } from "@/lib/attachments";
@@ -29,7 +29,7 @@ type ApiMessage = { role: string; content: string | ContentPart[] };
 type Effort = "low" | "medium" | "high";
 
 export type AiRequest =
-  | { mode: "tutor"; messages: ChatMessage[] }
+  | { mode: "tutor"; messages: ChatMessage[]; style?: TutorStyle }
   | { mode: "explain"; question: QuestionPayload }
   | { mode: "hint"; question: QuestionPayload; level: number; previousHints: string[] }
   | { mode: "grade"; task: OpenQuestion; solution: string }
@@ -104,7 +104,8 @@ function buildRequest(request: AiRequest): BuiltRequest {
     case "tutor": {
       const { messages, images } = tutorMessages(trimHistory(request.messages));
       return {
-        messages: [{ role: "system", content: SYSTEM.tutor }, ...messages],
+        // tryb pomocy wybrany przez ucznia (naprowadź / pełne rozwiązanie / sprawdź) dopisany do promptu korepetytora
+        messages: [{ role: "system", content: `${SYSTEM.tutor}\n\n${TUTOR_STYLES[request.style ?? "naprowadz"].instruction}` }, ...messages],
         effort: "medium",
         // model z obrazami najpierw „myśli” – zapas na rozumowanie
         maxTokens: images > 0 ? 6144 : 2048,

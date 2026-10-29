@@ -137,3 +137,13 @@ describe("PDF jako tekst", () => {
     expect(parsePageRange(input, 3)).toEqual(expected);
   });
 });
+
+describe("tryb pomocy korepetytora", () => {
+  it("wybrany tryb trafia do promptu systemowego; domyślnie naprowadzanie", async () => {
+    const { streamAi } = await import("@/lib/ai");
+    await streamAi({ mode: "tutor", messages: [{ role: "user", content: "x" }], style: "sprawdz" }, () => {});
+    expect(String(bodies.at(-1)!.messages[0].content)).toContain("SPRAWDZENIE ROZWIĄZANIA");
+    await streamAi({ mode: "tutor", messages: [{ role: "user", content: "x" }] }, () => {});
+    expect(String(bodies.at(-1)!.messages[0].content)).toContain("NAPROWADZANIE");
+  });
+});

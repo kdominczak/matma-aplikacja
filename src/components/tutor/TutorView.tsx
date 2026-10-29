@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import { TypingDots } from "@/components/quiz/ExplainSheet";
 import AiLimitCard from "@/components/premium/AiLimitCard";
 import Icon from "@/components/ui/Icon";
+import MathText from "@/components/ui/MathText";
 import RichText from "@/components/ui/RichText";
 import { streamAi, takeTutorDraft, type ChatMessage } from "@/lib/ai";
 import { AI_ENABLED, VISION_MODEL_LABEL } from "@/lib/ai-config";
+import { TUTOR_STYLES, type TutorStyle } from "@/lib/ai-prompts";
 import {
   imageCount,
   isImage,
@@ -24,18 +26,15 @@ import {
   type ImageAttachment,
   type PdfAttachment,
 } from "@/lib/attachments";
+import { useExamAttempts } from "@/lib/exam";
+import { hapticTap } from "@/lib/haptics";
 import { AiLimitError, isPremium, usePremium } from "@/lib/premium";
+import { useProgress } from "@/lib/progress";
+import { tutorSuggestions, type TutorSuggestion } from "@/lib/tutor-suggestions";
 
 const MAX_HISTORY = 29; // nieparzysta: rozmowa zawsze kończy się wiadomością ucznia; do modelu i tak idzie przycięta końcówka
 const MAX_ATTACHMENTS = 3;
 const DEFAULT_PROMPT = "Pomóż mi z tym, co jest w załączniku – wytłumacz krok po kroku.";
-
-const SUGGESTIONS = [
-  { title: "Wklej zadanie", text: "Mam takie zadanie i nie wiem, od czego zacząć:\n\n" },
-  { title: "Sprawdź moje rozwiązanie", text: "Mam rozwiązanie zadania, ale nie wiem, czy jest dobre. Treść:\n\n\nMoje rozwiązanie:\n\n" },
-  { title: "Wytłumacz deltę", text: "Wytłumacz mi prosto, po co jest delta i jak z niej korzystać w równaniach kwadratowych." },
-  { title: "Dziedzina w równaniach", text: "Dlaczego w równaniach wymiernych trzeba wyznaczać dziedzinę? Pokaż na przykładzie." },
-];
 
 // Czat renderujemy dopiero w przeglądarce – szkic zadania czeka w sessionStorage.
 const noop = () => () => {};
@@ -50,7 +49,7 @@ export default function TutorView() {
     <Page width="reading">
       <PageHeader
         title="Korepetytor AI"
-        subtitle="Wklej zadanie ze szkoły albo z próbnej matury – tekstem, zdjęciem albo PDF-em. Przejdziemy przez nie krok po kroku."
+        subtitle="Masz zadanie, którego nie umiesz ruszyć? Zrób mu zdjęcie albo wklej treść – naprowadzę Cię, pokażę rozwiązanie albo sprawdzę Twoje."
       />
       {!AI_ENABLED ? (
         <p className="card p-5 text-sm text-muted">Korepetytor AI nie jest dostępny w tej wersji aplikacji.</p>
@@ -90,7 +89,9 @@ function Chat() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [preparing, setPreparing] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [style, setStyle] = useState<TutorStyle>("naprowadz");
   const abort = useRef<AbortController | null>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -165,7 +166,7 @@ function Chat() {
     abort.current = controller;
     try {
       await streamAi(
-        { mode: "tutor", messages: history },
+        { mode: "tutor", messages: history, style },
         (reply) => setMessages([...history, { role: "assistant", content: reply }]),
         controller.signal,
       );
@@ -192,26 +193,30 @@ function Chat() {
     setError(null);
   }
 
-  function applySuggestion(text: string) {
-    setInput(text);
+  function applySuggestion(suggestion: TutorSuggestion) {
+    hapticTap();
+    setInput(suggestion.text);
+    setStyle(suggestion.style);
     inputRef.current?.focus();
   }
+
+  // pole rośnie razem z tekstem (do ok. 8 linii), zamiast ucinać wklejone zadanie
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 240)}px`;
+  }, [input]);
 
   return (
     <div className="flex flex-col gap-4">
       {messages.length === 0 ? (
-        <section className="grid gap-3 sm:grid-cols-2">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s.title}
-              onClick={() => applySuggestion(s.text)}
-              className="rounded-2xl border border-line glass-card p-4 text-left shadow-card card-hover hover:border-brand/40"
-            >
-              <p className="font-extrabold text-ink">{s.title}</p>
-              <p className="mt-1 line-clamp-2 text-sm text-muted">{s.text.trim()}</p>
-            </button>
-          ))}
-        </section>
+        <StartPanel
+          onCamera={() => cameraRef.current?.click()}
+          onFiles={() => fileRef.current?.click()}
+          onSuggestion={applySuggestion}
+          busy={preparing}
+        />
       ) : (
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-widest text-faint">Rozmowa</p>
@@ -295,7 +300,36 @@ function Chat() {
           </div>
         )}
 
+        <div role="radiogroup" aria-label="Jak mam pomóc?" className="grid grid-cols-3 gap-1 px-1 pt-1">
+          {(Object.keys(TUTOR_STYLES) as TutorStyle[]).map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={style === id}
+              title={TUTOR_STYLES[id].hint}
+              onClick={() => setStyle(id)}
+              className={`min-h-9 rounded-full px-2 text-xs font-bold transition-colors ${
+                style === id ? "bg-brand text-white" : "bg-subtle text-muted hover:text-ink"
+              }`}
+            >
+              {TUTOR_STYLES[id].label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-end gap-1">
+          <input
+            ref={cameraRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            hidden
+            onChange={(e) => {
+              addFiles([...(e.target.files ?? [])]);
+              e.target.value = "";
+            }}
+          />
           <input
             ref={fileRef}
             type="file"
@@ -337,9 +371,9 @@ function Chat() {
                 send();
               }
             }}
-            rows={Math.min(8, Math.max(1, input.split("\n").length))}
-            placeholder="Wklej treść zadania, zdjęcie albo PDF… (wzory możesz pisać zwykłym tekstem)"
-            className="max-h-60 min-h-11 flex-1 resize-none bg-transparent px-2 py-2.5 text-ink placeholder:text-faint focus:outline-none"
+            rows={1}
+            placeholder="Napisz albo wklej zadanie…"
+            className="max-h-60 min-h-11 flex-1 resize-none overflow-y-auto bg-transparent px-2 py-2.5 text-ink placeholder:text-faint focus:outline-none"
           />
           {streaming ? (
             <button
@@ -363,10 +397,78 @@ function Chat() {
         </div>
       </form>
       <p className="-mt-2 text-center text-xs text-faint">
-        Korepetytor może się pomylić – sprawdzaj obliczenia i porównuj z kluczem CKE. Zdjęcia i skany czyta model {VISION_MODEL_LABEL} (do{" "}
-        {MAX_IMAGES} na wiadomość).
+        Korepetytor może się pomylić – sprawdzaj obliczenia. Zdjęcia czyta model {VISION_MODEL_LABEL} (do {MAX_IMAGES} na wiadomość).
       </p>
     </div>
+  );
+}
+
+/**
+ * Pusty czat: najpierw to, z czym uczeń przychodzi naprawdę – zdjęcie albo wklejone zadanie – a pod spodem
+ * „Twoje zadania” (ostatni arkusz, Pudełko porażek, najsłabszy dział).
+ */
+function StartPanel({
+  onCamera,
+  onFiles,
+  onSuggestion,
+  busy,
+}: {
+  onCamera: () => void;
+  onFiles: () => void;
+  onSuggestion: (s: TutorSuggestion) => void;
+  busy: boolean;
+}) {
+  const progress = useProgress();
+  const attempts = useExamAttempts();
+  const suggestions = progress ? tutorSuggestions(progress, attempts ?? []) : [];
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={onCamera}
+          disabled={busy}
+          className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-3xl bg-brand p-4 text-left text-white shadow-float btn-hover active:bg-brand-dark disabled:opacity-60"
+        >
+          <Icon name="camera" className="h-6 w-6" />
+          <span>
+            <span className="block font-extrabold">Zrób zdjęcie zadania</span>
+            <span className="block text-xs text-white/80">z zeszytu, książki, arkusza</span>
+          </span>
+        </button>
+        <button
+          onClick={onFiles}
+          disabled={busy}
+          className="card card-hover flex min-h-24 flex-col items-start justify-between gap-2 p-4 text-left hover:border-brand/40 disabled:opacity-60"
+        >
+          <Icon name="image" className="h-6 w-6 text-brand" />
+          <span>
+            <span className="block font-extrabold text-ink">Z galerii albo PDF</span>
+            <span className="block text-xs text-muted">zrzut ekranu, skan, arkusz</span>
+          </span>
+        </button>
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-faint">Twoje zadania</p>
+          {suggestions.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => onSuggestion(s)}
+              className="card card-hover flex items-center gap-3 p-4 text-left hover:border-brand/40"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-bold text-brand">{s.source}</span>
+                <MathText text={s.title} className="line-clamp-1 font-bold text-ink" />
+                <span className="block text-xs text-muted">{TUTOR_STYLES[s.style].hint}</span>
+              </span>
+              <Icon name="chevron" className="h-4 w-4 shrink-0 text-faint" />
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 

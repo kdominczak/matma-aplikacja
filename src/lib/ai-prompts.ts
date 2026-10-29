@@ -78,3 +78,29 @@ export function hintMessage(q: QuestionPayload, level: number, previousHints: st
     `Podaj wskazówkę poziomu ${level}.`,
   ].join("\n\n");
 }
+
+/**
+ * Jak korepetytor ma pomóc – uczeń wybiera przed wysłaniem. Dopisywane do `SYSTEM.tutor` (src/lib/ai.ts).
+ * „naprowadz” to domyślny tryb sokratejski z promptu; dwa pozostałe go nadpisują.
+ */
+export type TutorStyle = "naprowadz" | "rozwiazanie" | "sprawdz";
+
+export const TUTOR_STYLES: Record<TutorStyle, { label: string; hint: string; instruction: string }> = {
+  naprowadz: {
+    label: "Naprowadź",
+    hint: "krok po kroku, bez podawania wyniku",
+    instruction: "Tryb tej wiadomości: NAPROWADZANIE. Jeden krok na wiadomość, zakończony pytaniem do ucznia. Nie podawaj wyniku końcowego.",
+  },
+  rozwiazanie: {
+    label: "Rozwiązanie",
+    hint: "całe rozwiązanie z wyjaśnieniem",
+    instruction:
+      "Tryb tej wiadomości: PEŁNE ROZWIĄZANIE (uczeń o nie prosi – nie dopytuj, co już próbował). Podaj kompletne rozwiązanie w ponumerowanych krokach, przy każdym krótko „dlaczego”, na końcu wyraźny wynik i jedno zdanie o pułapce, na którą trzeba uważać na maturze.",
+  },
+  sprawdz: {
+    label: "Sprawdź moje",
+    hint: "ocena jak na maturze",
+    instruction:
+      "Tryb tej wiadomości: SPRAWDZENIE ROZWIĄZANIA UCZNIA, jak egzaminator CKE. Wypisz, co jest poprawne, wskaż pierwszy błąd (zacytuj go) i jak go poprawić, oszacuj punkty, jakie dostałby na maturze. Nie przepisuj całego rozwiązania od nowa. Jeśli uczeń przysłał samo zadanie bez rozwiązania, poproś o jego rozwiązanie.",
+  },
+};
