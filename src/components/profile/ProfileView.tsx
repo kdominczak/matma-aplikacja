@@ -133,6 +133,16 @@ function Section({ title, action, children }: { title: string; action?: { label:
 
 // ── Karta profilu: zdjęcie, kolor, imię/nick, miejsce w rankingu ──
 
+/** Nazwy kolorów awatara dla czytnika ekranu. */
+const AVATAR_COLOR_NAMES: Record<AvatarColor, string> = {
+  brand: "Fioletowy",
+  sunset: "Pomarańczowy",
+  mint: "Miętowy",
+  ocean: "Niebieski",
+  candy: "Różowy",
+  gold: "Złoty",
+};
+
 function ProfileCard({ progress }: { progress: Progress }) {
   const settings = useAppSettings();
   const ranking = useRanking();
@@ -171,9 +181,9 @@ function ProfileCard({ progress }: { progress: Progress }) {
   return (
     <section className="relative overflow-hidden rounded-3xl bg-navy p-5 text-white shadow-card lg:p-7">
       <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-brand/30 blur-3xl" />
-      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
-        <div className="relative self-start">
-          <ProfileAvatar size="h-24 w-24 text-4xl" />
+      <div className="relative flex items-center gap-4 sm:gap-5">
+        <div className="relative shrink-0 self-start">
+          <ProfileAvatar size="h-20 w-20 text-3xl sm:h-24 sm:w-24 sm:text-4xl" />
           <button
             onClick={() => fileRef.current?.click()}
             disabled={busy}
@@ -188,25 +198,21 @@ function ProfileCard({ progress }: { progress: Progress }) {
 
         <div className="min-w-0 flex-1">
           {member ? <NickEditor nick={member.nick} /> : <NameEditor />}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={busy}
-              className="min-h-11 rounded-xl bg-white/10 px-4 py-2 text-sm font-bold transition-colors hover:bg-white/20 disabled:opacity-60"
-            >
-              {busy ? "Zapisywanie…" : hasPhoto ? "Zmień zdjęcie" : "Dodaj zdjęcie"}
-            </button>
-            {hasPhoto && (
-              <button
-                onClick={() => void removePhoto()}
-                disabled={busy}
-                className="rounded-xl px-3 py-1.5 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                Usuń zdjęcie
-              </button>
-            )}
-          </div>
-          {message && <p className="mt-2 text-sm text-white/70">{message}</p>}
+          {/* zdjęcie zmienia przycisk z aparatem przy awatarze; tu tylko usuwanie i komunikaty */}
+          {(hasPhoto || busy || message) && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              {busy && <span className="text-white/70">Zapisywanie…</span>}
+              {!busy && message && <span className="text-white/70">{message}</span>}
+              {hasPhoto && !busy && (
+                <button
+                  onClick={() => void removePhoto()}
+                  className="-my-2 min-h-11 font-bold text-white/70 underline-offset-2 transition-colors hover:text-white hover:underline"
+                >
+                  Usuń zdjęcie
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -219,7 +225,7 @@ function ProfileCard({ progress }: { progress: Progress }) {
                 key={color}
                 role="radio"
                 aria-checked={settings.avatarColor === color}
-                aria-label={color}
+                aria-label={AVATAR_COLOR_NAMES[color]}
                 onClick={() => {
                   hapticTap();
                   void saveAppSettings({ avatarColor: color });
