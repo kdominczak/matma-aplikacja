@@ -60,6 +60,25 @@ describe("dzienny limit AI", () => {
     expect(await t.errorCode("authenticated", A, `select * from public.referral_codes`)).toBe("42501");
   });
 
+  it("serwer oddaje wiadomość po błędzie Groq, licznik nie spada poniżej zera", async () => {
+    const refund = () => t.as<{ used: number }>("service_role", null, `select public.refund_ai_quota($1) as used`, [A]);
+    for (let i = 0; i < 5; i++) await consume(A);
+    expect((await consume(A)).allowed).toBe(false);
+    expect((await refund())[0].used).toBe(4);
+    expect(await consume(A)).toEqual({ allowed: true, remaining: 0, premium: false });
+    await t.admin(`update public.ai_usage set messages = 0 where user_id = $1`, [A]);
+    expect((await refund())[0].used).toBe(0);
+    // bez wiersza z dzisiaj (pierwsza wiadomość dnia nie doszła do bazy) – nic się nie dzieje
+    expect((await t.as<{ used: number }>("service_role", null, `select public.refund_ai_quota($1) as used`, [B]))[0].used).toBe(0);
+  });
+
+  it("uczeń nie może sam oddać sobie wiadomości", async () => {
+    await consume(A);
+    expect(await t.errorCode("authenticated", A, `select public.refund_ai_quota($1)`, [A])).toBe("42501");
+    expect(await t.errorCode("anon", null, `select public.refund_ai_quota($1)`, [A])).toBe("42501");
+    expect((await status(A)).ai_used).toBe(1);
+  });
+
   it("bez sesji nie ma dostępu do AI ani stanu konta", async () => {
     expect(await t.errorCode("anon", null, `select * from public.consume_ai_quota()`)).toBe("42501");
     expect(await t.errorCode("authenticated", null, `select * from public.consume_ai_quota()`)).toBe("28000");
@@ -147,3 +166,4 @@ describe("kody poleceń", () => {
     expect(Number(left[0].n)).toBe(0);
   });
 });
+

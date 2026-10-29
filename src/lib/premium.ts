@@ -157,11 +157,13 @@ export async function redeemReferralCode(input: string): Promise<{ until: Date }
 
 export const AI_FUNCTION_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai` : "";
 
-/** Nagłówki do funkcji `ai` (zakłada konto anonimowe przy pierwszej wiadomości). */
-export async function aiRequestHeaders(): Promise<Record<string, string>> {
+/** Nagłówki do funkcji `ai` (zakłada konto anonimowe przy pierwszej wiadomości); `refresh` – wymuś nowy token. */
+export async function aiRequestHeaders(refresh = false): Promise<Record<string, string>> {
   const session = await client(true);
   if (!session) throw new Error("Korepetytor AI nie jest dostępny w tej wersji aplikacji.");
-  return { Authorization: `Bearer ${session.token}`, apikey: SUPABASE_ANON_KEY ?? "", "Content-Type": "application/json" };
+  let token = session.token;
+  if (refresh) token = (await session.db.auth.refreshSession()).data.session?.access_token ?? token;
+  return { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY ?? "", "Content-Type": "application/json" };
 }
 
 /** Po odpowiedzi serwera: ile wiadomości zostało na dziś (z nagłówka `x-ai-remaining`). */

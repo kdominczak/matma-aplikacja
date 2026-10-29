@@ -1,14 +1,14 @@
 import { explainMessage, hintMessage, SYSTEM, type QuestionPayload } from "@/lib/ai-prompts";
-import { AI_SERVER, getAiSettings, VISION_MODEL } from "@/lib/ai-settings";
+import { AI_ENABLED, TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
 import { MAX_IMAGES } from "@/lib/attachments";
 import { displayedOptions, displayKey } from "@/lib/options";
 import { AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, noteAiRemaining } from "@/lib/premium";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
-// Groq (API zgodne z OpenAI) wołany prosto z aplikacji – Groq zezwala na CORS z przeglądarki i WebView.
-const GROQ_URL = "https://api.groq.com/openai/v1";
+// AI idzie wyłącznie przez naszą funkcję serwerową `ai` (supabase/functions/ai): token ucznia → dzienny limit
+// w bazie → Groq kluczem z sekretów → strumień SSE z powrotem. Aplikacja nie zna żadnego klucza Groq.
 
-// Darmowy plan Groq ma limit tokenów na minutę – historię czatu przycinamy do ok. 3–4K tokenów.
+// Groq ma limit tokenów na minutę – historię czatu przycinamy do ok. 3–4K tokenów.
 const MAX_HISTORY_CHARS = 12_000;
 
 export interface ChatMessage {
@@ -141,77 +141,59 @@ export function textFromSseLine(line: string): string {
 
 async function errorMessage(response: Response, vision = false): Promise<string> {
   const body = await response.json().catch(() => null);
-  const code: string | undefined = body?.error?.code;
-  if (AI_SERVER) {
-    // uczeń nie ma własnego klucza – komunikaty bez „Twój klucz Groq”
-    if (response.status === 401) return "Sesja wygasła – spróbuj ponownie za chwilę.";
-    if (response.status === 429) return "Korepetytor jest teraz mocno obciążony – spróbuj za minutę.";
-    if (vision && (response.status === 400 || response.status === 413)) {
-      return "Załączniki są za duże albo nieczytelne – spróbuj mniejszego zdjęcia lub mniej stron PDF-a.";
-    }
-    return `Korepetytor jest chwilowo niedostępny (błąd ${response.status}).`;
+  if (response.status === 401) return "Sesja wygasła – spróbuj ponownie za chwilę.";
+  // błąd po stronie Groq (funkcja `ai` oddała już wiadomość do limitu) – status Groq w polu `status`
+  const upstream = body?.error === "upstream";
+  const status = upstream && typeof body.status === "number" ? body.status : response.status;
+  const kept = upstream ? " Ta wiadomość nie zmniejszyła Twojego limitu." : "";
+  if (status === 429) return `Korepetytor jest teraz mocno obciążony – spróbuj za minutę.${kept}`;
+  if (vision && (status === 400 || status === 413)) {
+    return "Załączniki są za duże albo nieczytelne – spróbuj mniejszego zdjęcia lub mniej stron PDF-a.";
   }
-  if (response.status === 401) return "Klucz Groq jest nieprawidłowy – sprawdź go w ustawieniach korepetytora.";
-  if (response.status === 429) return "Limit darmowego planu Groq się wyczerpał – spróbuj za minutę (albo jutro, jeśli to limit dzienny).";
-  if (vision && (code === "model_not_found" || code === "model_decommissioned" || response.status === 404 || response.status === 403)) {
-    return "Model czytający zdjęcia (Qwen 3.8) jest niedostępny dla Twojego klucza – wyślij treść zadania tekstem.";
-  }
-  if (vision && (response.status === 400 || response.status === 413)) {
-    return "Groq nie przyjął załączników (za duże albo nieczytelne) – spróbuj mniejszego zdjęcia lub mniej stron PDF-a.";
-  }
-  if (code === "model_not_found" || code === "model_decommissioned" || response.status === 404) {
-    return "Ten model nie jest dostępny dla Twojego klucza – wybierz inny w ustawieniach korepetytora.";
-  }
-  return `Korepetytor jest chwilowo niedostępny (błąd ${response.status}).`;
+  return `Korepetytor jest chwilowo niedostępny (błąd ${status}).${kept}`;
 }
 
 /**
- * Wysyła zapytanie do Groq i przekazuje kolejne fragmenty odpowiedzi do `onText` (cały dotychczasowy tekst).
- * Zwraca pełną odpowiedź. Przerwanie przez `signal` kończy bez błędu.
+ * Wysyła zapytanie przez funkcję `ai` i przekazuje kolejne fragmenty odpowiedzi do `onText` (cały dotychczasowy tekst).
+ * Zwraca pełną odpowiedź. Przerwanie przez `signal` kończy bez błędu. Wyczerpany limit dzienny → `AiLimitError`.
  */
 export async function streamAi(
   request: AiRequest,
   onText: (text: string) => void,
   signal?: AbortSignal,
 ): Promise<string> {
-  const settings = await getAiSettings();
-  if (!AI_SERVER && !settings.apiKey) throw new Error("Najpierw podłącz darmowy klucz Groq w ustawieniach korepetytora.");
+  if (!AI_ENABLED) throw new Error("Korepetytor AI nie jest dostępny w tej wersji aplikacji.");
 
   const { messages, effort, maxTokens, vision } = buildRequest(request);
-  // wybrane modele nie widzą obrazów – zapytanie ze zdjęciem idzie do modelu z obsługą obrazów
-  const model = vision ? VISION_MODEL : settings.model;
+  // tekst – model najlepszy z matematyki; zdjęcia – model z obsługą obrazów
+  const model = vision ? VISION_MODEL : TEXT_MODEL;
+  const payload = JSON.stringify({
+    model,
+    messages,
+    stream: true,
+    max_completion_tokens: maxTokens,
+    // oba modele rozumują przed odpowiedzią – ukrywamy to i dobieramy wysiłek do zadania
+    ...(model === TEXT_MODEL ? { reasoning_effort: effort, include_reasoning: false } : { reasoning_effort: effort, reasoning_format: "hidden" }),
+  });
+  const send = async (refreshSession: boolean) =>
+    fetch(AI_FUNCTION_URL, { method: "POST", headers: await aiRequestHeaders(refreshSession), body: payload, signal });
+
   let response: Response;
   try {
-    // tryb serwerowy: nasza funkcja `ai` (limit dzienny, klucz po stronie serwera); inaczej – Groq kluczem ucznia
-    const target = AI_SERVER
-      ? { url: AI_FUNCTION_URL, headers: await aiRequestHeaders() }
-      : { url: `${GROQ_URL}/chat/completions`, headers: { Authorization: `Bearer ${settings.apiKey}`, "Content-Type": "application/json" } };
-    response = await fetch(target.url, {
-      method: "POST",
-      headers: target.headers,
-      body: JSON.stringify({
-        model,
-        messages,
-        stream: true,
-        max_completion_tokens: maxTokens,
-        // modele gpt-oss rozumują przed odpowiedzią – ukrywamy to i dobieramy wysiłek do zadania
-        ...(model.startsWith("openai/gpt-oss") ? { reasoning_effort: effort, include_reasoning: false } : {}),
-        ...(model === VISION_MODEL ? { reasoning_effort: effort, reasoning_format: "hidden" } : {}),
-      }),
-      signal,
-    });
+    response = await send(false);
+    // 401 z naszej funkcji = tylko sesja (np. token unieważniony) – jedna próba z odświeżoną
+    if (response.status === 401) response = await send(true);
   } catch (error) {
     if (signal?.aborted) return "";
     if (error instanceof Error && error.message.startsWith("Korepetytor AI nie jest dostępny")) throw error;
     throw new Error("Nie udało się połączyć z korepetytorem. Sprawdź internet i spróbuj ponownie.", { cause: error });
   }
-  if (AI_SERVER) {
-    const remaining = Number(response.headers.get("x-ai-remaining"));
-    if (response.headers.has("x-ai-remaining")) noteAiRemaining(remaining, response.headers.get("x-ai-premium") === "1");
-    if (response.status === 429) {
-      const body = await response.clone().json().catch(() => null);
-      if (body?.error === "limit") throw new AiLimitError();
-    }
+  if (response.headers.has("x-ai-remaining")) {
+    noteAiRemaining(Number(response.headers.get("x-ai-remaining")), response.headers.get("x-ai-premium") === "1");
+  }
+  if (response.status === 429) {
+    const body = await response.clone().json().catch(() => null);
+    if (body?.error === "limit") throw new AiLimitError();
   }
   if (!response.ok || !response.body) throw new Error(await errorMessage(response, vision));
 
@@ -239,16 +221,6 @@ export async function streamAi(
     throw new Error("Połączenie z korepetytorem zostało przerwane. Spróbuj ponownie.", { cause: error });
   }
   return text;
-}
-
-/** Sprawdza klucz Groq lekkim zapytaniem o listę modeli. */
-export async function verifyGroqKey(apiKey: string): Promise<"ok" | "invalid" | "offline"> {
-  try {
-    const response = await fetch(`${GROQ_URL}/models`, { headers: { Authorization: `Bearer ${apiKey}` } });
-    return response.ok ? "ok" : "invalid";
-  } catch {
-    return "offline";
-  }
 }
 
 // ── Przekazanie zadania do ekranu korepetytora (np. z „Dopytaj korepetytora”) ──

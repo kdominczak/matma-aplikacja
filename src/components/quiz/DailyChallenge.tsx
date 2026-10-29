@@ -2,13 +2,12 @@
 
 import QuizScreen from "@/components/quiz/QuizScreen";
 import { QuizSkeleton } from "@/components/ui/Skeleton";
-import { useAiReady } from "@/lib/ai-settings";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { dailyChallenge } from "@/lib/daily";
 import { dayKey, saveDailyResult, useProgress } from "@/lib/progress";
 
 export default function DailyChallenge() {
   const progress = useProgress();
-  const aiReady = useAiReady();
   // Czekamy na postęp (cel użytkownika) – przy okazji losowanie dzieje się dopiero w przeglądarce.
   if (!progress) return <QuizSkeleton />;
 
@@ -20,7 +19,7 @@ export default function DailyChallenge() {
       title="Dzienne wyzwanie"
       kicker="Wyzwanie dnia"
       formulaGroups={formulaGroups}
-      hints={aiReady}
+      hints={AI_ENABLED}
       exitHref="/"
       onFinish={saveDailyResult}
     />

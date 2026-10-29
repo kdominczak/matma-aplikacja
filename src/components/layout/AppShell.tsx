@@ -8,6 +8,7 @@ import Countdown from "@/components/layout/Countdown";
 import GlowBackground from "@/components/layout/GlowBackground";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { ThemeSwitcher, ThemeToggle } from "@/components/ui/ThemeToggle";
+import { forgetLegacyAiKey } from "@/lib/ai-config";
 import { AVATAR_COLORS, useAppSettings } from "@/lib/app-settings";
 import { streak, syncLearning, useProgress } from "@/lib/progress";
 import { avatarUrl, useRanking } from "@/lib/ranking";
@@ -164,6 +165,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (memberId) void syncLearning();
   }, [memberId]);
+
+  useEffect(() => {
+    void forgetLegacyAiKey().catch(() => {});
+  }, []);
 
   return (
     // reducedMotion="user": przy systemowym „ogranicz ruch” widoki pojawiają się bez animacji

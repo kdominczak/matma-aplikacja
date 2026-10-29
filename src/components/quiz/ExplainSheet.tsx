@@ -9,8 +9,9 @@ import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import RichText from "@/components/ui/RichText";
 import { questionAsText, setTutorDraft, streamAi, toAiQuestion } from "@/lib/ai";
-import { useAiReady } from "@/lib/ai-settings";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { displayKey } from "@/lib/options";
+import { AiLimitError } from "@/lib/premium";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
 type Props = {
@@ -19,20 +20,24 @@ type Props = {
   onClose: () => void;
 };
 
-/** „Wyjaśnij mi to zadanie” – wytłumaczenie krok po kroku od AI (Groq) albo z klucza odpowiedzi, gdy AI nie jest podłączone. */
+/** „Wyjaśnij mi to zadanie” – wytłumaczenie krok po kroku od AI albo z klucza odpowiedzi (bez AI albo po wyczerpaniu limitu). */
 export default function ExplainSheet({ question, chosen, onClose }: Props) {
   const router = useRouter();
-  const aiReady = useAiReady();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [limited, setLimited] = useState(false);
 
   useEffect(() => {
-    if (!aiReady) return;
+    if (!AI_ENABLED) return;
     const controller = new AbortController();
     streamAi({ mode: "explain", question: toAiQuestion(question, chosen) }, setText, controller.signal)
-      .catch((e: Error) => !controller.signal.aborted && setError(e.message));
+      .catch((e: Error) => {
+        if (controller.signal.aborted) return;
+        setError(e.message);
+        setLimited(e instanceof AiLimitError);
+      });
     return () => controller.abort();
-  }, [question, chosen, aiReady]);
+  }, [question, chosen]);
 
   function askTutor() {
     setTutorDraft(questionAsText(question, chosen));
@@ -61,7 +66,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
           </p>
         </div>
 
-        {aiReady && !error ? (
+        {AI_ENABLED && !error ? (
           <div className="rounded-2xl border border-brand/20 bg-brand-soft p-4">
             <p className="mb-2 flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-brand">
               <Icon name="sparkles" className="h-4 w-4" />
@@ -71,15 +76,15 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
           </div>
         ) : (
           <>
-            {error && <p className="text-sm text-muted">{error} Poniżej wyjaśnienie z klucza odpowiedzi.</p>}
+            {error && !limited && <p className="text-sm text-muted">{error} Poniżej wyjaśnienie z klucza odpowiedzi.</p>}
             {fallback}
-            {!aiReady && (
+            {limited && (
               <Link
-                href="/korepetytor"
+                href="/premium"
                 className="flex items-center gap-2 rounded-2xl border border-brand/20 bg-brand-soft p-3 text-sm font-bold text-brand"
               >
                 <Icon name="sparkles" className="h-4 w-4 shrink-0" />
-                Podłącz darmowego korepetytora AI, a wytłumaczy Ci to zadanie krok po kroku
+                Darmowe wyjaśnienia AI na dziś się skończyły. Z Premium korepetytor wytłumaczy każde zadanie krok po kroku.
               </Link>
             )}
           </>
@@ -87,7 +92,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
 
         {question.trap && <TrapCard text={question.trap} />}
 
-        {aiReady && (
+        {AI_ENABLED && (
           <button
             onClick={askTutor}
             className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3 font-bold text-brand transition-colors hover:border-brand/40"

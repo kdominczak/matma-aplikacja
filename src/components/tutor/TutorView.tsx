@@ -5,11 +5,10 @@ import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import { TypingDots } from "@/components/quiz/ExplainSheet";
 import AiLimitCard from "@/components/premium/AiLimitCard";
-import AiSettingsCard from "@/components/tutor/AiSettingsCard";
 import Icon from "@/components/ui/Icon";
 import RichText from "@/components/ui/RichText";
 import { streamAi, takeTutorDraft, type ChatMessage } from "@/lib/ai";
-import { AI_SERVER, GROQ_MODELS, useAiSettings, VISION_MODEL_LABEL } from "@/lib/ai-settings";
+import { AI_ENABLED, VISION_MODEL_LABEL } from "@/lib/ai-config";
 import {
   imageCount,
   isImage,
@@ -46,7 +45,6 @@ function useIsClient() {
 
 export default function TutorView() {
   const isClient = useIsClient();
-  const settings = useAiSettings();
 
   return (
     <Page width="reading">
@@ -54,24 +52,15 @@ export default function TutorView() {
         title="Korepetytor AI"
         subtitle="Wklej zadanie ze szkoły albo z próbnej matury – tekstem, zdjęciem albo PDF-em. Przejdziemy przez nie krok po kroku."
       />
-      {/* tryb serwerowy: bez własnego klucza, z dziennym limitem */}
-      {AI_SERVER && isClient && (
-        <>
-          <Chat />
-          <AiQuotaLine />
-        </>
-      )}
-      {!AI_SERVER && settings && !settings.apiKey && <AiSettingsCard intro />}
-      {!AI_SERVER && settings?.apiKey && isClient && (
-        <>
-          <Chat />
-          <p className="-mt-3 text-center text-xs text-faint">
-            Model: {GROQ_MODELS.find((m) => m.id === settings.model)?.label ?? settings.model} · zmienisz go w{" "}
-            <Link href="/ustawienia#ustawienia-ai" className="font-bold underline">
-              ustawieniach
-            </Link>
-          </p>
-        </>
+      {!AI_ENABLED ? (
+        <p className="card p-5 text-sm text-muted">Korepetytor AI nie jest dostępny w tej wersji aplikacji.</p>
+      ) : (
+        isClient && (
+          <>
+            <Chat />
+            <AiQuotaLine />
+          </>
+        )
       )}
     </Page>
   );
@@ -128,7 +117,7 @@ function Chat() {
             throw new Error(`„${file.name}” to skan bez tekstu, a limit ${MAX_IMAGES} obrazów jest już zajęty – usuń któreś zdjęcie.`);
           }
         } else if (isImage(file)) {
-          if (slots <= 0) throw new Error(`Groq przyjmuje najwyżej ${MAX_IMAGES} obrazy na wiadomość (zdjęcia + skany z PDF-ów).`);
+          if (slots <= 0) throw new Error(`Korepetytor przyjmuje najwyżej ${MAX_IMAGES} obrazy na wiadomość (zdjęcia + skany z PDF-ów).`);
           added = await prepareImage(file, file.name);
         } else {
           throw new Error(`„${file.name}” – obsługuję tylko zdjęcia i pliki PDF.`);

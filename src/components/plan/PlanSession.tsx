@@ -6,7 +6,7 @@ import QuizScreen, { type SummaryProps } from "@/components/quiz/QuizScreen";
 import Icon from "@/components/ui/Icon";
 import { QuizSkeleton } from "@/components/ui/Skeleton";
 import { getDifficulty } from "@/data/topics";
-import { useAiReady } from "@/lib/ai-settings";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { celebrate } from "@/lib/celebrate";
 import { buildPlan, planStreak, type DailyPlan } from "@/lib/planner";
 import { readProgress, savePlanResult, useProgress } from "@/lib/progress";
@@ -27,7 +27,6 @@ export default function PlanSession() {
 }
 
 function PlanRunner({ initial }: { initial: Progress }) {
-  const aiReady = useAiReady();
   // Plan zamrożony na czas sesji – zapis wyniku zmienia postęp, ale nie może podmienić zadań w trakcie.
   const [plan, setPlan] = useState(() => buildPlan(initial));
   const [session, setSession] = useState(0);
@@ -58,7 +57,7 @@ function PlanRunner({ initial }: { initial: Progress }) {
         title={plan.focus?.topic.title ?? "Plan na dziś"}
         kicker={kicker}
         formulaGroups={plan.formulaGroups}
-        hints={aiReady}
+        hints={AI_ENABLED}
         // nauka, nie egzamin – pomyłki nie przerywają sesji, trafiają do powtórek
         hearts={false}
         exitHref="/"

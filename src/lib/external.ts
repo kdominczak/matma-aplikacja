@@ -2,7 +2,8 @@ import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
 
 // Otwieramy wyłącznie adresy https z zaufanych domen – link z danych nie przeniesie ucznia nigdzie indziej.
-const TRUSTED_HOSTS = ["cke.gov.pl", "console.groq.com"];
+// play.google.com – zarządzanie subskrypcją Premium (managementURL z RevenueCat)
+const TRUSTED_HOSTS = ["cke.gov.pl", "play.google.com"];
 
 export function isTrustedUrl(url: string): boolean {
   try {

@@ -14,9 +14,10 @@ import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import RichText from "@/components/ui/RichText";
 import { streamAi, toAiQuestion } from "@/lib/ai";
-import { useAiReady } from "@/lib/ai-settings";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import { displayedOptions, displayKey } from "@/lib/options";
+import { AiLimitError } from "@/lib/premium";
 import type { SaveOutcome } from "@/lib/progress";
 import { clearScratchNotes, useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
@@ -54,14 +55,13 @@ type Panel = "formulas" | "explain" | null;
 
 export default function QuizScreen(props: Props) {
   const { questions, formulaGroups, hints, exitHref, onFinish, hearts: useHearts = true } = props;
-  const aiReady = useAiReady();
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<OptionKey | null>(null);
   const [checked, setChecked] = useState(false);
   const [hintsShown, setHintsShown] = useState<string[]>([]);
   const [hintLoading, setHintLoading] = useState(false);
-  const [hintError, setHintError] = useState(false);
+  const [hintError, setHintError] = useState<"limit" | "error" | null>(null);
   const hintAbort = useRef<AbortController | null>(null);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [correct, setCorrect] = useState(0);
@@ -79,12 +79,12 @@ export default function QuizScreen(props: Props) {
 
   // Podpowiedzi: najpierw te z klucza, potem (jeśli działa AI) kolejne stopnie generowane na żywo.
   const authoredHints = question.hints ?? [];
-  const maxHints = aiReady ? Math.max(authoredHints.length, MAX_HINT_STEPS) : authoredHints.length;
+  const maxHints = AI_ENABLED ? Math.max(authoredHints.length, MAX_HINT_STEPS) : authoredHints.length;
   const canHint = hints && !checked && !hintLoading && hintsShown.length < maxHints;
 
   async function handleHint() {
     hapticTap();
-    setHintError(false);
+    setHintError(null);
     const step = hintsShown.length;
     if (step < authoredHints.length) {
       setHintsShown([...hintsShown, authoredHints[step]]);
@@ -100,10 +100,10 @@ export default function QuizScreen(props: Props) {
         (text) => setHintsShown((h) => [...h.slice(0, -1), text]),
         controller.signal,
       );
-    } catch {
+    } catch (error) {
       if (!controller.signal.aborted) {
         setHintsShown((h) => h.slice(0, -1));
-        setHintError(true);
+        setHintError(error instanceof AiLimitError ? "limit" : "error");
       }
     } finally {
       setHintLoading(false);
@@ -116,7 +116,7 @@ export default function QuizScreen(props: Props) {
     setChecked(false);
     setHintsShown([]);
     setHintLoading(false);
-    setHintError(false);
+    setHintError(null);
   }
 
   function handleCheck() {
@@ -287,8 +287,16 @@ export default function QuizScreen(props: Props) {
                 ))}
               </ol>
             )}
-            {hintError && (
+            {hintError === "error" && (
               <p className="mt-2 text-xs font-semibold text-rose-500">Nie udało się pobrać podpowiedzi – spróbuj ponownie.</p>
+            )}
+            {hintError === "limit" && (
+              <p className="mt-2 text-xs font-semibold text-muted">
+                Na dziś wykorzystano darmowe wiadomości do AI.{" "}
+                <Link href="/premium" className="font-bold text-brand underline">
+                  Podpowiedzi bez limitu z Premium
+                </Link>
+              </p>
             )}
           </section>
 

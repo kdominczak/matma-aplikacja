@@ -1,16 +1,21 @@
-// Korepetytor: co dokładnie trafia do Groq (atrapa fetch) i jak przygotowujemy załączniki.
+// Korepetytor: co dokładnie trafia do funkcji `ai` (atrapa fetch) i jak przygotowujemy załączniki.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { streamAi, type ChatMessage } from "@/lib/ai";
-import { VISION_MODEL } from "@/lib/ai-settings";
+import { TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
 import { MAX_PDF_CHARS, parsePageRange, pdfContext, pdfHasContent, type PdfAttachment } from "@/lib/attachments";
 
 type Part = { type: string; text?: string; image_url?: { url: string } };
-type Body = { model: string; messages: { role: string; content: string | Part[] }[]; reasoning_format?: string; max_completion_tokens: number };
+type Body = { model: string; messages: { role: string; content: string | Part[] }[]; reasoning_format?: string; include_reasoning?: boolean; max_completion_tokens: number };
 
 const bodies: Body[] = [];
 const img = (n: number) => `data:image/jpeg;base64,IMG${n}`;
 
-localStorage.setItem("CapacitorStorage.ai.v1", JSON.stringify({ apiKey: "gsk_test", model: "llama-3.3-70b-versatile" }));
+vi.mock("@/lib/ai-config", async (original) => ({ ...(await original<typeof import("@/lib/ai-config")>()), AI_ENABLED: true }));
+vi.mock("@/lib/premium", async (original) => ({
+  ...(await original<typeof import("@/lib/premium")>()),
+  AI_FUNCTION_URL: "https://example.supabase.co/functions/v1/ai",
+  aiRequestHeaders: async () => ({ Authorization: "Bearer test", "Content-Type": "application/json" }),
+}));
 
 beforeEach(() => {
   bodies.length = 0;
@@ -26,10 +31,11 @@ async function ask(messages: ChatMessage[]) {
 }
 
 describe("zapytania korepetytora", () => {
-  it("bez obrazów: model wybrany przez ucznia, treść jako tekst", async () => {
+  it("bez obrazów: model tekstowy z ukrytym rozumowaniem, treść jako tekst", async () => {
     const { reply, body } = await ask([{ role: "user", content: "Ile to 2+2?" }]);
     expect(reply).toBe("OK");
-    expect(body.model).toBe("llama-3.3-70b-versatile");
+    expect(body.model).toBe(TEXT_MODEL);
+    expect(body.include_reasoning).toBe(false);
     expect(typeof body.messages[1].content).toBe("string");
   });
 
@@ -63,9 +69,9 @@ describe("zapytania korepetytora", () => {
     expect(JSON.stringify(body.messages)).toContain("IMG7");
   });
 
-  it("brak dostępu do modelu z obrazami → jasny komunikat", async () => {
-    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ error: { code: "model_not_found" } }), { status: 404 }));
-    await expect(ask([{ role: "user", content: "x", images: [img(1)] }])).rejects.toThrow(/tekstem/);
+  it("za duże załączniki (Groq odrzucił obraz) → jasny komunikat", async () => {
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ error: "upstream", status: 413 }), { status: 502 }));
+    await expect(ask([{ role: "user", content: "x", images: [img(1)] }])).rejects.toThrow(/Załączniki są za duże/);
   });
 });
 

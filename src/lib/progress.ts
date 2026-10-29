@@ -510,7 +510,7 @@ export async function skipPlacement() {
 
 /**
  * Kasuje cały postęp nauki na tym urządzeniu (testy, serię, statystyki, odznaki, pudełko porażek).
- * Ustawienia (motyw, klucz Groq) i profil w rankingu zostają – mają osobne magazyny.
+ * Ustawienia (motyw) i profil w rankingu zostają – mają osobne magazyny.
  */
 export async function resetProgress() {
   // reset obejmuje też historię odpowiedzi na koncie – inaczej synchronizacja przywróciłaby pudełko

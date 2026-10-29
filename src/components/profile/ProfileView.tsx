@@ -12,7 +12,7 @@ import Icon, { type IconName } from "@/components/ui/Icon";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { DIFFICULTIES, practiceTasks, topics } from "@/data/topics";
 import { useAccount } from "@/lib/account";
-import { AI_SERVER } from "@/lib/ai-settings";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AVATAR_COLORS, prepareAvatar, saveAppSettings, useAppSettings, type AvatarColor } from "@/lib/app-settings";
 import { answersToEstimate, currentEstimate } from "@/lib/estimate";
@@ -95,8 +95,7 @@ export default function ProfileView() {
 function PremiumStrip() {
   const premium = usePremium();
   const active = isPremium(premium);
-  // Premium ma sens dopiero z AI na serwerze (bez niego AI działa na własnym kluczu ucznia, bez limitu)
-  if (!AI_SERVER || premium.status === "unavailable") return null;
+  if (!AI_ENABLED || premium.status === "unavailable") return null;
   return (
     <Link href="/premium" className="card card-hover flex items-center gap-4 p-4 hover:border-brand/40">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-float">

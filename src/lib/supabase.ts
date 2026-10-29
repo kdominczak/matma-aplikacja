@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Preferences } from "@capacitor/preferences";
 
 // Klucz „anon” Supabase jest publiczny z założenia (trafia do aplikacji) – dane chroni RLS w bazie,
-// patrz supabase/migrations. Inaczej niż klucz Groq, który jest prywatny i należy do ucznia.
+// patrz supabase/migrations. Klucze prywatne (Groq, service_role, RevenueCat) są tylko w sekretach funkcji serwerowych.
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

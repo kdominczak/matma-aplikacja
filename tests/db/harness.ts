@@ -22,7 +22,8 @@ const SUPABASE_STUB = `
     $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create role anon nologin;
   create role authenticated nologin;
-  grant usage on schema public, auth to anon, authenticated;
+  create role service_role nologin bypassrls;
+  grant usage on schema public, auth to anon, authenticated, service_role;
   grant execute on function auth.uid() to anon, authenticated;
   alter default privileges in schema public grant all on tables to anon, authenticated;
   create publication supabase_realtime;
@@ -35,7 +36,7 @@ const SUPABASE_STUB = `
   grant all on storage.objects to authenticated;
 `;
 
-export type Role = "anon" | "authenticated";
+export type Role = "anon" | "authenticated" | "service_role";
 
 export interface TestDb {
   db: PGlite;

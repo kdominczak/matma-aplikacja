@@ -6,7 +6,6 @@ import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/la
 import AccountCard from "@/components/settings/AccountCard";
 import ReminderSetting from "@/components/settings/ReminderSetting";
 import { IconTile, SettingsBlock, SettingsGroup, SettingsRow, StatusPill } from "@/components/settings/SettingsUI";
-import AiSettingsCard from "@/components/tutor/AiSettingsCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Icon from "@/components/ui/Icon";
 import { PageSkeleton } from "@/components/ui/Skeleton";
@@ -15,7 +14,7 @@ import { ThemeSwitcher } from "@/components/ui/ThemeToggle";
 import { CKE_ARCHIVE_URL } from "@/data/cke-sheets";
 import { TARGETS } from "@/data/topics";
 import { useAccount } from "@/lib/account";
-import { AI_SERVER, useAiSettings } from "@/lib/ai-settings";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { saveAppSettings, useAppSettings } from "@/lib/app-settings";
 import { resetCloudData, useCloudStatus } from "@/lib/cloud-sync";
 import { deleteAccountAndData } from "@/lib/delete-account";
@@ -94,15 +93,9 @@ export default function SettingsView() {
         </SettingsBlock>
       </SettingsGroup>
 
-      {AI_SERVER ? (
+      {AI_ENABLED && (
         <SettingsGroup id="ustawienia-ai" title="Korepetytor AI i Premium" hint={`Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości do AI dziennie, z Premium – bez limitu.`}>
           <SettingsRow icon="sparkles" title="Premium i kody poleceń" description={`${REFERRAL_DAYS} dni Premium dla Ciebie i znajomego za polecenie`} href="/premium" />
-        </SettingsGroup>
-      ) : (
-        <SettingsGroup id="ustawienia-ai" title="Korepetytor AI" hint="Wyjaśnienia, podpowiedzi i czat działają na Twoim darmowym kluczu Groq.">
-          <SettingsBlock>
-            <AiSettingsCard embedded />
-          </SettingsBlock>
         </SettingsGroup>
       )}
 
@@ -243,7 +236,6 @@ function RankingRows() {
 // ── Strefa niebezpieczna: reset postępów i usunięcie konta (zwinięta, żeby nikt nie trafił tu przypadkiem) ──
 
 function DangerZone({ progress }: { progress: Progress }) {
-  const ai = useAiSettings();
   return (
     <details id="strefa" className="group scroll-mt-24 rounded-3xl border border-rose-500/30 bg-rose-500/5 [&_summary::-webkit-details-marker]:hidden">
       <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 sm:px-5">
@@ -256,7 +248,7 @@ function DangerZone({ progress }: { progress: Progress }) {
       </summary>
       <div className="flex flex-col divide-y divide-rose-500/20 border-t border-rose-500/20">
         <ResetSetting progress={progress} />
-        <DeleteAccountSetting hasAiKey={Boolean(ai?.apiKey)} />
+        <DeleteAccountSetting />
       </div>
     </details>
   );
@@ -274,8 +266,8 @@ function ResetSetting({ progress }: { progress: Progress }) {
     <div className="p-4 sm:p-5">
       <h3 className="font-extrabold text-ink">Resetowanie postępów</h3>
       <p className="mt-1 text-sm text-muted">
-        Usuwa zaliczone testy, serię, statystyki, odznaki, Pudełko porażek i historię arkuszy – także kopię na koncie. Ustawienia, zdjęcie, klucz Groq i
-        nick zostają.
+        Usuwa zaliczone testy, serię, statystyki, odznaki, Pudełko porażek i historię arkuszy – także kopię na koncie. Ustawienia, zdjęcie i nick
+        zostają.
       </p>
       {done && <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">Postęp został wyzerowany.</p>}
       {failed && (
@@ -322,7 +314,7 @@ function ResetSetting({ progress }: { progress: Progress }) {
 }
 
 /** Usunięcie konta i wszystkich danych (wymóg Google Play i RODO). Bez konta – czyści dane z tego urządzenia. */
-function DeleteAccountSetting({ hasAiKey }: { hasAiKey: boolean }) {
+function DeleteAccountSetting() {
   const account = useAccount();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -333,8 +325,8 @@ function DeleteAccountSetting({ hasAiKey }: { hasAiKey: boolean }) {
       <h3 className="font-extrabold text-ink">{hasAccount ? "Usunięcie konta" : "Usunięcie danych z urządzenia"}</h3>
       <p className="mt-1 text-sm text-muted">
         {hasAccount
-          ? "Trwale usuwa konto i wszystko, co jest na serwerze: profil w rankingu, zdjęcie, historię odpowiedzi, kopię postępu i historię arkuszy – a potem dane z tego urządzenia."
-          : `Nie masz konta – Twoje dane są tylko na tym urządzeniu. Możesz je wszystkie usunąć: postęp i ustawienia${hasAiKey ? " razem z kluczem Groq" : ""}.`}
+          ? "Trwale usuwa konto i wszystko, co jest na serwerze: profil w rankingu, zdjęcie, historię odpowiedzi, kopię postępu, historię arkuszy i Premium – a potem dane z tego urządzenia. Subskrypcję w Google Play anuluj osobno."
+          : "Nie masz konta – Twoje dane są tylko na tym urządzeniu. Możesz je wszystkie usunąć: postęp i ustawienia."}
       </p>
       {hasAccount && <AccountId id={account.userId} />}
       {error && (

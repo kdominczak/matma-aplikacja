@@ -18,5 +18,5 @@ export const LEGAL = {
   /** Na odpowiedź na wniosek mailowy RODO daje miesiąc – obiecujemy tyle samo. */
   requestDays: 30,
   /** Data ostatniej zmiany polityki (RRRR-MM-DD). */
-  updatedAt: "2026-10-28",
+  updatedAt: "2026-10-29",
 };

@@ -5,7 +5,7 @@ import Link from "next/link";
 import QuizScreen from "@/components/quiz/QuizScreen";
 import { QuizSkeleton } from "@/components/ui/Skeleton";
 import { findQuestion } from "@/data/topics";
-import { useAiReady } from "@/lib/ai-settings";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { mistakeEntries, trainingSet } from "@/lib/mistakes";
 import { saveMistakeTraining, useProgress } from "@/lib/progress";
 import type { Progress } from "@/types/progress";
@@ -18,7 +18,6 @@ export default function MistakeTraining() {
 }
 
 function Session({ progress }: { progress: Progress }) {
-  const aiReady = useAiReady();
   // Zestaw zamrażamy na starcie – zapis wyniku zmienia pudełko, a quiz musi zostać ten sam.
   const [set] = useState(() => trainingSet(mistakeEntries(progress)));
   const questions = set.questionIds.flatMap((id) => {
@@ -44,7 +43,7 @@ function Session({ progress }: { progress: Progress }) {
       title="Pudełko porażek"
       kicker="Trening błędów"
       formulaGroups={set.formulaGroups}
-      hints={aiReady || questions.some((q) => q.hints?.length)}
+      hints={AI_ENABLED || questions.some((q) => q.hints?.length)}
       exitHref="/bledy"
       onFinish={saveMistakeTraining}
     />
