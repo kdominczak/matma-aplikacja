@@ -75,6 +75,24 @@ describe("zapytania korepetytora", () => {
   });
 });
 
+describe("ocena rozwiązania (grade)", () => {
+  it("model tekstowy, prompt egzaminatora, odczyt punktów z odpowiedzi", async () => {
+    const { gradeSolution } = await import("@/lib/ai");
+    const { GRADING_SYSTEM } = await import("@/lib/ai-grading");
+    const json = JSON.stringify({ steps: [{ points: 1, reason: "a" }, { points: 0, reason: "b" }] });
+    vi.stubGlobal("fetch", async (_url: string, init: { body: string }) => {
+      bodies.push(JSON.parse(init.body));
+      return new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: json } }] })}\n\ndata: [DONE]\n\n`, { status: 200 });
+    });
+    const task = { id: "t", prompt: "x", points: 2, answers: ["1"], solution: [{ step: "a", points: 1 }, { step: "b", points: 1 }] };
+    expect(await gradeSolution(task, "moje rozwiązanie")).toEqual({ steps: [1, 0], reasons: ["a", "b"] });
+    const body = bodies.at(-1)!;
+    expect(body.model).toBe(TEXT_MODEL);
+    expect(body.messages[0].content).toBe(GRADING_SYSTEM);
+    expect(String(body.messages[1].content)).toContain("<rozwiazanie_ucznia>\nmoje rozwiązanie");
+  });
+});
+
 describe("PDF jako tekst", () => {
   const pdf: PdfAttachment = {
     kind: "pdf",

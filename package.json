@@ -15,7 +15,8 @@
     "db:keys": "tsx --tsconfig tsconfig.json scripts/generate-question-keys.ts",
     "blueprint:coverage": "tsx --tsconfig tsconfig.json scripts/blueprint-coverage.ts",
     "screens": "playwright test e2e/screens.spec.ts",
-    "exams:freeze": "tsx --tsconfig tsconfig.json scripts/freeze-mock-exams.ts"
+    "exams:freeze": "tsx --tsconfig tsconfig.json scripts/freeze-mock-exams.ts",
+    "grading:eval": "tsx --tsconfig tsconfig.json scripts/grading-eval/run.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",

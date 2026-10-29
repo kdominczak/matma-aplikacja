@@ -1,9 +1,10 @@
 import { explainMessage, hintMessage, SYSTEM, type QuestionPayload } from "@/lib/ai-prompts";
+import { GRADING_SYSTEM, gradingUserMessage, parseGrading, type Grading } from "@/lib/ai-grading";
 import { AI_ENABLED, TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
 import { MAX_IMAGES } from "@/lib/attachments";
 import { displayedOptions, displayKey } from "@/lib/options";
 import { AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, noteAiRemaining } from "@/lib/premium";
-import type { OptionKey, QuizQuestion } from "@/types/quiz";
+import type { OpenQuestion, OptionKey, QuizQuestion } from "@/types/quiz";
 
 // AI idzie wyłącznie przez naszą funkcję serwerową `ai` (supabase/functions/ai): token ucznia → dzienny limit
 // w bazie → Groq kluczem z sekretów → strumień SSE z powrotem. Aplikacja nie zna żadnego klucza Groq.
@@ -30,7 +31,8 @@ type Effort = "low" | "medium" | "high";
 export type AiRequest =
   | { mode: "tutor"; messages: ChatMessage[] }
   | { mode: "explain"; question: QuestionPayload }
-  | { mode: "hint"; question: QuestionPayload; level: number; previousHints: string[] };
+  | { mode: "hint"; question: QuestionPayload; level: number; previousHints: string[] }
+  | { mode: "grade"; task: OpenQuestion; solution: string };
 
 export function toAiQuestion(question: QuizQuestion, chosen?: OptionKey): QuestionPayload {
   // litery jak na ekranie ucznia (odpowiedzi są tam wymieszane – src/lib/options.ts)
@@ -114,6 +116,16 @@ function buildRequest(request: AiRequest): BuiltRequest {
         ],
         effort: "medium",
         maxTokens: 1500,
+      };
+    case "grade":
+      // ocena wg schematu – JSON, rozumowanie modelu ukryte; zapas tokenów, bo rozumowanie też je zużywa
+      return {
+        messages: [
+          { role: "system", content: GRADING_SYSTEM },
+          { role: "user", content: gradingUserMessage(request.task, request.solution) },
+        ],
+        effort: "medium",
+        maxTokens: 4096,
       };
     case "hint":
       return {
@@ -221,6 +233,16 @@ export async function streamAi(
     throw new Error("Połączenie z korepetytorem zostało przerwane. Spróbuj ponownie.", { cause: error });
   }
   return text;
+}
+
+/**
+ * Ocena rozwiązania zadania otwartego przez AI według schematu (src/lib/ai-grading.ts). Zużywa jedną wiadomość
+ * z limitu. null = odpowiedź modelu nieczytelna (pokaż samoocenę). Punkty trzeba jeszcze przepuścić przez
+ * applyAssessment (obcięcie do schematu). Trafność mierzy `npm run grading:eval`.
+ */
+export async function gradeSolution(task: OpenQuestion, solution: string, signal?: AbortSignal): Promise<Grading | null> {
+  const text = await streamAi({ mode: "grade", task, solution }, () => {}, signal);
+  return parseGrading(text, task);
 }
 
 // ── Przekazanie zadania do ekranu korepetytora (np. z „Dopytaj korepetytora”) ──
