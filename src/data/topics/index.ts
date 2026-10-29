@@ -183,6 +183,13 @@ export function practiceTasks(topic: Topic): PracticeTask[] {
 
 // Indeks wszystkich zadań (zamkniętych i otwartych) po id – np. do przypisania wyniku z arkusza do działu.
 let taskIndex: Map<string, { topic: Topic; difficulty: Difficulty }> | null = null;
+let practiceIndex: Map<string, PracticeTask> | null = null;
+
+/** Zadanie z zakładki „Zadania” po id (np. do odtworzenia zamrożonego arkusza próbnego). */
+export function practiceTaskById(id: string): PracticeTask | undefined {
+  practiceIndex ??= new Map(topics.flatMap((topic) => practiceTasks(topic).map((task) => [task.id, task] as const)));
+  return practiceIndex.get(id);
+}
 
 export function findTask(id: string): { topic: Topic; difficulty: Difficulty } | undefined {
   taskIndex ??= new Map(topics.flatMap((topic) => practiceTasks(topic).map((task) => [task.id, { topic, difficulty: task.difficulty }] as const)));

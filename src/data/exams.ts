@@ -1,11 +1,14 @@
 import { CURRENT_BLUEPRINTS } from "@/data/blueprints";
+import { MOCK_EXAMS, type FrozenExam } from "@/data/mock-exams";
+import { practiceTaskById } from "@/data/topics";
 import { DIFFICULTY_TOLERANCE, generateExam, parseExamCode, referenceExpected, type GeneratedExam } from "@/lib/exam-generator";
 import type { ExamSheet } from "@/types/exam";
 
 // Arkusze do rozwiązania w aplikacji (tryb symulacji matury, poziom podstawowy, od 2025: 50 pkt, 180 min).
 //
-// 1. Arkusze próbne – stałe arkusze z generatora (src/lib/exam-generator.ts) w układzie najnowszej matury:
-//    te same działy, typy zadań i punktacja co w oryginale, zadania z puli aplikacji.
+// 1. Arkusze próbne – arkusze z generatora (src/lib/exam-generator.ts) w układzie najnowszej matury, ZAMROŻONE
+//    w src/data/mock-exams.ts (lista id zadań). Generator zależy od puli zadań, więc bez zamrożenia każde nowe
+//    zadanie w aplikacji zmieniałoby treść arkusza – także rozpoczętego. Nowe arkusze: `npm run exams:freeze`.
 // 2. Arkusze losowe – z generatora, odtwarzane z kodu (id „los-<kod>”); nie są zapisane na stałe,
 //    więc każdy kod daje inny arkusz, a ten sam kod – zawsze ten sam.
 // 3. Oficjalne arkusze CKE – trafią do CKE_EXAMS po przepisaniu treści i klucza z PDF-ów CKE
@@ -27,25 +30,44 @@ function sheet(exam: GeneratedExam, base: Pick<ExamSheet, "id" | "kind" | "title
   };
 }
 
-/** Stałe arkusze próbne: kolejne ziarna, których arkusze mają typową trudność. */
-function mockExams(): ExamSheet[] {
+/** Kolejne ziarna, których arkusze mają typową trudność – źródło zamrożonych arkuszy próbnych (skrypt). */
+export function generateMockExams(): FrozenExam[] {
   const blueprint = CURRENT_BLUEPRINTS[0];
   const reference = referenceExpected(blueprint);
-  const out: ExamSheet[] = [];
+  const out: FrozenExam[] = [];
   for (let seed = 1; out.length < MOCK_COUNT && seed < 500; seed++) {
     const exam = generateExam(blueprint, seed);
     if (Math.abs(exam.expected - reference) > DIFFICULTY_TOLERANCE) continue;
-    const n = out.length + 1;
-    out.push(
-      sheet(exam, {
-        id: `probny-${n}`,
-        kind: "probny",
-        title: `Arkusz próbny nr ${n}`,
-        subtitle: `W układzie matury ${blueprint.year} · zadania z aplikacji`,
-      }),
-    );
+    out.push({
+      id: `probny-${out.length + 1}`,
+      code: exam.code,
+      layoutYear: blueprint.year,
+      durationMin: blueprint.durationMin,
+      taskIds: exam.tasks.map((task) => task.id),
+      relaxations: exam.relaxations,
+    });
   }
   return out;
+}
+
+/** Arkusze próbne z zamrożonych list zadań. */
+function mockExams(): ExamSheet[] {
+  return MOCK_EXAMS.map((frozen, i) => ({
+    id: frozen.id,
+    kind: "probny",
+    title: `Arkusz próbny nr ${i + 1}`,
+    subtitle: `W układzie matury ${frozen.layoutYear} · zadania z aplikacji`,
+    level: "podstawowy",
+    durationMin: frozen.durationMin,
+    tasks: frozen.taskIds.map((id) => {
+      const task = practiceTaskById(id);
+      if (!task) throw new Error(`Arkusz ${frozen.id}: brak zadania ${id} – nie usuwaj zadań z zamrożonych arkuszy`);
+      return task;
+    }),
+    code: frozen.code,
+    layoutYear: frozen.layoutYear,
+    relaxations: frozen.relaxations,
+  }));
 }
 
 /**

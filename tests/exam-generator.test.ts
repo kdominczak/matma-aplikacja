@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { CURRENT_BLUEPRINTS } from "@/data/blueprints";
 import { EXAMS, examHref, getExam, randomExam } from "@/data/exams";
+import { MOCK_EXAMS } from "@/data/mock-exams";
 import { examPool } from "@/data/task-meta";
 import { topics } from "@/data/topics";
 import { currentEstimate } from "@/lib/estimate";
@@ -63,14 +64,19 @@ describe("arkusze z generatora", () => {
     expect(getExam("los-zlykod")).toBeUndefined();
   });
 
-  it("stałe arkusze próbne: 3 arkusze po 50 pkt o typowej trudności", () => {
+  it("stałe arkusze próbne: 3 zamrożone arkusze po 50 pkt, każde zadanie istnieje i występuje raz", () => {
     const mocks = EXAMS.filter((e) => e.kind === "probny");
     expect(mocks).toHaveLength(3);
-    const reference = referenceExpected(CURRENT_BLUEPRINTS[0]);
     for (const mock of mocks) {
       expect(mock.tasks.reduce((s, t) => s + t.points, 0)).toBe(50);
-      const parsed = parseExamCode(mock.code!)!;
-      expect(Math.abs(generateExam(parsed.blueprint, parsed.seed).expected - reference)).toBeLessThanOrEqual(DIFFICULTY_TOLERANCE);
+      expect(new Set(mock.tasks.map((t) => t.id)).size).toBe(mock.tasks.length);
+      expect(parseExamCode(mock.code!)).not.toBeNull();
+    }
+  });
+
+  it("zamrożony arkusz nie zmienia się po dodaniu zadań do puli (lista id z mock-exams.ts)", () => {
+    for (const frozen of MOCK_EXAMS) {
+      expect(getExam(frozen.id)!.tasks.map((t) => t.id)).toEqual(frozen.taskIds);
     }
   });
 

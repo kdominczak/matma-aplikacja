@@ -14,7 +14,8 @@
     "ios": "npm run mobile:sync && cap open ios",
     "db:keys": "tsx --tsconfig tsconfig.json scripts/generate-question-keys.ts",
     "blueprint:coverage": "tsx --tsconfig tsconfig.json scripts/blueprint-coverage.ts",
-    "screens": "playwright test e2e/screens.spec.ts"
+    "screens": "playwright test e2e/screens.spec.ts",
+    "exams:freeze": "tsx --tsconfig tsconfig.json scripts/freeze-mock-exams.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
