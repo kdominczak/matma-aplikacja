@@ -20,7 +20,7 @@ export default function StudyTimeCard({ className = "" }: { className?: string }
   const done = value >= DAILY_GOAL_MIN;
 
   return (
-    <section className={`glass-card rounded-3xl border border-line p-5 shadow-card ${className}`}>
+    <section className={`card p-5 ${className}`}>
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
           <Icon name="clock" className="h-6 w-6" />

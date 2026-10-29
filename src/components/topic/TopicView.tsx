@@ -84,7 +84,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
             {tab === "teoria" && (
               <>
                 {content.theory.map((section, i) => (
-                  <article key={section.title} className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-7">
+                  <article key={section.title} className="card p-5 lg:p-7">
                     <p className="text-xs font-extrabold uppercase tracking-widest text-brand">Krok {i + 1}</p>
                     <h2 className="mt-1 text-xl font-extrabold text-ink">{section.title}</h2>
                     <div className="mt-3 flex flex-col gap-3 leading-relaxed text-body lg:text-[17px]">
@@ -167,7 +167,7 @@ function LevelSummary({ topic, progress, onOpen }: { topic: Topic; progress: Pro
   return (
     <button
       onClick={onOpen}
-      className="hidden flex-col gap-3 rounded-3xl border border-line glass-card p-5 text-left shadow-card card-hover hover:border-brand/40 lg:flex"
+      className="card hidden flex-col gap-3 p-5 text-left card-hover hover:border-brand/40 lg:flex"
     >
       <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Test podsumowujący</p>
       {DIFFICULTIES.map((level) => {

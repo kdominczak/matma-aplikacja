@@ -57,7 +57,7 @@ export default function SheetsView() {
           </p>
         )}
 
-        <section className="flex gap-3 rounded-3xl border border-line glass-card p-4 text-sm shadow-card">
+        <section className="card flex gap-3 p-4 text-sm">
           <Icon name="book" className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
           <p className="text-body">
             Materiały pochodzą ze zbiorów <strong className="text-ink">Centralnej Komisji Egzaminacyjnej (CKE)</strong>. Linki
@@ -132,7 +132,7 @@ function YearCard({ exam, level }: { exam: ExamYear; level: SheetLevel }) {
   const current = exam.formula === "2023";
 
   return (
-    <article className="flex flex-col gap-4 rounded-3xl border border-line glass-card p-5 shadow-card">
+    <article className="card flex flex-col gap-4 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-3xl font-extrabold tracking-tight text-ink">{exam.year}</p>

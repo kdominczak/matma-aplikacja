@@ -38,7 +38,7 @@ export default function AiSettingsCard({ intro = false, embedded = false }: { in
   const masked = connected ? `${settings.apiKey.slice(0, 4)}••••${settings.apiKey.slice(-4)}` : "";
 
   return (
-    <section className={embedded ? "" : "rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6"}>
+    <section className={embedded ? "" : "card p-5 lg:p-6"}>
       <div className="flex items-start gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
           <Icon name="sparkles" className="h-6 w-6" />

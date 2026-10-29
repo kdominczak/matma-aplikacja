@@ -1,4 +1,5 @@
 import { useDisplayName } from "@/components/layout/AppShell";
+import { Skeleton } from "@/components/ui/Skeleton";
 import type { DailyPlan } from "@/lib/planner";
 import { plural } from "@/lib/plural";
 import { weekSolved } from "@/lib/progress";
@@ -14,7 +15,7 @@ export default function Greeting({ progress, plan }: { progress: Progress | null
   const first = name === "Twój profil" ? null : name.split(/\s+/)[0];
 
   if (!progress || !plan) {
-    return <div className="h-[4.5rem] animate-pulse rounded-2xl bg-subtle/60" aria-hidden />;
+    return <Skeleton className="h-[4.5rem]" />;
   }
 
   const date = new Date().toLocaleDateString("pl-PL", { weekday: "long", day: "numeric", month: "long" });

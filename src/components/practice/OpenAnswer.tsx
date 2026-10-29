@@ -108,7 +108,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
       )}
 
       {showSolution && (
-        <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
+        <section className="card p-5">
           <p className="text-xs font-extrabold uppercase tracking-widest text-brand">Schemat oceniania</p>
           <p className="mt-0.5 text-sm text-muted">
             {canSelfAssess

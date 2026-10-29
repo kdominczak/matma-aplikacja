@@ -49,7 +49,7 @@ export function activeProgress() {
     },
     target: 60,
     stats: { answered, correct, perfectTests: 2, dailyChallenges: 3, nightSessions: 1, earlySessions: 0, mistakesBeaten: 4, reviewsMastered: 1 },
-    achievements: { "pierwszy-krok": day(13), "pierwszy-plan": day(5), perfekcjonista: day(6) },
+    achievements: { "pierwszy-krok": day(13), "pierwszy-plan": day(5), perfekcjonista: day(6), "nocny-marek": day(9) },
     mistakes: {
       "cg-p2": { lastWrong: day(4), count: 1, chosen: "B" },
       "cg-s1": { lastWrong: day(0), count: 2, chosen: "A" },

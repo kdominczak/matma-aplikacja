@@ -2,12 +2,13 @@
 
 import { BadgeCard } from "@/components/achievements/Badge";
 import { Page, PageHeader } from "@/components/layout/AppShell";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { useProgress } from "@/lib/progress";
 
 export default function AchievementsView() {
   const progress = useProgress();
-  if (!progress) return null;
+  if (!progress) return <PageSkeleton hero={false} cards={4} />;
 
   const earned = ACHIEVEMENTS.filter((a) => progress.achievements[a.id]);
   // najpierw zdobyte, potem te najbliżej zdobycia

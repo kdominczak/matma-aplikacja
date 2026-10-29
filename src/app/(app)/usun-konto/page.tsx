@@ -21,7 +21,7 @@ export default function DeleteAccountPage() {
         subtitle={`Aplikacja ${LEGAL.appName} · ${LEGAL.controller || "administrator"}. Konto usuniesz sam w aplikacji albo poprosisz o to mailem.`}
       />
 
-      <article className="flex flex-col gap-7 rounded-3xl border border-line glass-card p-6 shadow-card">
+      <article className="card flex flex-col gap-7 p-6">
         <Section title="Sposób 1: w aplikacji (od razu)">
           <ol>
             <li>

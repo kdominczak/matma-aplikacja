@@ -247,7 +247,7 @@ export default function QuizScreen(props: Props) {
             <h1 className="mt-1 text-2xl font-extrabold text-ink lg:text-3xl">{heading}</h1>
           </div>
 
-          <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-7">
+          <section className="card p-5 lg:p-7">
             <p className="text-lg leading-relaxed font-semibold text-ink lg:text-xl">
               <MathText text={question.prompt} />
             </p>

@@ -210,7 +210,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
             )}
           </div>
 
-          <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-7">
+          <section className="card p-5 lg:p-7">
             <p className="text-lg leading-relaxed font-semibold text-ink lg:text-xl">
               <MathText text={prompt} />
             </p>

@@ -219,7 +219,7 @@ function Chat() {
               <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
                 <Icon name="sparkles" className="h-4 w-4" />
               </span>
-              <div className="min-w-0 rounded-3xl rounded-tl-lg border border-line glass-card px-4 py-3 text-body shadow-card">
+              <div className="card min-w-0 rounded-tl-lg px-4 py-3 text-body">
                 {m.content ? <RichText text={m.content} /> : <TypingDots />}
               </div>
             </li>

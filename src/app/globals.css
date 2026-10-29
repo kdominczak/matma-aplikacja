@@ -194,6 +194,14 @@
 }
 
 /*
+ * Karta – jeden wygląd dla wszystkich kart w aplikacji (zaokrąglenie, ramka, półprzezroczyste tło, cień).
+ * Odstępy wewnątrz (p-4 / p-5 / p-6) dobiera widok. Kartę-link uzupełnij o `card-hover hover:border-brand/40`.
+ */
+@utility card {
+  @apply rounded-3xl border border-line shadow-card glass-card;
+}
+
+/*
  * Tło ekranu głównego (GlowBackground / FloatingSymbols).
  * Plamy: miękki gradient radialny zamiast `filter: blur` – wygląda tak samo, a nie kosztuje filtra przy każdej klatce.
  */

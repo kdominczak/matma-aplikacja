@@ -36,7 +36,7 @@ export function SettingsGroup({ id, title, hint, children }: { id?: string; titl
         </h2>
         {hint && <p className="text-sm text-muted">{hint}</p>}
       </div>
-      <div className="flex flex-col divide-y divide-line rounded-3xl border border-line glass-card shadow-card">{children}</div>
+      <div className="card flex flex-col divide-y divide-line">{children}</div>
     </section>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import QuizScreen from "@/components/quiz/QuizScreen";
+import { QuizSkeleton } from "@/components/ui/Skeleton";
 import { findQuestion } from "@/data/topics";
 import { useAiReady } from "@/lib/ai-settings";
 import { mistakeEntries, trainingSet } from "@/lib/mistakes";
@@ -12,7 +13,7 @@ import type { Progress } from "@/types/progress";
 /** „Przećwicz swoje błędy” – quiz z zadań z Pudełka porażek. */
 export default function MistakeTraining() {
   const progress = useProgress();
-  if (!progress) return <div className="min-h-dvh bg-surface" />;
+  if (!progress) return <QuizSkeleton />;
   return <Session progress={progress} />;
 }
 

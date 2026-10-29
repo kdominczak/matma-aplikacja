@@ -8,6 +8,7 @@ import { IconTile, SettingsBlock, SettingsGroup, SettingsRow, StatusPill } from 
 import AiSettingsCard from "@/components/tutor/AiSettingsCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Icon from "@/components/ui/Icon";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
 import { ThemeSwitcher } from "@/components/ui/ThemeToggle";
 import { CKE_ARCHIVE_URL } from "@/data/cke-sheets";
@@ -41,7 +42,7 @@ export default function SettingsView() {
     document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "start" });
   }, [loaded]);
 
-  if (!progress || !settings) return null;
+  if (!progress || !settings) return <PageSkeleton cards={4} />;
 
   return (
     <Page width="reading">

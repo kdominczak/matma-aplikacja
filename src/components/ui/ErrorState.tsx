@@ -41,7 +41,7 @@ export default function ErrorState({ title, message, onRetry, compact = false, o
   return (
     <section
       role="alert"
-      className={`relative flex animate-fade-in flex-col items-center gap-3 rounded-3xl border border-line glass-card text-center shadow-card ${
+      className={`card relative flex animate-fade-in flex-col items-center gap-3 text-center ${
         compact ? "p-5" : "p-8"
       } ${className}`}
     >

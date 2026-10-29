@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import QuizScreen, { type SummaryProps } from "@/components/quiz/QuizScreen";
 import Icon from "@/components/ui/Icon";
+import { QuizSkeleton } from "@/components/ui/Skeleton";
 import { getDifficulty } from "@/data/topics";
 import { useAiReady } from "@/lib/ai-settings";
 import { celebrate } from "@/lib/celebrate";
@@ -21,7 +22,7 @@ const PlanContext = createContext<{ plan: DailyPlan; nextRound: () => void } | n
 export default function PlanSession() {
   const progress = useProgress();
   // Czekamy na postęp – plan liczymy z danych ucznia, w przeglądarce.
-  if (!progress) return <div className="min-h-dvh bg-surface" />;
+  if (!progress) return <QuizSkeleton />;
   return <PlanRunner initial={progress} />;
 }
 
@@ -112,7 +113,7 @@ function PlanSummary({ result, outcome }: SummaryProps) {
           </p>
         </section>
 
-        <section className="flex flex-col gap-2 rounded-3xl border border-line glass-card p-5 shadow-card text-sm">
+        <section className="card flex flex-col gap-2 p-5 text-sm">
           {plan.focus && (
             <p className="flex items-start gap-2 text-body">
               <Icon name="target" className="mt-0.5 h-4 w-4 shrink-0 text-brand" />

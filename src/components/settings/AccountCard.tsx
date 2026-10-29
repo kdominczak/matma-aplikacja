@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Icon from "@/components/ui/Icon";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { sendCode, signOut, useAccount, verifyCode, type CodeMode } from "@/lib/account";
 import { syncNow, useCloudStatus } from "@/lib/cloud-sync";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
@@ -19,14 +20,14 @@ export default function AccountCard({ embedded = false }: { embedded?: boolean }
 
   const content = (
     <>
-      {account.status === "loading" && <div className="mt-3 h-24 animate-pulse rounded-2xl bg-subtle" />}
+      {account.status === "loading" && <Skeleton className="mt-3 h-24" />}
       {account.status === "email" && <SignedIn email={account.email} />}
       {(account.status === "signed-out" || account.status === "anonymous") && <SignInFlow anonymous={account.status === "anonymous"} />}
     </>
   );
   if (embedded) return content;
   return (
-    <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
+    <section className="card p-5">
       <h2 className="flex items-center gap-2 font-extrabold text-ink">
         <Icon name="lock" className="h-5 w-5 text-brand" />
         Konto i kopia zapasowa

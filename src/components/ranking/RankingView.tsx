@@ -6,6 +6,7 @@ import { Page, PageHeader, ProfileAvatar } from "@/components/layout/AppShell";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ErrorState from "@/components/ui/ErrorState";
 import Icon from "@/components/ui/Icon";
+import { Skeleton } from "@/components/ui/Skeleton";
 import {
   avatarUrl,
   fetchLeaderboard,
@@ -57,7 +58,7 @@ export default function RankingView() {
       <PageHeader title="Ranking" subtitle="Liczą się poprawnie rozwiązane zadania – sprawdzone przez serwer. Walcz o podium z innymi maturzystami." />
 
       {ranking.status === "disabled" && <NotConfigured />}
-      {ranking.status === "loading" && <div className="h-40 animate-pulse rounded-3xl bg-card" />}
+      {ranking.status === "loading" && <Skeleton className="h-40 rounded-3xl" />}
       {ranking.status === "error" && <ErrorState title="Ranking jest chwilowo niedostępny" message={ranking.message} onRetry={retryRanking} />}
 
       {(ranking.status === "guest" || ranking.status === "member") && (
@@ -80,7 +81,7 @@ export default function RankingView() {
 
 function NotConfigured() {
   return (
-    <section className="rounded-3xl border border-dashed border-line glass-card p-6 text-center shadow-card">
+    <section className="card border-dashed p-6 text-center">
       <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500">
         <Icon name="trophy" className="h-7 w-7" />
       </span>
@@ -171,7 +172,15 @@ function Leaderboard() {
           onRetry={() => setAttempt((n) => n + 1)}
         />
       )}
-      {!rows && !error && <div className="h-72 animate-pulse rounded-3xl bg-card" />}
+      {!rows && !error && (
+        <div role="status" className="flex flex-col gap-2">
+          <span className="sr-only">Wczytywanie rankingu…</span>
+          <Skeleton className="h-44 rounded-3xl" />
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} className="h-16" />
+          ))}
+        </div>
+      )}
       {rows && rows.length === 0 && (
         <p className="rounded-3xl border border-dashed border-line glass-card p-8 text-center text-sm text-muted">
           {period === "week" ? "W tym tygodniu nikt jeszcze nie rozwiązał zadania. Zostań pierwszy!" : "Ranking jest jeszcze pusty."}
@@ -181,7 +190,7 @@ function Leaderboard() {
       {podium.length > 0 && <Podium rows={podium} />}
 
       {rest.length > 0 && (
-        <ol className="overflow-hidden rounded-3xl border border-line glass-card shadow-card">
+        <ol className="card overflow-hidden">
           {rest.map((row, i) => {
             const gap = i > 0 && row.rank - rest[i - 1].rank > 1;
             return (
@@ -207,7 +216,7 @@ const MEDAL = [
 function Podium({ rows }: { rows: LeaderboardRow[] }) {
   const order = [rows[1], rows[0], rows[2]].filter(Boolean) as LeaderboardRow[];
   return (
-    <div className="grid grid-cols-3 items-end gap-3 rounded-3xl border border-line glass-card p-4 pt-6 shadow-card">
+    <div className="card grid grid-cols-3 items-end gap-3 p-4 pt-6">
       {order.map((row) => {
         const medal = MEDAL[Math.min(row.rank, 3) - 1];
         return (
@@ -328,7 +337,7 @@ function MyCard({ profile }: { profile: RankingProfile }) {
   }
 
   return (
-    <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
+    <section className="card p-5">
       <p className="text-xs font-extrabold uppercase tracking-widest text-faint">Twój profil</p>
       {editing ? (
         <form

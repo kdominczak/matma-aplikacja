@@ -17,7 +17,7 @@ export default function NextBadge({ progress, achievement, card = false }: { pro
     <Link
       href="/odznaki"
       className={`group flex items-center gap-3 transition-colors active:scale-[0.99] ${
-        card ? "rounded-3xl border border-line glass-card p-4 shadow-card card-hover hover:border-brand/40" : "rounded-2xl bg-subtle/70 p-3 hover:bg-subtle"
+        card ? "card p-4 card-hover hover:border-brand/40" : "rounded-2xl bg-subtle/70 p-3 hover:bg-subtle"
       }`}
     >
       <BadgeIcon achievement={achievement} unlocked={false} />

@@ -66,7 +66,7 @@ export default function ExamPicker() {
               key={exam.id}
               href={examHref(exam)}
               onClick={() => hapticTap()}
-              className="group flex flex-col gap-3 rounded-3xl border border-line glass-card p-5 shadow-card card-hover hover:border-brand/40"
+              className="card group flex flex-col gap-3 p-5 card-hover hover:border-brand/40"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

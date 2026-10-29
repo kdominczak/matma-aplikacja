@@ -76,7 +76,7 @@ function PlacementSummary({ result, outcome }: SummaryProps) {
           <p className="relative mt-3 text-xs text-white/50">Cel zmienisz w każdej chwili w profilu.</p>
         </section>
 
-        <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
+        <section className="card p-5">
           <h2 className="flex items-center gap-2 font-extrabold text-ink">
             <Icon name="checkCircle" className="h-5 w-5 text-emerald-500" />
             Zaliczone na start

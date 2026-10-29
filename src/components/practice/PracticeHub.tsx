@@ -72,7 +72,7 @@ function TopicTasksCard({ topic, progress }: { topic: Topic; progress: Progress 
     <Link
       href={`/zadania/${topic.id}`}
       onClick={() => hapticTap()}
-      className="group flex flex-col gap-3 rounded-3xl border border-line glass-card p-4 shadow-card card-hover hover:border-brand/40"
+      className="card group flex flex-col gap-3 p-4 card-hover hover:border-brand/40"
     >
       <div className="flex items-center gap-3">
         <CategoryTile topic={topic} />

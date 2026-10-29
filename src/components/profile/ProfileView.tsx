@@ -6,10 +6,10 @@ import { BadgeIcon } from "@/components/achievements/Badge";
 import NextBadge, { nextAchievement } from "@/components/achievements/NextBadge";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/layout/AppShell";
-import MistakesCard from "@/components/mistakes/MistakesCard";
 import EstimateChart from "@/components/progress/EstimateChart";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon, { type IconName } from "@/components/ui/Icon";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { DIFFICULTIES, practiceTasks, topics } from "@/data/topics";
 import { useAccount } from "@/lib/account";
 import { ACHIEVEMENTS } from "@/lib/achievements";
@@ -33,7 +33,7 @@ import type { Progress } from "@/types/progress";
 
 export default function ProfileView() {
   const progress = useProgress();
-  if (!progress) return null;
+  if (!progress) return <PageSkeleton />;
 
   return (
     <Page>
@@ -63,29 +63,26 @@ export default function ProfileView() {
       </Section>
 
       <Section title="Szacowany wynik">
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-6">
-            <div className="flex flex-wrap items-end justify-between gap-2">
-              <p className="text-sm text-muted">Ze skuteczności we wszystkich zadaniach i wagi działów na maturze</p>
-              {answersToEstimate(progress) > 0 ? (
-                <p className="text-sm font-bold text-brand">
-                  Zbieramy dane – jeszcze {answersToEstimate(progress)} {plural(answersToEstimate(progress), "zadanie", "zadania", "zadań")}
-                </p>
-              ) : (
-                <p className="text-3xl font-extrabold tracking-tight text-brand tabular-nums">
-                  {currentEstimate(progress)}%{" "}
-                  <span className="text-base font-bold text-muted">
-                    · ok. {Math.round((currentEstimate(progress) / 100) * MATURA_POINTS)}/{MATURA_POINTS} pkt
-                  </span>
-                </p>
-              )}
-            </div>
-            <div className="mt-4">
-              <EstimateChart progress={progress} />
-            </div>
-          </section>
-          <MistakesCard progress={progress} />
-        </div>
+        <section className="card p-5 lg:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <p className="text-sm text-muted">Ze skuteczności we wszystkich zadaniach i wagi działów na maturze</p>
+            {answersToEstimate(progress) > 0 ? (
+              <p className="text-sm font-bold text-brand">
+                Zbieramy dane – jeszcze {answersToEstimate(progress)} {plural(answersToEstimate(progress), "zadanie", "zadania", "zadań")}
+              </p>
+            ) : (
+              <p className="text-3xl font-extrabold tracking-tight text-brand tabular-nums">
+                {currentEstimate(progress)}%{" "}
+                <span className="text-base font-bold text-muted">
+                  · ok. {Math.round((currentEstimate(progress) / 100) * MATURA_POINTS)}/{MATURA_POINTS} pkt
+                </span>
+              </p>
+            )}
+          </div>
+          <div className="mt-4">
+            <EstimateChart progress={progress} />
+          </div>
+        </section>
       </Section>
     </Page>
   );
@@ -408,7 +405,7 @@ function AccuracyCard({ progress }: { progress: Progress }) {
   const tone = accuracy >= 80 ? "text-emerald-500" : accuracy >= 50 ? "text-amber-500" : "text-rose-500";
 
   return (
-    <section className="flex items-center gap-5 rounded-3xl border border-line glass-card p-5 shadow-card">
+    <section className="card flex items-center gap-5 p-5">
       <div className="relative h-28 w-28 shrink-0">
         <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden>
           <circle cx="50" cy="50" r={RING_RADIUS} fill="none" strokeWidth="10" className="stroke-subtle" />
@@ -470,7 +467,7 @@ function Tile({ icon, tone, value, label, note, href }: { icon: IconName; tone: 
   return (
     <Link
       href={href}
-      className="group flex min-w-0 flex-col gap-2 rounded-3xl border border-line glass-card p-4 shadow-card card-hover hover:border-brand/40 active:scale-[0.98]"
+      className="card group flex min-w-0 flex-col gap-2 p-4 card-hover hover:border-brand/40 active:scale-[0.98]"
     >
       <span className="flex items-center justify-between">
         <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}>
@@ -493,7 +490,7 @@ function BadgesShowcase({ progress }: { progress: Progress }) {
   const next = nextAchievement(progress);
 
   return (
-    <section className="flex flex-col gap-4 rounded-3xl border border-line glass-card p-5 shadow-card">
+    <section className="card flex flex-col gap-4 p-5">
       {earned.length > 0 ? (
         <ul className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-1" aria-label="Zdobyte odznaki">
           {earned.map((a) => (
@@ -532,7 +529,7 @@ function MasteryList({ progress }: { progress: Progress }) {
 
   if (rows.length === 0) {
     return (
-      <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
+      <section className="card p-5">
         <EmptyState icon="layers" title="Tu zobaczysz swoje mocne i słabe działy" action={{ label: "Zacznij plan na dziś", href: "/plan" }}>
           Po kilku zadaniach pokażemy, które działy masz opanowane, a do których warto wrócić.
         </EmptyState>
@@ -542,7 +539,7 @@ function MasteryList({ progress }: { progress: Progress }) {
 
   const shown = expanded ? rows : rows.slice(0, VISIBLE_TOPICS);
   return (
-    <section className="rounded-3xl border border-line glass-card shadow-card">
+    <section className="card">
       <p className="px-5 pt-4 text-sm text-muted">Najsłabsze działy na górze – stuknij, żeby od razu poćwiczyć.</p>
       <ul className="mt-2 flex flex-col divide-y divide-line">
         {shown.map(({ topic, levels, answered, mastery }) => {

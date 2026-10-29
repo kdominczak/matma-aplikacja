@@ -42,11 +42,11 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
           </div>
         ) : (
           <span
-            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
+            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap ${
               tasksOnly ? "bg-brand-soft text-brand" : "bg-subtle text-muted"
             }`}
           >
-            {tasksOnly ? "Teoria wkrótce · zadania dostępne" : "Wkrótce"}
+            {tasksOnly ? "Same zadania" : "Wkrótce"}
           </span>
         )}
       </div>

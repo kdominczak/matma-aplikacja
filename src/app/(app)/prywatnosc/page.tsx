@@ -11,7 +11,7 @@ export default function PrivacyPage() {
     <Page width="reading">
       <PageHeader title="Polityka prywatności" subtitle={`Obowiązuje od ${formatDay(LEGAL.updatedAt)}. Piszemy wprost, bez prawniczego żargonu.`} />
 
-      <article className="flex flex-col gap-7 rounded-3xl border border-line glass-card p-6 shadow-card">
+      <article className="card flex flex-col gap-7 p-6">
         <Section title="W skrócie">
           <ul>
             <li>Możesz korzystać z aplikacji bez konta – wtedy wszystko zostaje na Twoim telefonie.</li>

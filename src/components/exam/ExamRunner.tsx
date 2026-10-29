@@ -76,7 +76,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
   const closed = exam.tasks.filter((t) => t.kind === "closed").length;
   return (
     <div className="flex min-h-dvh items-center justify-center bg-surface px-4 py-[max(1.5rem,env(safe-area-inset-top))]">
-      <section className="w-full max-w-lg animate-fade-in rounded-3xl border border-line glass-card p-6 shadow-card lg:p-8">
+      <section className="card w-full max-w-lg animate-fade-in p-6 lg:p-8">
         <Link href="/arkusze" className="-ml-2 flex min-h-11 w-fit items-center gap-1 rounded-full px-2 text-sm font-bold text-muted hover:text-ink">
           <Icon name="back" className="h-4 w-4" /> Arkusze
         </Link>
@@ -254,7 +254,7 @@ function ExamInProgress({ exam, initial, onFinished }: { exam: ExamSheet; initia
             </button>
           </div>
 
-          <section className="rounded-3xl border border-line glass-card p-5 shadow-card lg:p-7">
+          <section className="card p-5 lg:p-7">
             <p className="text-lg leading-relaxed font-semibold text-ink lg:text-xl">
               <MathText text={prompt} />
             </p>

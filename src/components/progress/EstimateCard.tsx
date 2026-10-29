@@ -19,7 +19,7 @@ export default function EstimateCard({ progress }: { progress: Progress }) {
   const delta = value - weekAgo;
 
   return (
-    <Link href="/profil" className="group block rounded-3xl border border-line glass-card p-5 shadow-card card-hover hover:border-brand/40 active:scale-[0.99]">
+    <Link href="/profil" className="card group block p-5 card-hover hover:border-brand/40 active:scale-[0.99]">
       <div className="flex items-start justify-between">
         <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Szacowany wynik</p>
         <Icon name="arrow" className="h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5" />
@@ -42,7 +42,7 @@ export default function EstimateCard({ progress }: { progress: Progress }) {
 function CollectingData({ progress, missing }: { progress: Progress; missing: number }) {
   const done = ESTIMATE_MIN_ANSWERS - missing;
   return (
-    <section className="rounded-3xl border border-line glass-card p-5 shadow-card">
+    <section className="card p-5">
       <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Szacowany wynik</p>
       <p className="mt-1 text-xl font-extrabold text-ink">Zbieramy dane</p>
       <p className="text-sm text-muted">

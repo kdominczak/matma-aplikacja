@@ -7,13 +7,14 @@ import TrapCard from "@/components/quiz/TrapCard";
 import CategoryTile from "@/components/topic/CategoryTile";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 import { getDifficulty } from "@/data/topics";
 import { daysAgo, mistakeEntries, TRAINING_SIZE, type MistakeEntry } from "@/lib/mistakes";
 import { useProgress } from "@/lib/progress";
 
 export default function MistakesView() {
   const progress = useProgress();
-  if (!progress) return null;
+  if (!progress) return <PageSkeleton />;
 
   const entries = mistakeEntries(progress);
   const trainingCount = Math.min(entries.length, TRAINING_SIZE);
@@ -76,7 +77,7 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
   const { question, topic, difficulty, mistake } = entry;
 
   return (
-    <li className="rounded-3xl border border-line glass-card p-4 shadow-card lg:p-5">
+    <li className="card p-4 lg:p-5">
       <div className="flex items-start gap-3">
         <CategoryTile topic={topic} />
         <div className="min-w-0 flex-1">
