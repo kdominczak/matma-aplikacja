@@ -32,8 +32,12 @@ GROQ_API_KEY=gsk_... npm run grading:eval -- --przerwa 5000
 
 **Próg przed włączeniem oceny AI w aplikacji:** suma punktów zgodna dokładnie w ≥ 85% przypadków, z dokładnością ±1 w ≥ 95%, zero nieczytelnych odpowiedzi i zero udanych manipulacji. Przy rozbieżności najpierw sprawdź `why` przypadku – czasem myli się zestaw, nie model.
 
-Pierwszy pomiar (29.10.2026, przez funkcję `ai`, 5 najtrudniejszych przypadków): 4/4 odczytanych ocen zgodnych co do kroku (pomyłka rachunkowa, manipulacja, inna metoda, zły wzór), 1 odpowiedź nieczytelna (LaTeX w JSON-ie) – naprawione w `parseGrading` i prompcie, do potwierdzenia pełnym pomiarem.
+Pomiary (punkt odniesienia przy każdej zmianie promptu albo modelu):
+- 29.10.2026, przez funkcję `ai`, 5 najtrudniejszych przypadków: 4/4 odczytanych ocen zgodnych co do kroku, 1 odpowiedź nieczytelna (LaTeX w JSON-ie) – naprawione w `parseGrading` i prompcie.
+- **29.10.2026, pełny zestaw, Groq `openai/gpt-oss-120b`: 18/18 sum zgodnych (100%), kroki 57/57, 0 nieczytelnych, manipulacja odparta.** Przy limicie zapytań Groq skrypt czekał wg `Retry-After`.
+
+Uwaga: zestaw mierzy samą ocenę tekstu. Odczyt pisma ze zdjęcia (`transcribeSolution`) nie ma jeszcze pomiaru – uczeń poprawia odczyt przed oceną, ale warto zebrać zdjęcia prawdziwych kartek.
 
 ## Przed premierą
 
-Pełny pomiar na wszystkich przypadkach (`npm run grading:eval`) – dotąd na żywo sprawdzonych było 5 z 18. Przy wyniku poniżej progu: najpierw popraw prompt (`_shared/grading.ts`) i zmierz ponownie; ekran i tak pokazuje uczniowi uzasadnienia i pozwala poprawić ocenę.
+Pełny pomiar – zrobiony (18/18). Przy każdej zmianie promptu (`_shared/grading.ts`) albo modelu (`_shared/models.ts`): `npm run grading:eval` przed i po.

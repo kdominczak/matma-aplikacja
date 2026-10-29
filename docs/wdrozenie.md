@@ -46,7 +46,7 @@ Z `.env.local` usuń `NEXT_PUBLIC_GROQ_API_KEY` (nieużywany, klucz był uniewa�
 ## 5. Kontrola przed wysłaniem do sklepu
 
 - `npm test` (482 testy: logika, treść, migracje w PGlite), `npm run lint`, `npx playwright test` (151 testów E2E i zrzuty).
-- **Pełny pomiar oceny AI:** `GROQ_API_KEY=gsk_... npm run grading:eval`. Na żywo sprawdzone było 5 z 18 przypadków (4 zgodne co do kroku, 1 nieczytelna odpowiedź – naprawione). Próg: suma punktów zgodna w ≥ 85%, ±1 w ≥ 95%, zero nieczytelnych, zero udanych manipulacji.
+- **Ocena AI:** pełny pomiar zrobiony 29.10.2026 – 18/18 (100%), kroki 57/57, 0 nieczytelnych. Powtórz `npm run grading:eval` po każdej zmianie promptu albo modelu.
 - Telefon (konto testera licencji):
   1. nowy uczeń: powitanie → plan → korepetytor odpowiada, licznik „Zostało 4 z 5”,
   2. 6. wiadomość → ekran limitu z Premium; podpowiedź/wyjaśnienie po limicie → link do Premium,
