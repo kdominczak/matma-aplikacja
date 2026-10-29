@@ -21,6 +21,7 @@ type Filter = "all" | "wrong" | "skipped";
 
 const STATUS = {
   correct: { icon: "checkCircle", label: "Dobrze", style: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
+  partial: { icon: "check", label: "Częściowo", style: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
   wrong: { icon: "close", label: "Źle", style: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
   skipped: { icon: "more", label: "Bez odpowiedzi", style: "bg-subtle text-muted" },
 } as const;
@@ -40,7 +41,8 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
 
   // do pudełka trafiają błędne zadania zamknięte z bazy aplikacji (pudełko przechowuje wybraną literę)
   const boxable = attempt.results.filter((r) => r.kind === "closed" && r.status === "wrong" && r.given && findQuestion(r.taskId));
-  const shown = attempt.results.filter((r) => filter === "all" || r.status === filter);
+  // „Błędne” to wszystko, co nie dało kompletu punktów (także punkty częściowe za kroki)
+  const shown = attempt.results.filter((r) => filter === "all" || r.status === filter || (filter === "wrong" && r.status === "partial"));
   const taskById = new Map(exam.tasks.map((t) => [t.id, t]));
 
   return (
@@ -69,7 +71,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
             {[
               { label: "Czas", value: formatDuration(attempt.durationSec) },
               { label: "Dobrze", value: count("correct") },
-              { label: "Źle", value: count("wrong") },
+              { label: count("partial") > 0 ? "Źle / częściowo" : "Źle", value: count("partial") > 0 ? `${count("wrong")} / ${count("partial")}` : count("wrong") },
               { label: "Pominięte", value: count("skipped") },
             ].map((item) => (
               <div key={item.label} className="rounded-2xl bg-white/10 px-3 py-2">
@@ -122,7 +124,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
               {(
                 [
                   ["all", "Wszystkie"],
-                  ["wrong", `Błędne (${count("wrong")})`],
+                  ["wrong", `Błędne (${count("wrong") + count("partial")})`],
                   ["skipped", `Pominięte (${count("skipped")})`],
                 ] as const
               ).map(([id, label]) => (
@@ -208,15 +210,31 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                             Twój wynik: <strong className="text-ink">{result.given ?? "–"}</strong> · Poprawny:{" "}
                             <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
                           </p>
+                          {result.assessment && (
+                            <p className="text-body">
+                              Punkty za kroki ({result.assessment.by === "ai" ? "ocena korepetytora AI" : "Twoja samoocena"}):{" "}
+                              <strong className="text-ink">
+                                {result.points}/{result.maxPoints} pkt
+                              </strong>
+                            </p>
+                          )}
                           <div>
                             <p className="mb-2 text-xs font-extrabold uppercase tracking-widest text-faint">Schemat oceniania</p>
                             <ol className="flex flex-col gap-2">
-                              {task.task.solution.map((step, i) => (
-                                <li key={i} className="flex gap-3 rounded-xl bg-subtle/60 p-3">
-                                  <span className="shrink-0 text-xs font-extrabold text-brand">+{step.points} pkt</span>
-                                  <MathText text={step.step} className="min-w-0 text-body" />
-                                </li>
-                              ))}
+                              {task.task.solution.map((step, i) => {
+                                const awarded = result.assessment?.steps[i];
+                                return (
+                                  <li
+                                    key={i}
+                                    className={`flex gap-3 rounded-xl p-3 ${awarded ? "border border-emerald-500/30 bg-emerald-500/5" : "bg-subtle/60"}`}
+                                  >
+                                    <span className="shrink-0 text-xs font-extrabold text-brand">
+                                      {result.assessment ? `${awarded ?? 0}/${step.points}` : `+${step.points}`} pkt
+                                    </span>
+                                    <MathText text={step.step} className="min-w-0 text-body" />
+                                  </li>
+                                );
+                              })}
                             </ol>
                           </div>
                         </>

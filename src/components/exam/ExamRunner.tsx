@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import ExamAssessment from "@/components/exam/ExamAssessment";
 import ExamNavGrid, { NavLegend } from "@/components/exam/ExamNavGrid";
 import ExamSummary from "@/components/exam/ExamSummary";
 import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
@@ -15,23 +16,44 @@ import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import { examKindLabel, examMaxPoints, getExam } from "@/data/exams";
 import { formulaGroup, topics, type PracticeTask } from "@/data/topics";
-import { clearSession, finishExam, formatDuration, isAnswered, loadSession, saveAttempt, saveSession } from "@/lib/exam";
+import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import { displayedOptions } from "@/lib/options";
 import { saveExamResult } from "@/lib/progress";
 import { useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
-import type { ExamAttempt, ExamSession, ExamSheet } from "@/types/exam";
+import type { ExamAttempt, ExamSession, ExamSheet, ExamTaskResult } from "@/types/exam";
 
 
 // Karta wzorów na cały arkusz (jak „Wybrane wzory matematyczne” CKE) – ze wszystkich działów.
 const FORMULA_GROUPS = topics.map(formulaGroup).filter((g) => g.formulas.length > 0);
 
-type Phase = { name: "loading" } | { name: "intro" } | { name: "running"; session: ExamSession } | { name: "done"; attempt: ExamAttempt };
+type Phase =
+  | { name: "loading" }
+  | { name: "intro" }
+  | { name: "running"; session: ExamSession }
+  | { name: "checking"; session: ExamSession; results: ExamTaskResult[] }
+  | { name: "done"; attempt: ExamAttempt };
+
+/** Czy po „Zakończ” jest co oceniać krokami (zadania otwarte bez poprawnego wyniku końcowego). */
+function hasPendingAssessment(exam: ExamSheet, results: ExamTaskResult[]): boolean {
+  return results.some((r) => {
+    const task = exam.tasks.find((t) => t.id === r.taskId);
+    return task ? needsAssessment(task, r) : false;
+  });
+}
+
+/** Zapis zakończonej próby (historia, statystyki) i usunięcie sesji – dopiero po sprawdzeniu zadań otwartych. */
+async function completeAttempt(exam: ExamSheet, session: ExamSession, results: ExamTaskResult[]): Promise<ExamAttempt> {
+  const attempt = finishExam(exam, session, Date.now(), results);
+  await Promise.all([saveAttempt(attempt), saveExamResult(attempt), clearSession(exam.id)]);
+  return attempt;
+}
 
 /**
- * Symulacja matury: wstęp → rozwiązywanie (nawigacja po zadaniach, czas, zapis po każdej zmianie) → podsumowanie.
- * Odpowiedzi nie są sprawdzane w trakcie – jak na egzaminie, wynik dopiero po „Zakończ arkusz”.
+ * Symulacja matury: wstęp → rozwiązywanie (nawigacja po zadaniach, czas, zapis po każdej zmianie) → sprawdzanie
+ * zadań otwartych krokami (gdy jest co sprawdzać) → podsumowanie. Odpowiedzi nie są sprawdzane w trakcie –
+ * jak na egzaminie, wynik dopiero po „Zakończ arkusz”. Czas egzaminu kończy się w chwili „Zakończ”.
  */
 export default function ExamRunner({ examId }: { examId: string }) {
   const exam = getExam(examId);
@@ -39,7 +61,13 @@ export default function ExamRunner({ examId }: { examId: string }) {
 
   useEffect(() => {
     let active = true;
-    void loadSession(examId).then((session) => active && setPhase(session ? { name: "running", session } : { name: "intro" }));
+    void loadSession(examId).then((session) => {
+      if (!active) return;
+      if (!session) return setPhase({ name: "intro" });
+      // zamknięta aplikacja w trakcie sprawdzania – wracamy do sprawdzania (czas egzaminu już zamknięty)
+      const exam = getExam(examId);
+      setPhase(session.finishedAt && exam ? { name: "checking", session, results: scoreExam(exam, session) } : { name: "running", session });
+    });
     return () => {
       active = false;
     };
@@ -68,7 +96,25 @@ export default function ExamRunner({ examId }: { examId: string }) {
   if (phase.name === "done") {
     return <ExamSummary exam={exam} attempt={phase.attempt} onRetry={() => setPhase({ name: "intro" })} />;
   }
-  return <ExamInProgress exam={exam} initial={phase.session} onFinished={(attempt) => setPhase({ name: "done", attempt })} />;
+  if (phase.name === "checking") {
+    return (
+      <ExamAssessment
+        exam={exam}
+        results={phase.results}
+        onDone={(results) => void completeAttempt(exam, phase.session, results).then((attempt) => setPhase({ name: "done", attempt }))}
+      />
+    );
+  }
+  return (
+    <ExamInProgress
+      exam={exam}
+      initial={phase.session}
+      onFinished={(session, results) => {
+        if (hasPendingAssessment(exam, results)) setPhase({ name: "checking", session, results });
+        else void completeAttempt(exam, session, results).then((attempt) => setPhase({ name: "done", attempt }));
+      }}
+    />
+  );
 }
 
 function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) {
@@ -101,7 +147,8 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
         <ul className="mt-6 flex flex-col gap-2 text-sm text-body">
           <li className="flex gap-2">
             <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-            {closed} zadań zamkniętych (1 pkt) i {exam.tasks.length - closed} otwartych – w otwartych wpisujesz wynik końcowy.
+            {closed} zadań zamkniętych (1 pkt) i {exam.tasks.length - closed} otwartych – w otwartych wpisujesz wynik końcowy, a po zakończeniu
+            ocenisz kroki rozwiązania według schematu CKE (punkty częściowe jak na maturze).
           </li>
           <li className="flex gap-2">
             <Icon name="check" className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
@@ -130,7 +177,15 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
   );
 }
 
-function ExamInProgress({ exam, initial, onFinished }: { exam: ExamSheet; initial: ExamSession; onFinished: (attempt: ExamAttempt) => void }) {
+function ExamInProgress({
+  exam,
+  initial,
+  onFinished,
+}: {
+  exam: ExamSheet;
+  initial: ExamSession;
+  onFinished: (session: ExamSession, results: ExamTaskResult[]) => void;
+}) {
   const [session, setSession] = useState(initial);
   const [panel, setPanel] = useState<"formulas" | "overview" | "finish" | null>(null);
   const [template, setTemplate] = useState<ScratchTemplate>("grid");
@@ -163,9 +218,10 @@ function ExamInProgress({ exam, initial, onFinished }: { exam: ExamSheet; initia
   const finish = useCallback(async () => {
     if (finishing.current) return;
     finishing.current = true;
-    const attempt = finishExam(exam, session);
-    await Promise.all([saveAttempt(attempt), saveExamResult(attempt), clearSession(exam.id)]);
-    onFinished(attempt);
+    // koniec egzaminu: od teraz czas stoi, a sesja (z odpowiedziami) czeka na sprawdzenie zadań otwartych
+    const finished = { ...session, finishedAt: Date.now() };
+    await saveSession(finished);
+    onFinished(finished, scoreExam(exam, finished));
   }, [exam, session, onFinished]);
 
   // ← → na klawiaturze (poza polem wpisywania)

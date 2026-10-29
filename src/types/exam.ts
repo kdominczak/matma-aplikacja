@@ -42,18 +42,34 @@ export interface ExamSession {
   answers: Record<string, ExamAnswer>;
   /** Zadania oznaczone „wrócę do tego”. */
   flagged: string[];
+  /** Moment „Zakończ” (ms) – potem jest już tylko sprawdzanie zadań otwartych; czas egzaminu liczy się do niego. */
+  finishedAt?: number;
+}
+
+/**
+ * Ocena rozwiązania zadania otwartego według schematu (kroki z `solution`): punkty przyznane za każdy krok.
+ * `self` – uczeń zaznaczył kroki sam, `ai` – ocenił korepetytor AI.
+ */
+export interface StepAssessment {
+  by: "self" | "ai";
+  steps: number[];
 }
 
 export interface ExamTaskResult {
   taskId: string;
   number: number;
   kind: "closed" | "open";
-  /** „skipped” – bez odpowiedzi. */
-  status: "correct" | "wrong" | "skipped";
+  /**
+   * „correct” – wynik sprawdzony przez aplikację; „partial” – część punktów za kroki (samoocena albo AI, bez poprawnego
+   * wyniku końcowego); „skipped” – bez odpowiedzi. Tylko „correct” liczy się w statystykach jako poprawne.
+   */
+  status: "correct" | "partial" | "wrong" | "skipped";
   points: number;
   maxPoints: number;
   /** Odpowiedź ucznia (litera albo wpisany wynik). */
   given?: string;
+  /** Punkty za kroki rozwiązania (zadania otwarte rozszerzone bez poprawnego wyniku końcowego). */
+  assessment?: StepAssessment;
 }
 
 /** Zakończona próba – historia na urządzeniu (i w Supabase, gdy powstanie tabela). */

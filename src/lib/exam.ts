@@ -3,7 +3,7 @@ import { Preferences } from "@capacitor/preferences";
 import { examMaxPoints } from "@/data/exams";
 import type { PracticeTask } from "@/data/topics";
 import { matchesAnswer } from "@/lib/calc";
-import type { ExamAnswer, ExamAttempt, ExamSession, ExamSheet, ExamTaskResult } from "@/types/exam";
+import type { ExamAnswer, ExamAttempt, ExamSession, ExamSheet, ExamTaskResult, StepAssessment } from "@/types/exam";
 
 // Symulacja arkusza: punktacja, zapis rozwiązywanego arkusza (odświeżenie strony go nie przerywa)
 // i historia prób na urządzeniu.
@@ -34,16 +34,39 @@ export function isAnswered(answer: ExamAnswer | undefined): boolean {
   return answer?.kind === "closed" || (answer?.kind === "open" && answer.input.trim() !== "");
 }
 
-export function finishExam(exam: ExamSheet, session: ExamSession, now = Date.now()): ExamAttempt {
-  const results = exam.tasks.map((task, i) => scoreTask(task, session.answers[task.id], i + 1));
+/** Wyniki zadań sprawdzone automatycznie (litera z klucza, wynik końcowy zadania otwartego). */
+export function scoreExam(exam: ExamSheet, session: ExamSession): ExamTaskResult[] {
+  return exam.tasks.map((task, i) => scoreTask(task, session.answers[task.id], i + 1));
+}
+
+/**
+ * Czy zadanie czeka na ocenę kroków: otwarte z rozwiązaniem (nie „short”), bez poprawnego wyniku końcowego.
+ * Na maturze za dobrą metodę z pomyłką rachunkową albo niedokończone rozwiązanie są punkty częściowe.
+ */
+export function needsAssessment(task: PracticeTask, result: ExamTaskResult): task is PracticeTask & { kind: "open" } {
+  return task.kind === "open" && task.task.format !== "short" && result.status !== "correct" && task.task.solution.length > 1;
+}
+
+/**
+ * Wynik po ocenie kroków. Punkty każdego kroku obcięte do jego maksimum ze schematu (ocena z AI też tu przechodzi),
+ * razem nie więcej niż za zadanie. Uczciwie: częściowe punkty nigdy nie dają statusu „correct”.
+ */
+export function applyAssessment(task: PracticeTask & { kind: "open" }, result: ExamTaskResult, assessment: StepAssessment): ExamTaskResult {
+  const steps = task.task.solution.map((step, i) => Math.max(0, Math.min(step.points, Math.round(assessment.steps[i] ?? 0))));
+  const points = Math.min(task.points, steps.reduce((sum, p) => sum + p, 0));
+  return { ...result, points, status: points > 0 ? "partial" : result.status, assessment: { by: assessment.by, steps } };
+}
+
+export function finishExam(exam: ExamSheet, session: ExamSession, now = Date.now(), results = scoreExam(exam, session)): ExamAttempt {
+  const finishedAt = session.finishedAt ?? now;
   const points = results.reduce((sum, r) => sum + r.points, 0);
   const maxPoints = examMaxPoints(exam);
   return {
     id: crypto.randomUUID(),
     examId: exam.id,
     startedAt: new Date(session.startedAt).toISOString(),
-    finishedAt: new Date(now).toISOString(),
-    durationSec: Math.max(0, Math.round((now - session.startedAt) / 1000)),
+    finishedAt: new Date(finishedAt).toISOString(),
+    durationSec: Math.max(0, Math.round((finishedAt - session.startedAt) / 1000)),
     points,
     maxPoints,
     percent: maxPoints ? Math.round((points / maxPoints) * 100) : 0,
