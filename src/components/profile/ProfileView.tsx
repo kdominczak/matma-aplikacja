@@ -40,19 +40,11 @@ export default function ProfileView() {
       <PageHeader
         title="Profil"
         subtitle="Twoje zdjęcie, statystyki i postępy."
-        action={
-          <Link
-            href="/ustawienia"
-            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-line bg-card px-3 py-2 text-sm font-bold text-muted transition-colors hover:text-ink"
-          >
-            <Icon name="settings" className="h-4 w-4" />
-            <span className="hidden sm:inline">Ustawienia</span>
-          </Link>
-        }
       />
 
       <ProfileCard progress={progress} />
       <SecureAccountNudge />
+      <QuickLinks progress={progress} />
 
       <Section title="Statystyki">
         <div className="grid gap-3 lg:grid-cols-2">
@@ -96,6 +88,33 @@ export default function ProfileView() {
         </div>
       </Section>
     </Page>
+  );
+}
+
+/** Skróty do miejsc, które na telefonie nie mają własnej zakładki. */
+function QuickLinks({ progress }: { progress: Progress }) {
+  const mistakes = Object.keys(progress.mistakes).length;
+  const links: { href: string; icon: IconName; label: string; hint: string }[] = [
+    { href: "/ranking", icon: "trophy", label: "Ranking", hint: "Top tygodnia" },
+    { href: "/odznaki", icon: "medal", label: "Odznaki", hint: `${Object.keys(progress.achievements).length}/${ACHIEVEMENTS.length}` },
+    { href: "/bledy", icon: "archive", label: "Błędy", hint: mistakes > 0 ? `${mistakes} do poprawy` : "Pusto" },
+  ];
+  return (
+    <nav aria-label="Skróty" className="grid grid-cols-3 gap-3">
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className="flex min-h-11 flex-col items-center gap-1.5 rounded-3xl border border-line bg-card p-3 text-center shadow-card transition-colors hover:border-brand/40"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
+            <Icon name={link.icon} className="h-5 w-5" />
+          </span>
+          <span className="text-sm font-extrabold text-ink">{link.label}</span>
+          <span className="text-xs font-semibold text-muted">{link.hint}</span>
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -411,7 +430,7 @@ function AccuracyCard({ progress }: { progress: Progress }) {
         </svg>
         <span className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-extrabold tracking-tight text-ink tabular-nums">{answered > 0 ? `${accuracy}%` : "–"}</span>
-          <span className="text-[10px] font-bold uppercase tracking-wide text-faint">skuteczność</span>
+          <span className="text-[11px] font-bold text-faint">skuteczność</span>
         </span>
       </div>
       <div className="min-w-0">

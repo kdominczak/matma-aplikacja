@@ -136,16 +136,13 @@ function AccountHero() {
         <ProfileAvatar size="h-14 w-14 text-2xl" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-extrabold">{name}</p>
-          <p className="truncate text-sm text-white/70">{account.status === "email" ? account.email : "Bez logowania – dane na tym urządzeniu"}</p>
+          <p className="truncate text-sm text-white/70">{account.status === "email" ? account.email : "Bez logowania"}</p>
           {status && (
             <span className="mt-1.5 inline-block">
               <StatusPill tone={status.tone}>{status.label}</StatusPill>
             </span>
           )}
         </div>
-        <Link href="/profil" className="flex min-h-11 shrink-0 items-center gap-1 rounded-xl bg-white/10 px-3 text-sm font-bold hover:bg-white/15">
-          Profil <Icon name="chevron" className="h-4 w-4" />
-        </Link>
       </div>
     </section>
   );

@@ -26,7 +26,7 @@ export default function ErrorState({ title, message, onRetry, compact = false, o
   const noNetwork = offline();
   const heading = title ?? (noNetwork ? "Brak połączenia z internetem" : "Coś poszło nie tak");
   const text =
-    message ?? (noNetwork ? "Połącz się z siecią i spróbuj ponownie. Twój postęp jest bezpieczny na urządzeniu." : "Nie udało się wczytać danych. Spróbuj ponownie za chwilę.");
+    message ?? (noNetwork ? "Połącz się z siecią i spróbuj ponownie. Twój postęp jest bezpieczny na urządzeniu." : "Serwer nie odpowiada. Spróbuj ponownie za chwilę.");
 
   async function retry() {
     if (!onRetry || busy) return;

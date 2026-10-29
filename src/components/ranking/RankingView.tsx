@@ -154,10 +154,13 @@ function Leaderboard() {
             </button>
           ))}
         </div>
-        <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-          Na żywo
-        </span>
+        {/* „na żywo” tylko wtedy, gdy tabela naprawdę się wczytała */}
+        {rows && !error && (
+          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+            Na żywo
+          </span>
+        )}
       </div>
 
       {error && (

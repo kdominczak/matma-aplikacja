@@ -139,7 +139,7 @@ async function errorMessage(response: Response, vision = false): Promise<string>
   const body = await response.json().catch(() => null);
   const code: string | undefined = body?.error?.code;
   if (response.status === 401) return "Klucz Groq jest nieprawidłowy – sprawdź go w ustawieniach korepetytora.";
-  if (response.status === 429) return "Wyczerpałeś limit darmowego planu Groq – spróbuj za minutę (albo jutro, jeśli to limit dzienny).";
+  if (response.status === 429) return "Limit darmowego planu Groq się wyczerpał – spróbuj za minutę (albo jutro, jeśli to limit dzienny).";
   if (vision && (code === "model_not_found" || code === "model_decommissioned" || response.status === 404 || response.status === 403)) {
     return "Model czytający zdjęcia (Qwen 3.8) jest niedostępny dla Twojego klucza – wyślij treść zadania tekstem.";
   }

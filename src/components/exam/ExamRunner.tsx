@@ -49,7 +49,7 @@ export default function ExamRunner({ examId }: { examId: string }) {
   if (!exam) {
     return (
       <div className="mx-auto max-w-md px-4 py-10">
-        <ErrorState title="Nie ma takiego arkusza" message="Wybierz arkusz z listy w zakładce Arkusze CKE." />
+        <ErrorState title="Nie ma takiego arkusza" message="Wybierz arkusz z listy w zakładce Arkusze." />
       </div>
     );
   }
@@ -354,7 +354,7 @@ function ExamInProgress({ exam, initial, onFinished }: { exam: ExamSheet; initia
               {session.flagged.length > 0 && <> Oznaczone do powrotu: {session.flagged.length}.</>}
             </>
           ) : (
-            "Odpowiedziałeś na wszystkie zadania. Po zakończeniu zobaczysz wynik i omówienie."
+            "Wszystkie zadania mają odpowiedź. Po zakończeniu zobaczysz wynik i omówienie."
           )}
         </ConfirmDialog>
       )}

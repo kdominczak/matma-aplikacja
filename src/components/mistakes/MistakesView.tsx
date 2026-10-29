@@ -26,7 +26,7 @@ export default function MistakesView() {
       </Link>
       <PageHeader
         title="Pudełko porażek"
-        subtitle="Tu lądują zadania, w których się pomyliłeś. Rozwiąż je poprawnie, a znikną z pudełka – to najlepsza nauka."
+        subtitle="Tu lądują zadania, w których pojawił się błąd. Rozwiąż je poprawnie, a znikną z pudełka – to najlepsza nauka."
       />
 
       <section className="relative overflow-hidden rounded-3xl bg-navy p-5 text-white shadow-card lg:p-6">

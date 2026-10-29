@@ -29,7 +29,7 @@ const content: TopicContent = {
     { label: "Dodawanie ułamków", tex: "\\frac{a}{b} + \\frac{c}{d} = \\frac{ad + bc}{bd}" },
   ],
   traps: [
-    "Uwaga! Zapomniałeś o dziedzinie? Zawsze zaczynaj od niej – CKE celowo daje „rozwiązania”, które ją łamią.",
+    "Uwaga! A dziedzina? Zawsze zaczynaj od niej – CKE celowo daje „rozwiązania”, które ją łamią.",
     "Ułamek jest równy $0$ tylko wtedy, gdy licznik jest równy $0$.",
     "Na koniec porównaj wynik z dziedziną – to najczęściej tracony punkt.",
   ],
@@ -118,7 +118,7 @@ const content: TopicContent = {
         },
         correct: "A",
         explanation: "Licznik zeruje się dla $\\pm 3$, ale $x = 3$ wypada z dziedziny.",
-        trap: "Uwaga! Zapomniałeś o dziedzinie? $x = 3$ zeruje mianownik, więc wylatuje, chociaż zeruje też licznik.",
+        trap: "Uwaga! A dziedzina? $x = 3$ zeruje mianownik, więc wylatuje, chociaż zeruje też licznik.",
       },
       {
         id: "rw-s2",

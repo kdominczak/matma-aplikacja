@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import Countdown from "@/components/layout/Countdown";
 import GlowBackground from "@/components/layout/GlowBackground";
-import BottomSheet from "@/components/ui/BottomSheet";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { ThemeSwitcher, ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AVATAR_COLORS, useAppSettings } from "@/lib/app-settings";
@@ -26,7 +25,7 @@ const NAV: NavItem[] = [
   { href: "/", label: "Ucz się", icon: "home", primary: true, description: "Plan nauki i dzienne wyzwanie" },
   { href: "/zadania", label: "Zadania", icon: "tasks", primary: true, description: "Zadania maturalne z wybranego działu" },
   { href: "/wzory", label: "Wzory", icon: "book", primary: false, description: "Wszystkie wzory z działów" },
-  { href: "/arkusze", label: "Arkusze CKE", icon: "file", primary: false, description: "Matury z poprzednich lat (PDF)" },
+  { href: "/arkusze", label: "Arkusze", icon: "file", primary: true, description: "Próbne matury, losowe arkusze i archiwum CKE" },
   { href: "/korepetytor", label: "Korepetytor", icon: "sparkles", primary: true, description: "Wklej zadanie i rozwiąż je z AI" },
   { href: "/ranking", label: "Ranking", icon: "trophy", primary: false, description: "Top maturzystów tygodnia" },
   { href: "/profil", label: "Profil", icon: "user", primary: true, description: "Zdjęcie, statystyki i postępy" },
@@ -39,6 +38,13 @@ function useActiveHref() {
   const pathname = usePathname().replace(/(.)\/$/, "$1");
   if (pathname.startsWith("/bledy")) return "/profil";
   return NAV.find((item) => item.href !== "/" && pathname.startsWith(item.href))?.href ?? "/";
+}
+
+/** Zakładka dolnego paska (telefon): Wzory są częścią „Zadań”, ranking i odznaki – „Profilu”. */
+function bottomTab(active: string): string {
+  if (active === "/wzory") return "/zadania";
+  if (active === "/ranking" || active === "/odznaki" || active === "/ustawienia") return "/profil";
+  return active;
 }
 
 export function Logo() {
@@ -136,10 +142,8 @@ function TopBar({ active }: { active: string }) {
  */
 export default function AppShell({ children }: { children: ReactNode }) {
   const active = useActiveHref();
+  const tab = bottomTab(active);
   const pathname = usePathname().replace(/(.)\/$/, "$1");
-  const [moreOpen, setMoreOpen] = useState(false);
-  const secondary = NAV.filter((item) => !item.primary);
-  const secondaryActive = secondary.some((item) => item.href === active);
 
   // Uczeń z kontem (ranking): wyrównujemy Pudełko porażek i historię odpowiedzi z Supabase
   const ranking = useRanking();
@@ -215,9 +219,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  aria-current={active === item.href ? "page" : undefined}
+                  aria-current={tab === item.href ? "page" : undefined}
                   className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors sm:text-xs ${
-                    active === item.href ? "text-brand" : "text-faint"
+                    tab === item.href ? "text-brand" : "text-faint"
                   }`}
                 >
                   <Icon name={item.icon} className="h-6 w-6" />
@@ -225,46 +229,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               </li>
             ))}
-            <li>
-              <button
-                onClick={() => setMoreOpen(true)}
-                aria-haspopup="dialog"
-                className={`flex w-full flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors sm:text-xs ${
-                  secondaryActive ? "text-brand" : "text-faint"
-                }`}
-              >
-                <Icon name="more" className="h-6 w-6" />
-                Więcej
-              </button>
-            </li>
           </ul>
         </nav>
 
-        {moreOpen && (
-          <BottomSheet title="Więcej" onClose={() => setMoreOpen(false)}>
-            <ul className="flex flex-col gap-2">
-              {secondary.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setMoreOpen(false)}
-                    className={`flex items-center gap-3 rounded-2xl border p-3 transition-colors ${
-                      active === item.href ? "border-brand bg-brand-soft" : "border-line bg-card hover:border-brand/40"
-                    }`}
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-subtle text-brand">
-                      <Icon name={item.icon} className="h-5 w-5" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block font-bold text-ink">{item.label}</span>
-                      <span className="block text-sm text-muted">{item.description}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </BottomSheet>
-        )}
       </div>
     </MotionConfig>
   );

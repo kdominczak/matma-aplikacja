@@ -155,7 +155,7 @@ const content: TopicContent = {
         options: { A: "$a = -3$", B: "$a = 3$", C: "$a = -4$", D: "$a = 5$" },
         correct: "A",
         explanation: "$ax > 6$. Zwrot się zmienił, więc $a < 0$ i $x < \\frac{6}{a} = -2$, stąd $a = -3$.",
-        trap: "Zwrot nierówności się zmienił – to znak, że dzieliłeś przez liczbę ujemną, więc $a < 0$.",
+        trap: "Zwrot nierówności się zmienił – to znak, że dzielenie było przez liczbę ujemną, więc $a < 0$.",
       },
     ],
   },

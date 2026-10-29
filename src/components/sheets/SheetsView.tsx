@@ -42,8 +42,8 @@ export default function SheetsView() {
     <OpenSheetContext.Provider value={(href) => void open(href)}>
       <Page>
         <PageHeader
-          title="Arkusze CKE"
-          subtitle="Prawdziwe matury z poprzednich lat – rozwiąż arkusz na czas i sprawdź się z kluczem."
+          title="Arkusze"
+          subtitle="Arkusze w układzie prawdziwej matury i oryginalne matury CKE – rozwiąż na czas i sprawdź się z kluczem."
         />
 
         <ExamPicker />

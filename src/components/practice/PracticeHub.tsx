@@ -23,7 +23,16 @@ export default function PracticeHub() {
     <Page>
       <PageHeader
         title="Zadania"
-        subtitle="Wybierz dowolny dział i rozwiązuj zadania maturalne – zamknięte i otwarte, z brudnopisem, kalkulatorem i wzorami pod ręką."
+        subtitle="Zadania maturalne z każdego działu – z brudnopisem i kalkulatorem."
+        action={
+          <Link
+            href="/wzory"
+            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand transition-colors hover:border-brand/40"
+          >
+            <Icon name="book" className="h-4 w-4" />
+            Wzory
+          </Link>
+        }
       />
 
       <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Kategorie">

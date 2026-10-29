@@ -47,7 +47,7 @@ export default function DeleteAccountPage() {
               <strong className="text-ink">ID konta</strong> – znajdziesz je w aplikacji w Ustawieniach → Strefa niebezpieczna → Usunięcie konta (przycisk „Kopiuj”),
             </li>
             <li>
-              <strong className="text-ink">nick z rankingu</strong>, jeśli do niego dołączyłeś(-aś),
+              <strong className="text-ink">nick z rankingu</strong>, jeśli konto było w rankingu,
             </li>
             <li>
               albo <strong className="text-ink">adres e-mail konta</strong> – jeśli logujesz się e-mailem (napisz wtedy z tego adresu).

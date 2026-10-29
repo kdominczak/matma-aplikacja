@@ -54,7 +54,12 @@ export default function Countdown() {
         <p className="flex min-w-0 items-center gap-2 text-xs font-bold sm:text-sm">
           <Icon name="graduation" className="h-4 w-4 shrink-0 text-amber-300" />
           <span className="truncate text-white/80">
-            {left !== null && left <= 0 ? "Matura z matematyki już za Tobą – trzymamy kciuki za wynik!" : "Do matury z matematyki zostało:"}
+            {left !== null && left <= 0 ? "Matura z matematyki już za Tobą – trzymamy kciuki za wynik!" : (
+              <>
+                <span className="sm:hidden">Do matury z matmy:</span>
+                <span className="hidden sm:inline">Do matury z matematyki zostało:</span>
+              </>
+            )}
           </span>
         </p>
         {(left === null || left > 0) && (
