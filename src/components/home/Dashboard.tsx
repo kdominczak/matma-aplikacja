@@ -9,7 +9,7 @@ import StudyTimeCard from "@/components/home/StudyTimeCard";
 import WeekStreak from "@/components/home/WeekStreak";
 import { Page } from "@/components/layout/AppShell";
 import MistakesCard from "@/components/mistakes/MistakesCard";
-import PlacementIntro from "@/components/placement/PlacementIntro";
+import Welcome from "@/components/onboarding/Welcome";
 import EstimateCard from "@/components/progress/EstimateCard";
 import TopicCard from "@/components/topic/TopicCard";
 import Icon from "@/components/ui/Icon";
@@ -53,8 +53,8 @@ export default function Dashboard() {
 
         <LearningPath progress={progress} />
       </div>
-      {/* Pierwsze uruchomienie: zaproszenie do testu na start (z opcją „Pomiń”) */}
-      {progress && needsPlacement(progress) && <PlacementIntro />}
+      {/* Pierwsze uruchomienie: powitanie w 4 krokach, na końcu test na start albo „Pomiń” */}
+      {progress && needsPlacement(progress) && <Welcome />}
     </Page>
   );
 }

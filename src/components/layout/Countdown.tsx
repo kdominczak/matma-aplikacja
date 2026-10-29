@@ -34,7 +34,8 @@ function subscribe(listener: () => void) {
   };
 }
 
-function useNow(): number | null {
+/** Bieżący czas (null przed hydratacją) – wspólny zegar tykający co minutę. */
+export function useNow(): number | null {
   return useSyncExternalStore(subscribe, () => now, () => null);
 }
 
