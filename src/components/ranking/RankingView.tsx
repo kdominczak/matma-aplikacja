@@ -55,7 +55,7 @@ export default function RankingView() {
 
   return (
     <Page>
-      <PageHeader title="Ranking" subtitle="Liczą się poprawnie rozwiązane zadania – sprawdzone przez serwer. Walcz o podium z innymi maturzystami." />
+      <PageHeader title="Ranking" subtitle="Liczą się poprawnie rozwiązane zadania – sprawdzone przez serwer, każde raz dziennie. Walcz o podium z innymi maturzystami." />
 
       {ranking.status === "disabled" && <NotConfigured />}
       {ranking.status === "loading" && <Skeleton className="h-40 rounded-3xl" />}
@@ -183,7 +183,7 @@ function Leaderboard() {
       )}
       {rows && rows.length === 0 && (
         <p className="rounded-3xl border border-dashed border-line glass-card p-8 text-center text-sm text-muted">
-          {period === "week" ? "W tym tygodniu nikt jeszcze nie rozwiązał zadania. Zostań pierwszy!" : "Ranking jest jeszcze pusty."}
+          {period === "week" ? "W tym tygodniu nikt jeszcze nie rozwiązał zadania. Pierwsze miejsce czeka na Ciebie!" : "Ranking jest jeszcze pusty."}
         </p>
       )}
 
