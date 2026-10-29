@@ -3,10 +3,8 @@ import type { OpenQuestion, QuizQuestion } from "@/types/quiz";
 import { PLACEMENT } from "@/data/placement";
 import { generatedTasks } from "@/data/templates";
 import rownanieOkreguPractice from "@/data/practice/rownanie-okregu";
-import statystykaPractice from "@/data/practice/statystyka";
 import przeksztalceniaWykresowPractice from "@/data/practice/przeksztalcenia-wykresow";
 import funkcjaWykladniczaILogarytmicznaPractice from "@/data/practice/funkcja-wykladnicza-i-logarytmiczna";
-import trygonometriaPractice from "@/data/practice/trygonometria";
 import twierdzenieCosinusowPractice from "@/data/practice/twierdzenie-cosinusow";
 import optymalizacjaPractice from "@/data/practice/optymalizacja";
 import ukladyRownanPractice from "@/data/practice/uklady-rownan";
@@ -23,7 +21,9 @@ import okragIKolo from "./okrag-i-kolo";
 import potegiIPierwiastki from "./potegi-i-pierwiastki";
 import punktyIProste from "./punkty-i-proste";
 import rownaniaWymierne from "./rownania-wymierne";
+import statystyka from "./statystyka";
 import trojkatyICzworokaty from "./trojkaty-i-czworokaty";
+import trygonometria from "./trygonometria";
 import wartoscBezwzgledna from "./wartosc-bezwzgledna";
 import wykresFunkcji from "./wykres-funkcji";
 import wzorySkroconegoMnozenia from "./wzory-skroconego-mnozenia";
@@ -57,13 +57,13 @@ export const topics: Topic[] = withGenerated([
   { id: "okrag-i-kolo", section: "VIII", lesson: "Lekcja 30", title: "Okrąg i koło", icon: "○", category: "Geometria", target: 60, priority: "S+", examShare: 100, points: 1, studyHours: 2, content: okragIKolo },
   { id: "punkty-i-proste", section: "IX", lesson: "Lekcja 35", title: "Punkty, odcinki i proste na płaszczyźnie", icon: "AB", category: "Geometria", target: 60, priority: "S+", examShare: 90, points: 2, studyHours: 1, content: punktyIProste },
   { id: "rownanie-okregu", section: "IX", lesson: "Lekcja 36", title: "Równanie okręgu", icon: "r²", category: "Geometria", target: 60, priority: "S", examShare: 50, points: 1, studyHours: 2, practice: rownanieOkreguPractice },
-  { id: "statystyka", section: "XII", lesson: "Lekcja 45", title: "Statystyka", icon: "x̄", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 2, studyHours: 2, practice: statystykaPractice },
+  { id: "statystyka", section: "XII", lesson: "Lekcja 45", title: "Statystyka", icon: "x̄", category: "Statystyka", target: 60, priority: "S", examShare: 100, points: 2, studyHours: 2, content: statystyka },
   { id: "przeksztalcenia-wykresow", section: "V", lesson: "Lekcja 15", title: "Przekształcenia wykresów funkcji", icon: "↔", category: "Funkcje", target: 60, priority: "A", examShare: 80, points: 1, studyHours: 1, practice: przeksztalceniaWykresowPractice },
   { id: "funkcja-kwadratowa", section: "V", lesson: "Lekcja 16", title: "Funkcja kwadratowa", icon: "∪", category: "Funkcje", target: 60, priority: "S", examShare: 100, points: 4, studyHours: 5, content: funkcjaKwadratowa },
   { id: "funkcja-wykladnicza-i-logarytmiczna", section: "V", lesson: "Lekcja 22", title: "Funkcja wykładnicza i logarytmiczna", icon: "aˣ", category: "Funkcje", target: 60, priority: "B", examShare: 15, points: 1, studyHours: 1, practice: funkcjaWykladniczaILogarytmicznaPractice },
 
   // ── Na 85% ──
-  { id: "trygonometria", section: "VII", lesson: "Lekcja 28", title: "Podstawy trygonometrii", icon: "sin", category: "Geometria", target: 85, priority: "A", examShare: 100, points: 2, studyHours: 3, practice: trygonometriaPractice },
+  { id: "trygonometria", section: "VII", lesson: "Lekcja 28", title: "Podstawy trygonometrii", icon: "sin", category: "Geometria", target: 85, priority: "A", examShare: 100, points: 2, studyHours: 3, content: trygonometria },
   { id: "twierdzenie-cosinusow", section: "VII", lesson: "Lekcja 29", title: "Twierdzenie cosinusów i wzór na pole trójkąta", icon: "cos", category: "Geometria", target: 85, priority: "A", examShare: 30, points: 1, studyHours: 1, practice: twierdzenieCosinusowPractice },
   { id: "trojkaty-i-czworokaty", section: "VIII", lesson: "Lekcje 31–34", title: "Trójkąty, czworokąty, podobieństwo i Tales", icon: "△", category: "Geometria", target: 85, priority: "S", examShare: 100, points: 4, studyHours: 10, content: trojkatyICzworokaty },
   { id: "geometria-przestrzenna", section: "X", lesson: "Lekcje 38–42", title: "Geometria przestrzenna", icon: "▱", category: "Geometria", target: 85, priority: "B", examShare: 100, points: 4, studyHours: 10, content: geometriaPrzestrzenna },
