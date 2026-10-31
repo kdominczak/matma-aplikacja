@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import katex from "katex";
 import { describe, expect, it } from "vitest";
-import { allQuestionRefs, findQuestion, formulaGroup, practiceTasks, topics } from "@/data/topics";
+import { allQuestionRefs, findQuestion, formulaGroup, practiceTasks, theoryChecks, topics } from "@/data/topics";
 import { matchesAnswer } from "@/lib/calc";
 import { questionKeysSql } from "../scripts/question-keys";
 
@@ -90,6 +90,16 @@ describe("treść zadań", () => {
           expect(t.solution.reduce((sum, s) => sum + s.points, 0), t.id).toBe(t.points);
           expect(t.answers.length, t.id).toBeGreaterThan(0);
           for (const answer of t.answers) expect(matchesAnswer(answer, t.answers), `${t.id}: ${answer}`).toBe(true);
+        }
+      });
+
+      it("pytania przy krokach teorii: KaTeX, 4 różne odpowiedzi, wyjaśnienie, klucz w indeksie", () => {
+        for (const q of theoryChecks(topic)) {
+          const texts = [q.prompt, q.explanation, q.trap ?? "", ...(q.hints ?? []), ...Object.values(q.options)];
+          expect(texts.flatMap((text) => texErrors(text)), q.id).toEqual([]);
+          expect(new Set(Object.values(q.options)).size, q.id).toBe(4);
+          expect(q.explanation.trim().length, q.id).toBeGreaterThan(0);
+          expect(findQuestion(q.id)?.question.correct, q.id).toBe(q.correct);
         }
       });
     });

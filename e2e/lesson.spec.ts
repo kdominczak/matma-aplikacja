@@ -37,3 +37,18 @@ test("zakładka Zadania: postęp według trudności, bez kłódek; stary link #t
   await page.getByRole("link", { name: /Rozwiąż zadania|Rozwiązuj dalej/ }).click();
   await expect(page).toHaveURL(/\/zadania\/potegi-i-pierwiastki\/?$/);
 });
+
+test("lekcja wzorcowa: pytanie zaraz po kroku teorii, z wyjaśnieniem i haczykiem po błędzie", async ({ page }) => {
+  await page.goto("/dzial/funkcja-kwadratowa/");
+  const steps = page.getByRole("region", { name: "Sprawdź ten krok" });
+  await expect(steps).toHaveCount(7);
+
+  const first = steps.first();
+  await first.scrollIntoViewIfNeeded();
+  // błędna odpowiedź: minus na początku wzoru nie odwraca paraboli
+  await first.getByRole("radio").filter({ hasText: "-2 + 3x^2" }).click();
+  await first.getByRole("button", { name: "Sprawdź" }).click();
+  await expect(first.getByText(/Poprawna odpowiedź: [A-D]/)).toBeVisible();
+  await expect(first.getByText(/nie odwraca paraboli/)).toBeVisible();
+  await first.screenshot({ path: "screenshots/lekcja-krok-sprawdz.png" });
+});
