@@ -1,6 +1,7 @@
 // Plan na dziś i powtórki w odstępach – czy plan podejmuje sensowne decyzje dla ucznia.
 import { describe, expect, it } from "vitest";
-import { allQuestionRefs, findQuestion, getTopic, topicsForTarget } from "@/data/topics";
+import { allQuestionRefs, findQuestion, getTopic } from "@/data/topics";
+import { topicsForGoal } from "@/lib/goal";
 import { buildPlan, longestPlanStreak, MAX_REVIEWS, planStreak, rankTopics, topicMastery } from "@/lib/planner";
 import { dueReviews, REVIEW_INTERVALS, scheduleReview } from "@/lib/reviews";
 import { mergeProgress } from "@/lib/progress-merge";
@@ -73,7 +74,7 @@ describe("powtórki w odstępach", () => {
 describe("wybór działu dnia", () => {
   it("nowy uczeń: dział o największej wadze na maturze z jego celu", () => {
     const [first] = rankTopics(progress({ target: 30 }), TODAY);
-    const best = Math.max(...topicsForTarget(30).map((t) => t.points * t.examShare));
+    const best = Math.max(...topicsForGoal(30).map((t) => t.points * t.examShare));
     expect(first.topic.points * first.topic.examShare).toBe(best);
   });
 
@@ -90,16 +91,16 @@ describe("wybór działu dnia", () => {
     expect(rankTopics(mastered, TODAY)[0].topic.id).not.toBe(fresh.id);
   });
 
-  it("cel 30% nie wrzuca działów z wyższych celów, dopóki są nieopanowane", () => {
-    const ids = new Set(topicsForTarget(30).map((t) => t.id));
+  it("cel 15 pkt (30%) nie wrzuca działów spoza celu, dopóki są nieopanowane", () => {
+    const ids = new Set(topicsForGoal(30).map((t) => t.id));
     for (const { topic } of rankTopics(progress({ target: 30 }), TODAY)) expect(ids.has(topic.id)).toBe(true);
   });
 
   it("poziom trudności rośnie z opanowaniem", () => {
-    // wszystkie działy celu 30% opanowane, w logarytmach tylko poziom podstawowy → dział dnia: logarytmy, poziom średni
+    // wszystkie działy celu 15 pkt opanowane, w logarytmach tylko poziom podstawowy → dział dnia: logarytmy, poziom średni
     const full = { answered: 20, correct: 20, lastAnswered: "2026-11-09" };
     const topicStats = Object.fromEntries(
-      topicsForTarget(30)
+      topicsForGoal(30)
         .filter((t) => t.id !== "logarytmy")
         .flatMap((t) => ["podstawowy", "sredni", "zaawansowany"].map((d) => [`${t.id}/${d}`, full])),
     );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { goalPoints } from "@/lib/goal";
 import Icon from "@/components/ui/Icon";
 import { answersToEstimate, currentEstimate, ESTIMATE_MIN_ANSWERS, estimateHistory } from "@/lib/estimate";
 import { MATURA_POINTS } from "@/lib/exam-weights";
@@ -34,7 +35,7 @@ export default function EstimateCard({ progress }: { progress: Progress }) {
         <div className="bar-grow h-full rounded-full bg-brand" style={{ width: `${Math.min(value, 100)}%` }} />
         <span className="absolute -top-1 h-4 w-0.5 rounded-full bg-ink" style={{ left: `${progress.target}%` }} aria-hidden />
       </div>
-      <p className="mt-2 text-xs text-muted">Cel: {progress.target}%</p>
+      <p className="mt-2 text-xs text-muted">Cel: {goalPoints(progress.target)} pkt ({progress.target}%)</p>
     </Link>
   );
 }
@@ -52,7 +53,7 @@ function CollectingData({ progress, missing }: { progress: Progress; missing: nu
         <div className="bar-grow h-full rounded-full bg-brand" style={{ width: `${(done / ESTIMATE_MIN_ANSWERS) * 100}%` }} />
       </div>
       <p className="mt-2 text-xs text-muted">
-        {done}/{ESTIMATE_MIN_ANSWERS} · cel: {progress.target}%
+        {done}/{ESTIMATE_MIN_ANSWERS} · cel: {goalPoints(progress.target)} pkt
       </p>
     </section>
   );

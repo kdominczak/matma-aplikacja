@@ -20,20 +20,21 @@ test("nowy uczeń przechodzi powitanie i trafia na plan", async ({ page }) => {
   for (const [i, title] of [
     [2, "Plan na dziś myśli za Ciebie"],
     [3, "Brudnopis jak kartka na maturze"],
-    [4, "Na ile procent celujesz?"],
+    [4, "Jaki wynik chcesz mieć?"],
   ] as const) {
     await dialog.getByRole("button", { name: "Dalej" }).click();
     await expect(dialog.getByRole("heading")).toHaveText(title);
     await page.screenshot({ path: `screenshots/powitanie/${i}.png` });
   }
 
-  await dialog.getByRole("radio", { name: /60%/ }).click();
+  await dialog.getByLabel("Ile punktów chcesz zdobyć?").fill("30");
+  await expect(dialog.getByText("30/50 pkt · 60%")).toBeVisible();
   await dialog.getByRole("button", { name: "Pomiń test – zacznę od planu" }).click();
   await expect(dialog).toBeHidden();
 
   // imię w powitaniu, cel w skrócie do lekcji – i po odświeżeniu powitanie już nie wraca
   await expect(page.getByRole("heading", { name: "Cześć, Kuba!" })).toBeVisible();
-  await expect(page.getByText("Ścieżka na 60%")).toBeVisible();
+  await expect(page.getByText(/Ścieżka na 30 pkt/)).toBeVisible();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Cześć, Kuba!" })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -42,14 +43,14 @@ test("nowy uczeń przechodzi powitanie i trafia na plan", async ({ page }) => {
   await page.getByRole("link", { name: /Lekcje i testy działów/ }).click();
   await expect(page).toHaveURL(/\/zadania\/\?widok=lekcje$/);
   await expect(page.getByRole("tab", { name: "Lekcje i testy", selected: true })).toBeVisible();
-  await expect(page.getByText("Ścieżka nauki na 60%")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ścieżka na 30 pkt" })).toBeVisible();
 });
 
 test("„Pomiń” przeskakuje do wyboru celu, a test na start otwiera /start", async ({ page }) => {
   await page.goto("/");
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Pomiń", exact: true }).click();
-  await expect(dialog.getByRole("heading")).toHaveText("Na ile procent celujesz?");
+  await expect(dialog.getByRole("heading")).toHaveText("Jaki wynik chcesz mieć?");
   await dialog.getByRole("link", { name: /Test na start/ }).click();
   await expect(page).toHaveURL(/\/start\/?$/);
 });

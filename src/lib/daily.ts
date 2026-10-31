@@ -1,13 +1,14 @@
-import { DIFFICULTIES, formulaGroup, testQuestions, topicsForTarget } from "@/data/topics";
+import { DIFFICULTIES, formulaGroup, testQuestions } from "@/data/topics";
+import { topicsForGoal } from "@/lib/goal";
 import { seededRandom } from "@/lib/random";
 import type { QuizQuestion } from "@/types/quiz";
-import type { FormulaGroup, Target } from "@/types/topic";
+import type { FormulaGroup } from "@/types/topic";
 
 export const DAILY_QUESTION_COUNT = 10;
 
-/** Losuje zadania dnia z działów planu (wszystkie poziomy trudności). */
-export function dailyChallenge(day: string, target: Target): { questions: QuizQuestion[]; formulaGroups: FormulaGroup[] } {
-  const topics = topicsForTarget(target).filter((t) => t.content);
+/** Losuje zadania dnia z działów potrzebnych do celu (wszystkie poziomy trudności). */
+export function dailyChallenge(day: string, target: number): { questions: QuizQuestion[]; formulaGroups: FormulaGroup[] } {
+  const topics = topicsForGoal(target).filter((t) => t.content);
   const pool = topics.flatMap((topic) =>
     DIFFICULTIES.flatMap((d) => testQuestions(topic, d.id).map((q) => ({ q, topic }))),
   );

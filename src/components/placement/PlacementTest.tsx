@@ -5,8 +5,9 @@ import Link from "next/link";
 import QuizScreen, { type SummaryProps } from "@/components/quiz/QuizScreen";
 import Icon from "@/components/ui/Icon";
 import { celebrate } from "@/lib/celebrate";
-import { DIFFICULTIES, formulaGroup, getTopic, placementQuestions, TARGETS } from "@/data/topics";
+import { DIFFICULTIES, formulaGroup, getTopic, placementQuestions } from "@/data/topics";
 import { scorePlacement } from "@/lib/placement";
+import { goalPoints } from "@/lib/goal";
 import { savePlacementResult } from "@/lib/progress";
 
 const ITEMS = placementQuestions();
@@ -31,7 +32,8 @@ export default function PlacementTest() {
 
 function PlacementSummary({ result, outcome }: SummaryProps) {
   const score = scorePlacement(result.answers);
-  const target = TARGETS.find((t) => t.value === score.target)!;
+  const goal = goalPoints(outcome?.progress.target ?? 30);
+  const suggested = goalPoints(score.target);
   const placement = outcome?.progress.placement;
   const credited = placement?.status === "done" ? placement.credited : [];
 
@@ -63,16 +65,15 @@ function PlacementSummary({ result, outcome }: SummaryProps) {
         <section className="relative overflow-hidden rounded-3xl bg-navy p-5 text-white shadow-card">
           <div aria-hidden className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-brand/40 blur-3xl" />
           <p className="relative text-xs font-extrabold uppercase tracking-widest text-white/60">Twój cel na maturze</p>
-          <p className="relative mt-1 text-4xl font-extrabold">{target.label}</p>
-          <p className="relative mt-1 text-sm text-white/70">
-            {target.subtitle}.{" "}
-            {score.target === 30
-              ? "Zaczniemy od fundamentów – to one dają najwięcej punktów najmniejszym kosztem."
-              : score.target === 60
-                ? "Masz solidne podstawy – czas dołożyć funkcje, ciągi i geometrię."
-                : "Świetny start! Celujemy wysoko – przed Tobą geometria i zadania optymalizacyjne."}
+          <p className="relative mt-1 text-4xl font-extrabold">
+            {goal} <span className="text-xl text-white/60">/ 50 pkt</span>
           </p>
-          <p className="relative mt-3 text-xs text-white/50">Cel zmienisz w każdej chwili w profilu.</p>
+          <p className="relative mt-1 text-sm text-white/70">
+            {suggested > goal
+              ? `Wynik testu sugeruje, że stać Cię na ok. ${suggested} pkt – cel podniesiesz w ustawieniach.`
+              : "Plan zacznie od działów, które dają najwięcej punktów do Twojego celu."}
+          </p>
+          <p className="relative mt-3 text-xs text-white/50">Cel zmienisz w każdej chwili w ustawieniach.</p>
         </section>
 
         <section className="card p-5">

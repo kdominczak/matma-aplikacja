@@ -5,13 +5,12 @@ import Link from "next/link";
 import { useNow } from "@/components/layout/Countdown";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { PLACEMENT } from "@/data/placement";
-import { TARGETS } from "@/data/topics";
 import { saveAppSettings } from "@/lib/app-settings";
 import { hapticTap } from "@/lib/haptics";
 import { daysToMatura } from "@/lib/matura";
 import { plural } from "@/lib/plural";
+import GoalSlider from "@/components/progress/GoalSlider";
 import { setTarget, skipPlacement } from "@/lib/progress";
-import type { Target } from "@/types/topic";
 
 /**
  * Powitanie nowego ucznia – cztery krótkie ekrany (ok. minuty): obietnica, Plan na dziś, brudnopis, cel i start.
@@ -21,7 +20,7 @@ import type { Target } from "@/types/topic";
 export default function Welcome() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
-  const [target, setTargetChoice] = useState<Target>(30);
+  const [target, setTargetChoice] = useState(30);
   const [closing, setClosing] = useState(false);
   const last = STEPS - 1;
 
@@ -261,41 +260,15 @@ function ScratchSlide() {
 
 // ── 4. Cel i start ──
 
-function TargetSlide({ target, onTarget }: { target: Target; onTarget: (target: Target) => void }) {
+function TargetSlide({ target, onTarget }: { target: number; onTarget: (target: number) => void }) {
   return (
     <>
-      <Title eyebrow="Ostatni krok">Na ile procent celujesz?</Title>
+      <Title eyebrow="Ostatni krok">Jaki wynik chcesz mieć?</Title>
       <p className="mt-2 text-sm text-muted">
-        Od celu zależy ścieżka działów. Test na start ({PLACEMENT.length} zadań) sprawdzi, co już umiesz, i zaliczy to z góry.
+        Z celu wyliczymy działy, które są Ci potrzebne. Test na start ({PLACEMENT.length} zadań) sprawdzi, co już umiesz.
       </p>
-      <div className="mt-5 flex flex-col gap-2" role="radiogroup" aria-label="Cel na maturze">
-        {TARGETS.map((t) => {
-          const selected = t.value === target;
-          return (
-            <button
-              key={t.value}
-              role="radio"
-              aria-checked={selected}
-              onClick={() => {
-                hapticTap();
-                onTarget(t.value);
-              }}
-              className={`flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all active:scale-[0.99] ${
-                selected ? "border-brand bg-brand-soft" : "border-line hover:border-brand/40"
-              }`}
-            >
-              <span className={`text-2xl font-extrabold tabular-nums ${selected ? "text-brand" : "text-ink"}`}>{t.value}%</span>
-              <span className="min-w-0 flex-1 text-sm font-semibold text-muted">{t.subtitle}</span>
-              <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
-                  selected ? "border-brand bg-brand text-white" : "border-line"
-                }`}
-              >
-                {selected && <Icon name="check" className="h-3.5 w-3.5" />}
-              </span>
-            </button>
-          );
-        })}
+      <div className="mt-5 rounded-2xl border border-line p-4">
+        <GoalSlider percent={target} onChange={onTarget} id="welcome-goal" debounceMs={0} />
       </div>
     </>
   );

@@ -1,6 +1,7 @@
-import { allQuestionRefs, DIFFICULTIES, findQuestion, formulaGroup, placementQuestions, topics, topicsForTarget, type QuestionRef } from "@/data/topics";
+import { allQuestionRefs, DIFFICULTIES, findQuestion, formulaGroup, placementQuestions, topics, type QuestionRef } from "@/data/topics";
 import { seededRandom, shuffled } from "@/lib/random";
 import { topicExamPoints } from "@/lib/exam-weights";
+import { topicsForGoal } from "@/lib/goal";
 import { LEVEL_MASTERED, levelStat, MIN_ANSWERS, smoothedAccuracy, topicMastery } from "@/lib/mastery";
 import { dueReviews } from "@/lib/reviews";
 import { dayKey, parseDay, testKey } from "@/lib/stats";
@@ -96,7 +97,7 @@ function hasQuestions(topic: Topic) {
  * Dział ćwiczony dziś schodzi niżej (kolejna runda = inny dział), zaniedbany od tygodnia – wyżej.
  */
 export function rankTopics(progress: Progress, today = dayKey()): { topic: Topic; score: number }[] {
-  const inTarget = topicsForTarget(progress.target).filter(hasQuestions);
+  const inTarget = topicsForGoal(progress.target).filter(hasQuestions);
   const candidates = inTarget.some((t) => topicMastery(progress, t) < 1) ? inTarget : topics.filter(hasQuestions);
   return candidates
     .map((topic) => {

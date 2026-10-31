@@ -74,7 +74,8 @@ export interface Progress {
   tests: Record<string, TestRecord>;
   /** Dzień, w którym zaliczono dzienne wyzwanie. */
   dailyDone?: string;
-  target: Target;
+  /** Cel w % (30–100) – w aplikacji pokazywany jako punkty na 50 (src/lib/goal.ts). Dawne cele 30/60/85 dalej działają. */
+  target: number;
   stats: Stats;
   /** Zdobyte odznaki: id → dzień zdobycia. */
   achievements: Record<string, string>;

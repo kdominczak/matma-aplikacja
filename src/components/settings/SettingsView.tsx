@@ -12,7 +12,6 @@ import { PageSkeleton } from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
 import { ThemeSwitcher } from "@/components/ui/ThemeToggle";
 import { CKE_ARCHIVE_URL } from "@/data/cke-sheets";
-import { TARGETS } from "@/data/topics";
 import { useAccount } from "@/lib/account";
 import { AI_ENABLED } from "@/lib/ai-config";
 import { saveAppSettings, useAppSettings } from "@/lib/app-settings";
@@ -20,6 +19,7 @@ import { resetCloudData, useCloudStatus } from "@/lib/cloud-sync";
 import { deleteAccountAndData } from "@/lib/delete-account";
 import { AI_FREE_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
 import { hapticTap } from "@/lib/haptics";
+import GoalSlider from "@/components/progress/GoalSlider";
 import { formatDay, resetProgress, setTarget, useProgress } from "@/lib/progress";
 import { leaveRanking, useRanking } from "@/lib/ranking";
 import type { Progress } from "@/types/progress";
@@ -156,33 +156,7 @@ function AccountHero() {
 // ── Nauka ──
 
 function TargetPicker({ progress }: { progress: Progress }) {
-  return (
-    <div>
-      <p className="mb-2 font-bold text-ink">Cel na maturze</p>
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Cel na maturze">
-        {TARGETS.map((t) => {
-          const selected = progress.target === t.value;
-          return (
-            <button
-              key={t.value}
-              role="radio"
-              aria-checked={selected}
-              onClick={() => {
-                hapticTap();
-                void setTarget(t.value);
-              }}
-              className={`flex min-h-24 flex-col items-start justify-between gap-1 rounded-2xl border-2 p-3 text-left transition-all active:scale-[0.97] ${
-                selected ? "border-brand bg-brand-soft" : "border-line hover:border-brand/40"
-              }`}
-            >
-              <span className={`text-xl font-extrabold tracking-tight ${selected ? "text-brand" : "text-ink"}`}>{t.value}%</span>
-              <span className="text-xs leading-snug text-muted">{t.subtitle}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
+  return <GoalSlider percent={progress.target} onChange={(target) => void setTarget(target)} id="settings-goal" />;
 }
 
 function PlacementRow({ progress }: { progress: Progress }) {
@@ -194,7 +168,7 @@ function PlacementRow({ progress }: { progress: Progress }) {
       title={placement?.status === "done" ? "Powtórz test na start" : "Zrób test na start"}
       description={
         placement?.status === "done"
-          ? `${formatDay(placement.at)}: ${placement.correct}/${placement.total} poprawnych, cel ${placement.target}%`
+          ? `${formatDay(placement.at)}: ${placement.correct}/${placement.total} poprawnych`
           : "12 zadań – ustawi cel i zaliczy to, co już umiesz"
       }
       href="/start"

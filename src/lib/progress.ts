@@ -20,7 +20,7 @@ import { dayKey, isPassed, starsFor, testKey } from "@/lib/stats";
 import type { ExamAttempt } from "@/types/exam";
 import type { Progress } from "@/types/progress";
 import type { OptionKey, QuizAnswer, QuizResult } from "@/types/quiz";
-import type { Difficulty, Target } from "@/types/topic";
+import type { Difficulty } from "@/types/topic";
 
 // Obliczenia pomocnicze (seria, gwiazdki, poziomy…) – importowane razem z magazynem.
 export * from "@/lib/stats";
@@ -504,7 +504,7 @@ export async function savePlacementResult(result: QuizResult): Promise<SaveOutco
     return {
       ...next,
       tests,
-      target: score.target,
+      // cel zostaje taki, jaki uczeń ustawił suwakiem – test tylko podpowiada (placement.target, ekran wyniku)
       placement: { status: "done", at: today, correct: score.correct, total: score.total, target: score.target, credited },
     };
   });
@@ -552,6 +552,6 @@ export function syncLearning(): Promise<void> {
   return syncing;
 }
 
-export async function setTarget(target: Target) {
+export async function setTarget(target: number) {
   await update((progress) => ({ ...progress, target }));
 }

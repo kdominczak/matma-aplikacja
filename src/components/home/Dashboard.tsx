@@ -13,6 +13,7 @@ import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import { getDifficulty } from "@/data/topics";
 import { DAILY_QUESTION_COUNT } from "@/lib/daily";
+import { goalPoints } from "@/lib/goal";
 import { buildPlan, planStreak, type DailyPlan, type PlanFocus } from "@/lib/planner";
 import { plural } from "@/lib/plural";
 import { needsPlacement } from "@/lib/placement";
@@ -46,7 +47,7 @@ export default function Dashboard() {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block font-extrabold text-ink">Lekcje i testy działów</span>
-              <span className="block text-sm text-muted">Ścieżka na {progress?.target ?? 30}% – teoria, przykłady i zadania</span>
+              <span className="block text-sm text-muted">Ścieżka na {goalPoints(progress?.target ?? 30)} pkt – teoria, przykłady i zadania</span>
             </span>
             <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint" />
           </Link>
