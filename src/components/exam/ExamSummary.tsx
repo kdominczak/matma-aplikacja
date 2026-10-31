@@ -6,6 +6,8 @@ import Link from "next/link";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
+import CkeNotice from "@/components/legal/CkeNotice";
+import { examSource } from "@/data/exams";
 import { findQuestion, type PracticeTask } from "@/data/topics";
 import { formatDuration, PASS_PERCENT, useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
@@ -262,6 +264,11 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
           <Link href="/arkusze" className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-line bg-card font-bold text-ink">
             Wróć do arkuszy
           </Link>
+        </div>
+
+        <div className="flex flex-col gap-1 text-center text-xs text-faint">
+          <p>{examSource(exam)}.</p>
+          <CkeNotice />
         </div>
       </div>
 

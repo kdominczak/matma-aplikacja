@@ -2,6 +2,7 @@ import { CURRENT_BLUEPRINTS } from "@/data/blueprints";
 import { MOCK_EXAMS, type FrozenExam } from "@/data/mock-exams";
 import { practiceTaskById } from "@/data/topics";
 import { DIFFICULTY_TOLERANCE, generateExam, parseExamCode, referenceExpected, type GeneratedExam } from "@/lib/exam-generator";
+import { LEGAL } from "@/data/legal";
 import type { ExamSheet } from "@/types/exam";
 
 // Arkusze do rozwiązania w aplikacji (tryb symulacji matury, poziom podstawowy, od 2025: 50 pkt, 180 min).
@@ -72,7 +73,8 @@ function mockExams(): ExamSheet[] {
 
 /**
  * Oficjalne arkusze CKE przepisane do aplikacji. Format zadań – jak `PracticeTask` (patrz src/data/topics).
- * Przykład wpisu: { id: "cke-2024-maj", kind: "cke", year: 2024, title: "Matura maj 2024", … , pdf: { … } }.
+ * Przykład wpisu: { id: "cke-2024-maj", kind: "cke", year: 2024, session: "maj", title: "Matura maj 2024", … , pdf: { … } }.
+ * `year` i `session` są obowiązkowe – z nich powstaje oznaczenie źródła (examSource, taskSource; pilnuje tego test).
  */
 const CKE_EXAMS: ExamSheet[] = [];
 
@@ -108,6 +110,21 @@ export function examHref(exam: Pick<ExamSheet, "id" | "kind" | "code">): string 
 
 export function examKindLabel(exam: Pick<ExamSheet, "kind">): string {
   return { cke: "Oficjalny arkusz CKE", probny: "Arkusz próbny", losowy: "Arkusz losowy" }[exam.kind];
+}
+
+/**
+ * Źródło zadań arkusza – widoczne przy arkuszu i przy każdym zadaniu. Zadania CKE zawsze ze wskazaniem sesji
+ * i roku (podstawa korzystania z nich: materiały urzędowe, art. 4 pr. aut.); pozostałe to zadania autorskie aplikacji.
+ */
+export function examSource(exam: Pick<ExamSheet, "kind" | "year" | "session" | "layoutYear">): string {
+  if (exam.kind === "cke") return `Zadania z arkusza CKE, matura ${exam.session ?? "maj"} ${exam.year ?? ""}`.trimEnd();
+  const layout = exam.layoutYear ? ` w układzie matury ${exam.layoutYear}` : "";
+  return `Zadania autorskie aplikacji ${LEGAL.appName}${layout} – nie pochodzą z arkuszy CKE`;
+}
+
+/** Krótkie źródło przy pojedynczym zadaniu arkusza CKE (null – zadanie autorskie, bez dopisku). */
+export function taskSource(exam: Pick<ExamSheet, "kind" | "year" | "session">): string | null {
+  return exam.kind === "cke" ? `Zadanie z arkusza CKE, ${exam.session ?? "maj"} ${exam.year ?? ""}`.trimEnd() : null;
 }
 
 export function examMaxPoints(exam: ExamSheet): number {

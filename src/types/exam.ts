@@ -16,6 +16,8 @@ export interface ExamSheet {
   title: string;
   subtitle: string;
   year?: number;
+  /** Sesja egzaminu CKE (tylko `kind: "cke"`) – do oznaczenia źródła: „Zadanie z arkusza CKE, matura maj 2024”. */
+  session?: "maj" | "czerwiec" | "sierpień";
   level: "podstawowy";
   /** Czas na egzamin w minutach (matura podstawowa: 180). */
   durationMin: number;

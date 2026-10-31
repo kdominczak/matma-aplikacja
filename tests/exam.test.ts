@@ -79,3 +79,25 @@ describe("czas arkusza", () => {
     expect(examStats([attempt(27 * 3600), attempt(600)])?.totalSec).toBe(180 * 60 + 600);
   });
 });
+
+describe("źródło zadań arkusza", () => {
+  it("arkusz CKE – sesja i rok; przy zadaniu krótkie oznaczenie", async () => {
+    const { examSource, taskSource } = await import("@/data/exams");
+    const cke = { kind: "cke", year: 2024, session: "maj" } as const;
+    expect(examSource(cke)).toBe("Zadania z arkusza CKE, matura maj 2024");
+    expect(taskSource(cke)).toBe("Zadanie z arkusza CKE, maj 2024");
+  });
+
+  it("arkusze próbne i losowe – zadania autorskie, bez oznaczenia CKE przy zadaniu", async () => {
+    const { examSource, taskSource } = await import("@/data/exams");
+    const mock = { kind: "probny", layoutYear: 2025 } as const;
+    expect(examSource(mock)).toBe("Zadania autorskie aplikacji Matma w układzie matury 2025 – nie pochodzą z arkuszy CKE");
+    expect(taskSource(mock)).toBeNull();
+  });
+
+  it("każdy arkusz CKE w aplikacji ma rok i sesję (inaczej źródło byłoby niepełne)", async () => {
+    const { EXAMS } = await import("@/data/exams");
+    const incomplete = EXAMS.filter((e) => e.kind === "cke" && (!e.year || !e.session)).map((e) => e.id);
+    expect(incomplete).toEqual([]);
+  });
+});

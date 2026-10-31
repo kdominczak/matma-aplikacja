@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
+import CkeNotice from "@/components/legal/CkeNotice";
+import { PURCHASE_CONSENT_TEXT } from "@/data/legal";
 import ReferralCard from "@/components/premium/ReferralCard";
 import AccountCard from "@/components/settings/AccountCard";
 import Icon, { type IconName } from "@/components/ui/Icon";
@@ -9,7 +12,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useAccount } from "@/lib/account";
 import { trackFunnel } from "@/lib/funnel";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
-import { AI_FREE_DAILY_LIMIT, formatPremiumUntil, GRADING_DAILY_LIMIT, isPremium, usePremium } from "@/lib/premium";
+import { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, formatPremiumUntil, GRADING_DAILY_LIMIT, isPremium, usePremium } from "@/lib/premium";
 import {
   buyPlan,
   manageSubscription,
@@ -28,7 +31,7 @@ const BENEFITS: { icon: IconName; title: string; text: string }[] = [
     title: "Zdjęcie rozwiązania → punkty jak na maturze",
     text: `Robisz zdjęcie kartki z zadaniem otwartym z arkusza, a korepetytor przyznaje punkty za kolejne kroki według schematu CKE – z uzasadnieniem. Do ${GRADING_DAILY_LIMIT} ocen dziennie.`,
   },
-  { icon: "sparkles", title: "Korepetytor AI bez limitu", text: `Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości dziennie. Z Premium piszesz, ile potrzebujesz – także ze zdjęciem zadania albo PDF-em.` },
+  { icon: "sparkles", title: "Korepetytor AI na co dzień", text: `Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości dziennie. Z Premium do ${AI_PREMIUM_DAILY_LIMIT} – także ze zdjęciem zadania albo PDF-em.` },
   { icon: "book", title: "Wyjaśnienie każdego błędu", text: "Po złej odpowiedzi korepetytor tłumaczy krok po kroku, gdzie był haczyk – w testach, planie i Pudełku porażek." },
   { icon: "bolt", title: "Podpowiedzi stopniowane", text: "Nie wiesz, jak zacząć? Kolejne podpowiedzi naprowadzają na rozwiązanie, ale nie zdradzają wyniku." },
 ];
@@ -42,7 +45,7 @@ export default function PremiumView() {
 
   return (
     <Page width="reading">
-      <PageHeader title="Premium" subtitle="Nauka zostaje za darmo. Premium zdejmuje limit z korepetytora AI i ocenia Twoje rozwiązania ze zdjęcia – na finisz przed maturą." />
+      <PageHeader title="Premium" subtitle="Nauka zostaje za darmo. Premium podnosi limit korepetytora AI i ocenia Twoje rozwiązania ze zdjęcia – na finisz przed maturą." />
 
       <section className="relative overflow-hidden rounded-3xl bg-navy p-6 text-white shadow-card lg:p-8">
         <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-brand/30 blur-3xl" />
@@ -50,7 +53,7 @@ export default function PremiumView() {
         <h2 className="relative mt-1 text-2xl font-extrabold">{active ? "Premium aktywne" : "Plan darmowy"}</h2>
         <p className="relative mt-1 text-sm text-white/70">
           {active && premium.premiumUntil
-            ? `Do ${formatPremiumUntil(premium.premiumUntil)}. Korepetytor AI bez limitu.`
+            ? `Do ${formatPremiumUntil(premium.premiumUntil)}. Korepetytor AI: do ${AI_PREMIUM_DAILY_LIMIT} wiadomości dziennie.`
             : premium.status === "ready"
               ? `Korepetytor AI: ${Math.max(0, premium.aiLimit - premium.aiUsed)} z ${premium.aiLimit} wiadomości na dziś.`
               : `Korepetytor AI: ${AI_FREE_DAILY_LIMIT} wiadomości dziennie.`}
@@ -79,6 +82,18 @@ export default function PremiumView() {
       <BuySection />
 
       <ReferralCard />
+
+      <footer className="flex flex-col items-center gap-2 pt-2">
+        <p className="flex gap-4 text-sm font-bold">
+          <Link href="/regulamin" className="text-brand underline">
+            Regulamin
+          </Link>
+          <Link href="/prywatnosc" className="text-brand underline">
+            Polityka prywatności
+          </Link>
+        </p>
+        <CkeNotice />
+      </footer>
     </Page>
   );
 }
@@ -87,6 +102,8 @@ function BuySection() {
   const store = usePurchases();
   const account = useAccount();
   const [plan, setPlan] = useState<PlanId>("pass");
+  // zgoda na natychmiastowy dostęp (treść cyfrowa) i akceptacja regulaminu – wymagana przed każdym zakupem
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState<"buy" | "restore" | null>(null);
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const canBuy = store.status === "ready";
@@ -101,7 +118,7 @@ function BuySection() {
     setBusy(null);
     if (result.status === "done") {
       hapticSuccess();
-      setMessage({ tone: "ok", text: "Dziękujemy! Premium jest aktywne – korepetytor działa bez limitu." });
+      setMessage({ tone: "ok", text: "Dziękujemy! Premium jest aktywne." });
     } else if (result.status === "activating") {
       setMessage({ tone: "ok", text: "Zakup przyjęty. Premium włączy się za chwilę – jeśli nie, użyj „Przywróć zakupy”." });
     } else if (result.status === "error") {
@@ -176,10 +193,12 @@ function BuySection() {
             </EmailGate>
           )}
 
+          {canBuy && hasEmail && <PurchaseConsent checked={consent} onChange={setConsent} />}
+
           {canBuy && hasEmail && (
             <button
               onClick={() => void buy()}
-              disabled={busy !== null}
+              disabled={busy !== null || !consent}
               className="min-h-12 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
             >
               {busy === "buy" ? "Łączę z Google Play…" : `Kup – ${store.offers.find((o) => o.plan === plan)?.price ?? ""}`}
@@ -205,6 +224,27 @@ function BuySection() {
         </div>
       )}
     </section>
+  );
+}
+
+/** Zgoda przed zakupem: regulamin + natychmiastowy dostęp i utrata prawa odstąpienia (tekst w src/data/legal.ts). */
+function PurchaseConsent({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <label className="card flex cursor-pointer items-start gap-3 p-4 text-sm text-body">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-5 w-5 shrink-0 accent-brand"
+      />
+      <span>
+        {PURCHASE_CONSENT_TEXT} Akceptuję{" "}
+        <Link href="/regulamin" className="font-bold text-brand underline">
+          regulamin
+        </Link>
+        .
+      </span>
+    </label>
   );
 }
 

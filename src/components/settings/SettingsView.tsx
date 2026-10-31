@@ -17,7 +17,7 @@ import { AI_ENABLED } from "@/lib/ai-config";
 import { saveAppSettings, useAppSettings } from "@/lib/app-settings";
 import { resetCloudData, useCloudStatus } from "@/lib/cloud-sync";
 import { deleteAccountAndData } from "@/lib/delete-account";
-import { AI_FREE_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
+import { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
 import { hapticTap } from "@/lib/haptics";
 import GoalSlider from "@/components/progress/GoalSlider";
 import { formatDay, resetProgress, setTarget, useProgress } from "@/lib/progress";
@@ -94,12 +94,13 @@ export default function SettingsView() {
       </SettingsGroup>
 
       {AI_ENABLED && (
-        <SettingsGroup id="ustawienia-ai" title="Korepetytor AI i Premium" hint={`Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości do AI dziennie, z Premium – bez limitu.`}>
+        <SettingsGroup id="ustawienia-ai" title="Korepetytor AI i Premium" hint={`Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości do AI dziennie, z Premium – do ${AI_PREMIUM_DAILY_LIMIT}.`}>
           <SettingsRow icon="sparkles" title="Premium i kody poleceń" description={`${REFERRAL_DAYS} dni Premium dla Ciebie i znajomego za polecenie`} href="/premium" />
         </SettingsGroup>
       )}
 
       <SettingsGroup id="dane" title="Prywatność i dane">
+        <SettingsRow icon="file" tone="sky" title="Regulamin" description="Zasady aplikacji i Premium" href="/regulamin" />
         <SettingsRow icon="lock" tone="sky" title="Polityka prywatności" description="Jakie dane zbieramy i po co" href="/prywatnosc" />
         <SettingsRow icon="trash" tone="slate" title="Jak usunąć konto" description="W aplikacji albo e-mailem, bez instalowania" href="/usun-konto" />
         <SettingsRow icon="file" tone="slate" title="Arkusze i karta wzorów CKE" description="Oficjalne źródła na cke.gov.pl" href={CKE_ARCHIVE_URL} external />

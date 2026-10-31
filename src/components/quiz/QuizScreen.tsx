@@ -294,7 +294,7 @@ export default function QuizScreen(props: Props) {
               <p className="mt-2 text-xs font-semibold text-muted">
                 Na dziś wykorzystano darmowe wiadomości do AI.{" "}
                 <Link href="/premium" className="font-bold text-brand underline">
-                  Podpowiedzi bez limitu z Premium
+                  Więcej podpowiedzi z Premium
                 </Link>
               </p>
             )}

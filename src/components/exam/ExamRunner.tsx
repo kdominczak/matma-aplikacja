@@ -14,7 +14,8 @@ import ErrorState from "@/components/ui/ErrorState";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
-import { examKindLabel, examMaxPoints, getExam } from "@/data/exams";
+import { examKindLabel, examMaxPoints, examSource, getExam, taskSource } from "@/data/exams";
+import CkeNotice from "@/components/legal/CkeNotice";
 import { formulaGroup, topics, type PracticeTask } from "@/data/topics";
 import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam, sessionElapsedMs } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
@@ -130,6 +131,10 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-ink">{exam.title}</h1>
         <p className="mt-1 text-muted">{exam.subtitle}</p>
+        <p className="mt-2 flex items-start gap-1.5 text-xs font-semibold text-faint">
+          <Icon name="file" className="mt-px h-3.5 w-3.5 shrink-0" />
+          {examSource(exam)}
+        </p>
 
         <dl className="mt-6 grid grid-cols-3 gap-2 text-center">
           {[
@@ -172,6 +177,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
         >
           Rozpocznij arkusz <Icon name="arrow" className="h-4 w-4" />
         </button>
+        <CkeNotice className="mt-5" />
       </section>
     </div>
   );
@@ -285,6 +291,7 @@ function ExamInProgress({
               </p>
               <p className="truncate text-xs font-semibold text-muted">
                 Odpowiedzi: {answeredCount}/{exam.tasks.length}
+                {taskSource(exam) && <> · {taskSource(exam)}</>}
               </p>
             </div>
             <ExamTimer elapsed={elapsed} durationMin={exam.durationMin} onTimeUp={() => void finish()} />

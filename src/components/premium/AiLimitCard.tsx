@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
-import { AI_FREE_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
+import { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
 
 /** Ekran blokady po wyczerpaniu dziennego limitu AI: Premium albo kod polecenia, a nauka bez AI działa dalej. */
 export default function AiLimitCard() {
@@ -13,7 +13,7 @@ export default function AiLimitCard() {
         <div>
           <p className="font-extrabold text-ink">Na dziś to już {AI_FREE_DAILY_LIMIT} wiadomości do korepetytora</p>
           <p className="text-sm text-muted">
-            Limit odnowi się o północy. Z Premium piszesz bez limitu – a {REFERRAL_DAYS} dni Premium dostaniesz za darmo, wysyłając kod
+            Limit odnowi się o północy. Z Premium piszesz do {AI_PREMIUM_DAILY_LIMIT} wiadomości dziennie – a {REFERRAL_DAYS} dni Premium dostaniesz za darmo, wysyłając kod
             znajomemu.
           </p>
         </div>

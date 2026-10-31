@@ -28,7 +28,7 @@ import {
 } from "@/lib/attachments";
 import { useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
-import { AiLimitError, isPremium, usePremium } from "@/lib/premium";
+import { AI_PREMIUM_DAILY_LIMIT, AiLimitError, isPremium, usePremium } from "@/lib/premium";
 import { useProgress } from "@/lib/progress";
 import { tutorSuggestions, type TutorSuggestion } from "@/lib/tutor-suggestions";
 
@@ -72,7 +72,7 @@ function AiQuotaLine() {
   const left = Math.max(0, premium.aiLimit - premium.aiUsed);
   return (
     <p className="-mt-3 text-center text-xs text-faint">
-      {isPremium(premium) ? "Premium – korepetytor bez limitu" : `Zostało ${left} z ${premium.aiLimit} wiadomości na dziś`} ·{" "}
+      {isPremium(premium) ? `Premium – do ${AI_PREMIUM_DAILY_LIMIT} wiadomości dziennie` : `Zostało ${left} z ${premium.aiLimit} wiadomości na dziś`} ·{" "}
       <Link href="/premium" className="font-bold underline">
         {isPremium(premium) ? "szczegóły" : "więcej z Premium"}
       </Link>

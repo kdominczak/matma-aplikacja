@@ -40,7 +40,7 @@ test("nowy uczeń przechodzi powitanie i trafia na plan", async ({ page }) => {
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
   // skrót prowadzi do ścieżki lekcji w zakładce Zadania
-  await page.getByRole("link", { name: /Lekcje i testy działów/ }).click();
+  await page.getByRole("link", { name: /Lekcje działów/ }).click();
   await expect(page).toHaveURL(/\/zadania\/\?widok=lekcje$/);
   await expect(page.getByRole("tab", { name: "Lekcje i testy", selected: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ścieżka na 30 pkt" })).toBeVisible();

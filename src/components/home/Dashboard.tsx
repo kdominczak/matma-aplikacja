@@ -17,6 +17,7 @@ import { goalPoints } from "@/lib/goal";
 import { buildPlan, planStreak, type DailyPlan, type PlanFocus } from "@/lib/planner";
 import { plural } from "@/lib/plural";
 import { needsPlacement } from "@/lib/placement";
+import CkeNotice from "@/components/legal/CkeNotice";
 import { hapticTap } from "@/lib/haptics";
 import { dayKey, useProgress } from "@/lib/progress";
 import type { Progress } from "@/types/progress";
@@ -46,7 +47,7 @@ export default function Dashboard() {
               <Icon name="layers" className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block font-extrabold text-ink">Lekcje i testy działów</span>
+              <span className="block font-extrabold text-ink">Lekcje działów</span>
               <span className="block text-sm text-muted">Ścieżka na {goalPoints(progress?.target ?? 30)} pkt – teoria, przykłady i zadania</span>
             </span>
             <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint" />
@@ -59,6 +60,7 @@ export default function Dashboard() {
           {progress && <ReminderNudge progress={progress} />}
         </aside>
       </div>
+      <CkeNotice className="mt-2" />
       {/* Pierwsze uruchomienie: powitanie w 4 krokach, na końcu test na start albo „Pomiń” */}
       {progress && needsPlacement(progress) && <Welcome />}
     </Page>

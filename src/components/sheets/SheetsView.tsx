@@ -6,6 +6,7 @@ import ExamPicker from "@/components/exam/ExamPicker";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import ErrorState from "@/components/ui/ErrorState";
 import Icon, { type IconName } from "@/components/ui/Icon";
+import { CKE_DISCLAIMER } from "@/data/legal";
 import { CKE_ARCHIVE_URL, EXAM_YEARS, FORMULA_SHEET_URL, type ExamYear, type SheetLevel } from "@/data/cke-sheets";
 import { hapticTap } from "@/lib/haptics";
 import { openExternal } from "@/lib/external";
@@ -65,7 +66,7 @@ export default function SheetsView() {
             <ExternalLink href={CKE_ARCHIVE_URL} className="font-bold text-brand underline">
               cke.gov.pl
             </ExternalLink>
-            . Aplikacja nie jest powiązana z CKE.
+            . {CKE_DISCLAIMER}
           </p>
         </section>
 

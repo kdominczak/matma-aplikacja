@@ -51,3 +51,13 @@ describe("licznik oceny zdjęć", () => {
     expect((await status(A)).grading_used).toBe(1);
   });
 });
+
+describe("limity w regulaminie i na ekranie Premium = limity serwera", () => {
+  it("stałe w aplikacji zgadzają się z funkcjami SQL", async () => {
+    const { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, GRADING_DAILY_LIMIT } = await import("@/lib/premium");
+    const [row] = await t.admin<{ free: number; premium: number; grading: number }>(
+      `select public.ai_free_daily_limit() as free, public.ai_premium_daily_limit() as premium, public.ai_grading_daily_limit() as grading`,
+    );
+    expect(row).toEqual({ free: AI_FREE_DAILY_LIMIT, premium: AI_PREMIUM_DAILY_LIMIT, grading: GRADING_DAILY_LIMIT });
+  });
+});

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import { EXAM_YEARS } from "@/data/cke-sheets";
 import RandomExamCard from "@/components/exam/RandomExamCard";
-import { EXAMS, examHref, examKindLabel, examMaxPoints } from "@/data/exams";
+import { EXAMS, examHref, examKindLabel, examMaxPoints, examSource } from "@/data/exams";
 import { examStats, formatDuration, loadSession, useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import type { ExamSession } from "@/types/exam";
@@ -84,6 +84,7 @@ export default function ExamPicker() {
               <p className="text-sm text-muted">
                 {exam.tasks.length} zadań · {examMaxPoints(exam)} pkt · {exam.durationMin} min
               </p>
+              <p className="-mt-2 text-xs text-faint">{examSource(exam)}</p>
               <span className="mt-auto flex min-h-11 items-center gap-2 text-sm font-bold text-brand">
                 {session ? `Wróć do arkusza (${answered}/${exam.tasks.length})` : last ? "Rozwiąż ponownie" : "Rozpocznij"}
                 <Icon name="arrow" className="h-4 w-4 transition-transform group-hover:translate-x-1" />

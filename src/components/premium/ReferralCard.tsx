@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/Icon";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
-import { formatPremiumUntil, myReferralCode, redeemReferralCode, REFERRAL_DAYS, usePremium } from "@/lib/premium";
+import { AI_PREMIUM_DAILY_LIMIT, formatPremiumUntil, myReferralCode, redeemReferralCode, REFERRAL_DAYS, usePremium } from "@/lib/premium";
 
 /**
  * Kody poleceń: własny kod do wysłania znajomym i pole na kod od znajomego.
@@ -135,7 +135,7 @@ function RedeemCode() {
         </span>
         <div>
           <p className="font-extrabold text-emerald-700 dark:text-emerald-300">Kod przyjęty! Masz {REFERRAL_DAYS} dni Premium</p>
-          <p className="text-sm text-emerald-800/80 dark:text-emerald-200/80">Korepetytor AI bez limitu do {formatPremiumUntil(result.until)}.</p>
+          <p className="text-sm text-emerald-800/80 dark:text-emerald-200/80">Premium do {formatPremiumUntil(result.until)} – korepetytor AI do {AI_PREMIUM_DAILY_LIMIT} wiadomości dziennie.</p>
         </div>
       </div>
     );

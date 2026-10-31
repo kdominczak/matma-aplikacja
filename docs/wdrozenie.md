@@ -57,9 +57,9 @@ Z `.env.local` usuń `NEXT_PUBLIC_GROQ_API_KEY` (nieużywany, klucz był uniewa�
 
 ## 6. Prawo i sklep – blokery premiery
 
-- **Regulamin sprzedaży** (usługi drogą elektroniczną, treści cyfrowe: zgoda na natychmiastowe dostarczenie i utrata prawa odstąpienia, reklamacje, dane sprzedawcy) – do przygotowania z prawnikiem i podlinkowania na ekranie Premium.
+- **Regulamin** – projekt w aplikacji (`/regulamin`, `src/app/(app)/regulamin/page.tsx`; link w Ustawieniach, na ekranie Premium i w polityce). Przed zakupem pole zgody (tekst `PURCHASE_CONSENT_TEXT` w `src/data/legal.ts`, przycisk „Kup” nieaktywny bez zgody). Do przejrzenia przez prawnika, zwłaszcza: czy Premium to treść cyfrowa (art. 38 ust. 1 pkt 13) czy usługa cyfrowa (wtedy inne zasady odstąpienia od subskrypcji), potwierdzenie zgody na trwałym nośniku (dziś: na prośbę mailem), obietnica przedłużenia Premium przy awarii (§ 11).
 - **Publiczny adres** stron `/prywatnosc` i `/usun-konto` (Google Play wymaga URL-i) – hosting statyczny folderu `out/` (np. Cloudflare Pages), `trailingSlash` już ustawiony.
-- **Polityka prywatności:** dopisać przekazanie danych poza EOG (Groq – USA) i podstawę (standardowe klauzule umowne); zaktualizować `updatedAt` w `src/data/legal.ts`.
+- **Polityka prywatności:** sekcja o przekazaniu poza EOG (Groq, RevenueCat – USA) jest; brakuje podstawy – wpisz `transferBasis` w `src/data/legal.ts` po sprawdzeniu umów DPA obu dostawców (do tego czasu strona pokazuje „[do uzupełnienia]”).
 - **Google Play – Bezpieczeństwo danych:** e-mail, identyfikator konta, historia zakupów, aktywność w aplikacji (odpowiedzi, lejek), zdjęcia i tekst wysyłane do AI (przetwarzane, nie przechowywane); szyfrowanie w transmisji; możliwość usunięcia konta (`/usun-konto`).
 - **Grupa docelowa:** uczniowie 16–19 lat (bez kierowania do dzieci poniżej 13); zakupy niepełnoletnich obsługuje Google Play (kontrola rodzicielska – aplikacja pokazuje czytelny komunikat).
 - Podatki i forma prowadzenia sprzedaży (dwie osoby, profil płatności Google) – z księgowym przed pierwszą wypłatą.

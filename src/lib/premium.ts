@@ -8,10 +8,9 @@ import { supabase, SUPABASE_ANON_KEY, SUPABASE_ENABLED, SUPABASE_URL } from "@/l
 // nie da się więc „podkręcić”. Konto (anonimowe) zakładamy dopiero przy pierwszej akcji, która go wymaga
 // (wiadomość do AI, własny kod, wpisanie kodu) – samo otwarcie ekranu nie tworzy konta.
 
-export const AI_FREE_DAILY_LIMIT = 5;
-export const REFERRAL_DAYS = 2;
-/** Ocena zdjęć rozwiązań (Premium): dzienny limit przepisań i osobno ocen – SQL ai_grading_daily_limit(), zmieniaj razem. */
-export const GRADING_DAILY_LIMIT = 30;
+import { AI_FREE_DAILY_LIMIT, GRADING_DAILY_LIMIT } from "@/lib/limits";
+
+export { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, GRADING_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/limits";
 
 export interface PremiumState {
   status: "unavailable" | "no-account" | "loading" | "ready" | "error";
