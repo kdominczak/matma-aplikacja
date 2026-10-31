@@ -266,7 +266,7 @@ function ResetSetting({ progress }: { progress: Progress }) {
     <div className="p-4 sm:p-5">
       <h3 className="font-extrabold text-ink">Resetowanie postępów</h3>
       <p className="mt-1 text-sm text-muted">
-        Usuwa zaliczone testy, serię, statystyki, odznaki, Pudełko porażek i historię arkuszy – także kopię na koncie. Ustawienia, zdjęcie i nick
+        Usuwa rozwiązane zadania, serię, statystyki, odznaki, Pudełko porażek i historię arkuszy – także kopię na koncie. Ustawienia, zdjęcie i nick
         zostają.
       </p>
       {done && <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">Postęp został wyzerowany.</p>}
@@ -303,7 +303,7 @@ function ResetSetting({ progress }: { progress: Progress }) {
           <p>Tej operacji nie da się cofnąć. Stracisz:</p>
           <ul className="mt-2 list-disc pl-5">
             <li>{progress.stats.answered} rozwiązanych zadań w statystykach i serię dni,</li>
-            <li>{Object.keys(progress.tests).length} zaliczonych testów i wszystkie gwiazdki,</li>
+            <li>statystyki działów, rozwiązane zadania i odznaki,</li>
             <li>{Object.keys(progress.achievements).length} zdobytych odznak,</li>
             <li>{Object.keys(progress.mistakes).length} zadań w Pudełku porażek.</li>
           </ul>

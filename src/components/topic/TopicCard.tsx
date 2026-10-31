@@ -3,17 +3,17 @@
 import Link from "next/link";
 import CategoryTile from "@/components/topic/CategoryTile";
 import Icon from "@/components/ui/Icon";
-import { DIFFICULTIES } from "@/data/topics";
 import { hapticTap } from "@/lib/haptics";
-import { testKey } from "@/lib/stats";
+import { topicTaskProgress } from "@/lib/topic-progress";
 import type { Progress } from "@/types/progress";
 import type { Topic } from "@/types/topic";
 
-/** Karta działu w planie nauki: postęp na trzech poziomach + priorytet maturalny. */
+/** Karta działu w ścieżce nauki: postęp w zadaniach działu + priorytet maturalny. */
 export default function TopicCard({ topic, progress }: { topic: Topic; progress: Progress | null }) {
   const ready = Boolean(topic.content);
   // dział bez lekcji, ale z zestawem zadań – prowadzi do zakładki „Zadania”
   const tasksOnly = !ready && Boolean(topic.practice);
+  const tasks = ready ? topicTaskProgress(topic, progress) : null;
 
   const body = (
     <>
@@ -25,17 +25,11 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
         <p className={`leading-snug font-extrabold ${ready ? "text-ink" : "text-muted"}`}>{topic.title}</p>
         {ready ? (
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <div className="flex gap-1" aria-label="Zaliczone poziomy">
-              {DIFFICULTIES.map((level) => (
-                <span
-                  key={level.id}
-                  title={level.label}
-                  className={`h-1.5 w-6 rounded-full ${
-                    progress?.tests[testKey(topic.id, level.id)] ? "bg-emerald-500" : "bg-subtle"
-                  }`}
-                />
-              ))}
-            </div>
+            {tasks && (
+              <div className="h-1.5 w-20 overflow-hidden rounded-full bg-subtle" aria-label={`Rozwiązane zadania: ${tasks.solved} z ${tasks.total}`}>
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${tasks.total ? (tasks.solved / tasks.total) * 100 : 0}%` }} />
+              </div>
+            )}
             <span className="text-xs font-semibold text-faint">
               ~{topic.studyHours} h · {topic.examShare}% matur
             </span>

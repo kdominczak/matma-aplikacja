@@ -22,7 +22,6 @@ export default function PlacementTest() {
       kicker="Test na start"
       formulaGroups={FORMULAS}
       hints={false}
-      hearts={false}
       exitHref="/"
       onFinish={savePlacementResult}
       Summary={PlacementSummary}
@@ -85,7 +84,7 @@ function PlacementSummary({ result, outcome }: SummaryProps) {
             <p className="mt-1 text-sm text-muted">Tym razem nic – i dobrze, przejdziemy wszystko krok po kroku.</p>
           ) : (
             <>
-              <p className="mt-1 text-sm text-muted">Te poziomy masz już odblokowane. Gwiazdki zdobędziesz w prawdziwych testach.</p>
+              <p className="mt-1 text-sm text-muted">Plan na dziś zacznie od działów, w których masz najwięcej do zyskania.</p>
               <ul className="mt-3 flex flex-col gap-2">
                 {creditedTopics.map(({ topic, level }) => (
                   <li key={topic.id} className="flex items-center justify-between gap-3 rounded-2xl bg-subtle px-3 py-2 text-sm">

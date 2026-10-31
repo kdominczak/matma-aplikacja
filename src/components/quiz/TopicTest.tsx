@@ -8,7 +8,7 @@ import type { Difficulty } from "@/types/topic";
 
 type Props = { topicId: string; difficulty: Difficulty };
 
-/** Test podsumowujący dział na wybranym poziomie trudności. */
+/** Zestaw zadań działu na wybranym poziomie (dawna trasa testu – bez serc, z lekcji już do niej nie prowadzimy). */
 export default function TopicTest({ topicId, difficulty }: Props) {
   const topic = getTopic(topicId)!;
   const level = getDifficulty(difficulty);
@@ -21,7 +21,7 @@ export default function TopicTest({ topicId, difficulty }: Props) {
       formulaGroups={[formulaGroup(topic)]}
       // podstawowy: podpowiedzi z klucza (+ AI); wyższe poziomy tylko z korepetytorem AI
       hints={difficulty === "podstawowy" || AI_ENABLED}
-      exitHref={`/dzial/${topic.id}#test`}
+      exitHref={`/dzial/${topic.id}#zadania`}
       onFinish={(result) => saveTestResult(topic.id, difficulty, result)}
     />
   );

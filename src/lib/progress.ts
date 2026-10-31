@@ -346,6 +346,14 @@ export function saveTestResult(topicId: string, difficulty: Difficulty, result: 
   });
 }
 
+/**
+ * „Sprawdź się” w lekcji (pytania przy krokach teorii i na jej końcu): zwykła sesja – statystyki działu,
+ * Pudełko porażek, seria, ranking – bez zaliczania testów (lekcje nie mają już poziomów do odblokowania).
+ */
+export function saveLessonCheck(result: QuizResult) {
+  return saveSession(result, "test", (progress) => recordSession(progress, result));
+}
+
 export function saveDailyResult(result: QuizResult) {
   return saveSession(result, "daily", (progress) => {
     const next = recordSession(progress, result);

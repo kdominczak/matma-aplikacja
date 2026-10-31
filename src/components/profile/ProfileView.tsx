@@ -23,7 +23,8 @@ import { topicMastery } from "@/lib/mastery";
 import { longestPlanStreak } from "@/lib/planner";
 import { plural } from "@/lib/plural";
 import { formatPremiumUntil, isPremium, REFERRAL_DAYS, usePremium } from "@/lib/premium";
-import { streak, testKey, totalStars, useProgress, weekSolved } from "@/lib/progress";
+import { streak, testKey, useProgress, weekSolved } from "@/lib/progress";
+import { masteredLevels } from "@/lib/topic-progress";
 import {
   NICK_PATTERN,
   removeRankingAvatar,
@@ -481,17 +482,22 @@ function AccuracyCard({ progress }: { progress: Progress }) {
   );
 }
 
+const OPEN_TASK_IDS = topics.flatMap(practiceTasks).flatMap((t) => (t.kind === "open" ? [t.id] : []));
+
 /** Kafle drugiego rzędu – każdy prowadzi tam, gdzie liczbę da się podnieść. */
 function StatTiles({ progress }: { progress: Progress }) {
   const practiceSolved = Object.values(progress.practice).filter((r) => r.verifiedPoints === r.maxPoints).length;
-  const passed = Object.values(progress.tests).filter((t) => !t.fromPlacement).length;
   const planBest = longestPlanStreak(progress);
-  const stars = totalStars(progress);
+  const mastered = topics.reduce((sum, t) => sum + masteredLevels(progress, t.id), 0);
+  const openSolved = OPEN_TASK_IDS.filter((id) => {
+    const record = progress.practice[id];
+    return record && record.verifiedPoints === record.maxPoints;
+  }).length;
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Tile icon="tasks" tone="bg-brand-soft text-brand" value={practiceSolved} label={plural(practiceSolved, "zadanie rozwiązane", "zadania rozwiązane", "zadań rozwiązanych")} note="w zakładce Zadania" href="/zadania" />
-      <Tile icon="star" tone="bg-amber-500/15 text-amber-500" value={stars} label={plural(stars, "gwiazdka", "gwiazdki", "gwiazdek")} note="z testów działów" href="/zadania/?widok=lekcje" />
-      <Tile icon="layers" tone="bg-violet-500/15 text-violet-500" value={passed} label={plural(passed, "zaliczony test", "zaliczone testy", "zaliczonych testów")} note="działów z lekcjami" href="/zadania/?widok=lekcje" />
+      <Tile icon="star" tone="bg-amber-500/15 text-amber-500" value={mastered} label={plural(mastered, "poziom opanowany", "poziomy opanowane", "poziomów opanowanych")} note="≥ 75% poprawnych w dziale" href="/zadania/?widok=lekcje" />
+      <Tile icon="layers" tone="bg-violet-500/15 text-violet-500" value={openSolved} label={plural(openSolved, "zadanie otwarte", "zadania otwarte", "zadań otwartych")} note="rozwiązane w całości" href="/zadania" />
       <Tile icon="calendar" tone="bg-teal-500/15 text-teal-500" value={planBest} label={plural(planBest, "dzień z planem", "dni z planem", "dni z planem")} note="najdłuższa seria planu" href="/plan" />
     </div>
   );

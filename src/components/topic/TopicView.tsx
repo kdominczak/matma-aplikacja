@@ -8,29 +8,36 @@ import FormulaList from "@/components/topic/FormulaList";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
-import Stars from "@/components/ui/Stars";
-import { DIFFICULTIES, getTopic } from "@/data/topics";
-import { hapticError, hapticTap } from "@/lib/haptics";
-import { isUnlocked, testKey, useProgress } from "@/lib/progress";
+import InlineCheck from "@/components/topic/InlineCheck";
+import { DIFFICULTIES, getTopic, testQuestions } from "@/data/topics";
+import { hapticTap } from "@/lib/haptics";
+import { plural } from "@/lib/plural";
+import { saveLessonCheck, useProgress } from "@/lib/progress";
+import { topicTaskProgress } from "@/lib/topic-progress";
 import type { Progress } from "@/types/progress";
+import type { QuizQuestion } from "@/types/quiz";
 import type { Topic } from "@/types/topic";
 
 const TABS = [
   { id: "teoria", label: "Teoria" },
   { id: "wzory", label: "Wzory" },
-  { id: "test", label: "Test" },
+  { id: "zadania", label: "Zadania" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
-// Zakładka trzymana w #hash – powrót z testu (`/dzial/x#test`) otwiera od razu „Test”.
+/** Pytania „Sprawdź, czy rozumiesz” na końcu teorii – zadania podstawowe działu. */
+const END_CHECK_SIZE = 3;
+
+// Zakładka trzymana w #hash. Dawne linki do testów (`#test`) otwierają „Zadania”.
 function subscribeHash(onChange: () => void) {
   window.addEventListener("hashchange", onChange);
   return () => window.removeEventListener("hashchange", onChange);
 }
 
 function useTab(): [TabId, (tab: TabId) => void] {
-  const hash = useSyncExternalStore(subscribeHash, () => window.location.hash.slice(1), () => "");
+  const raw = useSyncExternalStore(subscribeHash, () => window.location.hash.slice(1), () => "");
+  const hash = raw === "test" ? "zadania" : raw;
   const tab = TABS.some((t) => t.id === hash) ? (hash as TabId) : "teoria";
   const setTab = (next: TabId) => {
     history.replaceState(null, "", `#${next}`);
@@ -58,7 +65,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
       <div className="grid items-start gap-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-10">
         <aside className="flex flex-col gap-4 lg:sticky lg:top-8">
           <TopicHero topic={topic} />
-          <LevelSummary topic={topic} progress={progress} onOpen={() => setTab("test")} />
+          <TaskSummary topic={topic} progress={progress} onOpen={() => setTab("zadania")} />
         </aside>
 
         <div className="flex min-w-0 flex-col gap-4">
@@ -115,9 +122,19 @@ export default function TopicView({ topicId }: { topicId: string }) {
                         </div>
                       </div>
                     )}
+                    {section.check && (
+                      <div className="mt-5">
+                        <InlineCheck questions={[{ ...section.check, label: topic.title }]} title="Sprawdź ten krok" onComplete={(r) => void saveLessonCheck(r)} />
+                      </div>
+                    )}
                   </article>
                 ))}
                 <TopicTraps traps={content.traps} />
+                <InlineCheck
+                  questions={endCheck(topic)}
+                  title="Sprawdź, czy rozumiesz"
+                  onComplete={(r) => void saveLessonCheck(r)}
+                />
                 <NextStep label="Przejdź do wzorów" onClick={() => setTab("wzory")} />
               </>
             )}
@@ -125,11 +142,11 @@ export default function TopicView({ topicId }: { topicId: string }) {
             {tab === "wzory" && (
               <>
                 <FormulaList formulas={content.formulas} columns />
-                <NextStep label="Sprawdź się w teście" onClick={() => setTab("test")} />
+                <NextStep label="Przejdź do zadań" onClick={() => setTab("zadania")} />
               </>
             )}
 
-            {tab === "test" && <TestLevels topic={topic} progress={progress} />}
+            {tab === "zadania" && <TopicTasks topic={topic} progress={progress} />}
           </div>
         </div>
       </div>
@@ -167,23 +184,24 @@ function TopicHero({ topic }: { topic: Topic }) {
   );
 }
 
-/** Skrót statusu poziomów (tylko desktop – na telefonie jest zakładka „Test”). */
-function LevelSummary({ topic, progress, onOpen }: { topic: Topic; progress: Progress | null; onOpen: () => void }) {
+/** Pytania na koniec teorii: pierwsze zadania podstawowe działu (bez serc, od razu z wyjaśnieniem). */
+function endCheck(topic: Topic): QuizQuestion[] {
+  return testQuestions(topic, "podstawowy").slice(0, END_CHECK_SIZE);
+}
+
+/** Postęp w zadaniach działu (panel boczny na komputerze; na telefonie – zakładka „Zadania”). */
+function TaskSummary({ topic, progress, onOpen }: { topic: Topic; progress: Progress | null; onOpen: () => void }) {
+  const { total, solved } = topicTaskProgress(topic, progress);
   return (
-    <button
-      onClick={onOpen}
-      className="card hidden flex-col gap-3 p-5 text-left card-hover hover:border-brand/40 lg:flex"
-    >
-      <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Test podsumowujący</p>
-      {DIFFICULTIES.map((level) => {
-        const record = progress?.tests[testKey(topic.id, level.id)];
-        return (
-          <div key={level.id} className="flex items-center justify-between gap-2">
-            <span className={`text-sm font-bold ${record ? "text-ink" : "text-muted"}`}>{level.label}</span>
-            <Stars value={record?.stars ?? 0} />
-          </div>
-        );
-      })}
+    <button onClick={onOpen} className="card hidden flex-col gap-3 p-5 text-left card-hover hover:border-brand/40 lg:flex">
+      <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Zadania z działu</p>
+      <p className="text-2xl font-extrabold text-ink tabular-nums">
+        {solved}/{total}
+        <span className="ml-1 text-sm font-bold text-muted">rozwiązanych</span>
+      </p>
+      <div className="h-2 overflow-hidden rounded-full bg-subtle">
+        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${total ? (solved / total) * 100 : 0}%` }} />
+      </div>
     </button>
   );
 }
@@ -225,67 +243,58 @@ function NextStep({ label, onClick }: { label: string; onClick: () => void }) {
 }
 
 const LEVEL_STYLE = {
-  podstawowy: { tile: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300", icon: "bulb" },
-  sredni: { tile: "bg-brand-soft text-brand", icon: "target" },
-  zaawansowany: { tile: "bg-violet-500/15 text-violet-600 dark:text-violet-300", icon: "trophy" },
+  podstawowy: { bar: "bg-emerald-500", text: "Proste, na rozgrzewkę" },
+  sredni: { bar: "bg-brand", text: "Typowe zadania maturalne" },
+  zaawansowany: { bar: "bg-violet-500", text: "Trudniejsze – na wyższy wynik" },
 } as const;
 
-function TestLevels({ topic, progress }: { topic: Topic; progress: Progress | null }) {
+/**
+ * Zakładka „Zadania”: wszystkie zadania działu (zamknięte i otwarte) w jednym miejscu – bez poziomów do odblokowania.
+ * Trudność to tylko informacja; rozwiązywanie w trybie „Zadania” (brudnopis, kalkulator, wzory, punkty za otwarte).
+ */
+function TopicTasks({ topic, progress }: { topic: Topic; progress: Progress | null }) {
+  const { total, solved, byDifficulty } = topicTaskProgress(topic, progress);
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col gap-4">
+      <div className="card flex flex-col gap-4 p-5 lg:p-6">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-widest text-brand">Zadania maturalne z działu</p>
+          <p className="mt-1 text-2xl font-extrabold text-ink tabular-nums">
+            {solved}/{total} <span className="text-base font-bold text-muted">{plural(solved, "rozwiązane", "rozwiązane", "rozwiązanych")}</span>
+          </p>
+        </div>
+        <ul className="flex flex-col gap-3">
+          {DIFFICULTIES.map((level) => {
+            const stat = byDifficulty[level.id];
+            if (stat.total === 0) return null;
+            return (
+              <li key={level.id}>
+                <div className="flex items-baseline justify-between gap-2 text-sm">
+                  <span className="font-bold text-ink">
+                    {level.label} <span className="font-semibold text-muted">· {LEVEL_STYLE[level.id].text}</span>
+                  </span>
+                  <span className="shrink-0 font-bold text-muted tabular-nums">
+                    {stat.solved}/{stat.total}
+                  </span>
+                </div>
+                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-subtle">
+                  <div className={`h-full rounded-full ${LEVEL_STYLE[level.id].bar}`} style={{ width: `${(stat.solved / stat.total) * 100}%` }} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <Link
+          href={`/zadania/${topic.id}`}
+          onClick={() => hapticTap()}
+          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+        >
+          {solved === 0 ? "Rozwiąż zadania" : "Rozwiązuj dalej"} <Icon name="arrow" className="h-4 w-4" />
+        </Link>
+      </div>
       <p className="text-sm text-muted">
-        Każdy test ma 3 serca. Zaliczasz od 60% poprawnych odpowiedzi – to odblokowuje kolejny poziom.
+        Zadania z brudnopisem, kalkulatorem i wzorami. Otwarte sprawdzamy po wyniku – w arkuszu ocenisz też kroki rozwiązania.
       </p>
-      {DIFFICULTIES.map((level) => {
-        const record = progress?.tests[testKey(topic.id, level.id)];
-        const unlocked = progress ? isUnlocked(progress, topic.id, level.id) : level.id === "podstawowy";
-        const style = LEVEL_STYLE[level.id];
-        const questionCount = topic.content!.tests[level.id].length;
-
-        const body = (
-          <>
-            <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${unlocked ? style.tile : "bg-subtle text-faint"}`}>
-              <Icon name={unlocked ? style.icon : "lock"} className="h-6 w-6" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-extrabold text-ink">Poziom {level.label.toLowerCase()}</p>
-              <p className="text-sm text-muted">{unlocked ? level.description : "Zalicz poprzedni poziom, aby odblokować"}</p>
-              <p className="mt-1 text-xs font-semibold text-faint">
-                {questionCount} {pluralTasks(questionCount)}
-                {record && ` · najlepiej ${record.correct}/${record.total}`}
-              </p>
-            </div>
-            {record ? (
-              <Stars value={record.stars} />
-            ) : (
-              unlocked && <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint" />
-            )}
-          </>
-        );
-
-        const className = "flex items-center gap-4 rounded-3xl border border-line glass-card p-4 lg:p-5";
-        return unlocked ? (
-          <Link
-            key={level.id}
-            href={`/dzial/${topic.id}/test/${level.id}`}
-            onClick={() => hapticTap()}
-            className={`${className} shadow-card card-hover hover:border-brand/40`}
-          >
-            {body}
-          </Link>
-        ) : (
-          <button key={level.id} onClick={() => hapticError()} className={`${className} text-left opacity-60`}>
-            {body}
-          </button>
-        );
-      })}
     </section>
   );
-}
-
-function pluralTasks(n: number) {
-  if (n === 1) return "zadanie";
-  const lastDigit = n % 10;
-  const lastTwo = n % 100;
-  return lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 12 || lastTwo > 14) ? "zadania" : "zadań";
 }

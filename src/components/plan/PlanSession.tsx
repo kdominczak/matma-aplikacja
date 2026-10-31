@@ -59,8 +59,7 @@ function PlanRunner({ initial }: { initial: Progress }) {
         formulaGroups={plan.formulaGroups}
         hints={AI_ENABLED}
         // nauka, nie egzamin – pomyłki nie przerywają sesji, trafiają do powtórek
-        hearts={false}
-        exitHref="/"
+          exitHref="/"
         onFinish={savePlanResult}
         Summary={PlanSummary}
       />

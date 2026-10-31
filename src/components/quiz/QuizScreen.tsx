@@ -39,7 +39,7 @@ type Props = {
   hints: boolean;
   exitHref: string;
   onFinish: (result: QuizResult) => Promise<SaveOutcome>;
-  /** Serca: 3 pomyłki kończą test. Wyłączone w teście na start – diagnoza idzie do końca. */
+  /** Serca: 3 pomyłki kończą sesję. Domyślnie wyłączone – uczeń rozwiązuje do końca i uczy się na błędach. */
   hearts?: boolean;
   /** Własny ekran wyniku zamiast standardowego podsumowania testu. */
   Summary?: ComponentType<SummaryProps>;
@@ -54,7 +54,7 @@ export interface SummaryProps {
 type Panel = "formulas" | "explain" | null;
 
 export default function QuizScreen(props: Props) {
-  const { questions, formulaGroups, hints, exitHref, onFinish, hearts: useHearts = true } = props;
+  const { questions, formulaGroups, hints, exitHref, onFinish, hearts: useHearts = false } = props;
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<OptionKey | null>(null);

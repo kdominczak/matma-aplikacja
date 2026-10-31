@@ -1,7 +1,8 @@
 import type { IconName } from "@/components/ui/Icon";
 import { topics } from "@/data/topics";
 import { longestPlanStreak } from "@/lib/planner";
-import { earnedLevels, longestStreak, totalStars } from "@/lib/stats";
+import { longestStreak } from "@/lib/stats";
+import { masteredLevels } from "@/lib/topic-progress";
 import type { Progress } from "@/types/progress";
 
 export type BadgeTone = "amber" | "violet" | "blue" | "emerald" | "rose" | "orange" | "indigo" | "teal";
@@ -23,43 +24,43 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "pierwszy-krok",
     title: "Pierwszy krok",
-    description: "Zalicz swój pierwszy test",
+    description: "Rozwiąż poprawnie pierwsze zadanie",
     icon: "check",
     tone: "emerald",
     goal: 1,
-    current: (p) => Object.values(p.tests).filter((t) => !t.fromPlacement).length,
+    current: (p) => p.stats.correct,
   },
   {
     id: "mistrz-poteg",
     title: "Mistrz Potęg",
-    description: "Zalicz wszystkie poziomy z potęg i pierwiastków",
+    description: "Opanuj potęgi i pierwiastki na wszystkich poziomach trudności (≥ 75% poprawnych)",
     icon: "bolt",
     tone: "amber",
     goal: 3,
-    current: (p) => earnedLevels(p, "potegi-i-pierwiastki"),
+    current: (p) => masteredLevels(p, "potegi-i-pierwiastki"),
   },
   {
     id: "wladca-logarytmow",
     title: "Władca Logarytmów",
-    description: "Zalicz wszystkie poziomy z logarytmów",
+    description: "Opanuj logarytmy na wszystkich poziomach trudności (≥ 75% poprawnych)",
     icon: "crown",
     tone: "violet",
     goal: 3,
-    current: (p) => earnedLevels(p, "logarytmy"),
+    current: (p) => masteredLevels(p, "logarytmy"),
   },
   {
     id: "analityk-wykresow",
     title: "Analityk Wykresów",
-    description: "Zalicz wszystkie poziomy z odczytywania wykresów",
+    description: "Opanuj odczytywanie wykresów na wszystkich poziomach trudności (≥ 75% poprawnych)",
     icon: "chart",
     tone: "teal",
     goal: 3,
-    current: (p) => earnedLevels(p, "wykres-funkcji"),
+    current: (p) => masteredLevels(p, "wykres-funkcji"),
   },
   {
     id: "nocny-marek",
     title: "Nocny Marek",
-    description: "Ukończ test lub wyzwanie po 22:00",
+    description: "Ukończ plan, wyzwanie albo „Sprawdź się” po 22:00",
     icon: "moon",
     tone: "indigo",
     goal: 1,
@@ -68,7 +69,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "ranny-ptaszek",
     title: "Ranny Ptaszek",
-    description: "Ukończ test lub wyzwanie przed 7:00",
+    description: "Ukończ plan, wyzwanie albo „Sprawdź się” przed 7:00",
     icon: "sun",
     tone: "orange",
     goal: 1,
@@ -86,7 +87,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "perfekcjonista",
     title: "Perfekcjonista",
-    description: "Zalicz 3 testy bez żadnego błędu",
+    description: "Ukończ 3 sesje (plan, wyzwanie, „Sprawdź się”) bez żadnego błędu",
     icon: "target",
     tone: "blue",
     goal: 3,
@@ -104,11 +105,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "solidne-fundamenty",
     title: "Solidne fundamenty",
-    description: "Zalicz poziom podstawowy we wszystkich działach „na 30%”",
+    description: "Opanuj zadania podstawowe we wszystkich działach fundamentów",
     icon: "layers",
     tone: "emerald",
     goal: basicTopics.length,
-    current: (p) => basicTopics.filter((t) => earnedLevels(p, t.id) > 0).length,
+    current: (p) => basicTopics.filter((t) => masteredLevels(p, t.id) > 0).length,
   },
   {
     id: "pogromca-bledow",
@@ -130,12 +131,12 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: "kolekcjoner-gwiazd",
-    title: "Kolekcjoner gwiazd",
-    description: "Zbierz 30 gwiazdek",
+    title: "Kolekcjoner poziomów",
+    description: "Opanuj 15 poziomów trudności w różnych działach (≥ 75% poprawnych)",
     icon: "star",
     tone: "amber",
-    goal: 30,
-    current: totalStars,
+    goal: 15,
+    current: (p) => topics.reduce((sum, t) => sum + masteredLevels(p, t.id), 0),
   },
   {
     id: "pierwszy-plan",

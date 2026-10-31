@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import TopicCard from "@/components/topic/TopicCard";
-import { DIFFICULTIES, TARGETS, topicsForTarget } from "@/data/topics";
+import { TARGETS, topicsForTarget } from "@/data/topics";
 import { plural } from "@/lib/plural";
-import { passedLevels } from "@/lib/progress";
+import { topicTaskProgress } from "@/lib/topic-progress";
 import type { Progress } from "@/types/progress";
 import type { Target } from "@/types/topic";
 
-/** Ścieżka nauki: działy z lekcjami ułożone według celu (testy na trzech poziomach). */
+/** Ścieżka nauki: działy z lekcjami ułożone według celu (teoria, wzory, zadania). */
 export default function LearningPath({ progress }: { progress: Progress | null }) {
   const target: Target = progress?.target ?? 30;
   const pathTopics = topicsForTarget(target).filter((t) => t.content);
-  const passed = progress ? pathTopics.reduce((sum, t) => sum + passedLevels(progress, t.id), 0) : 0;
-  const total = pathTopics.length * DIFFICULTIES.length;
+  const counts = pathTopics.map((t) => topicTaskProgress(t, progress));
+  const passed = counts.reduce((sum, c) => sum + c.solved, 0);
+  const total = counts.reduce((sum, c) => sum + c.total, 0);
 
   return (
     <section className="flex min-w-0 flex-col gap-4 lg:col-start-1">
@@ -28,7 +29,7 @@ export default function LearningPath({ progress }: { progress: Progress | null }
           </p>
         </div>
         <span className="shrink-0 text-sm font-bold text-brand">
-          {passed}/{total} {plural(total, "test", "testy", "testów")}
+          {passed}/{total} {plural(total, "zadanie", "zadania", "zadań")}
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-subtle">

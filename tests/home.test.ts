@@ -41,7 +41,8 @@ describe("strona główna", () => {
   });
 
   it("następna odznaka: niezdobyta, najbliżej celu; po zdobyciu wszystkich – brak", () => {
-    const next = nextAchievement(progress({ stats: { ...progress().stats, correct: 90 } }))!;
+    // przy 90 poprawnych „Pierwszy krok” (pierwsza poprawna odpowiedź) jest już dawno zdobyty
+    const next = nextAchievement(progress({ stats: { ...progress().stats, correct: 90 }, achievements: { "pierwszy-krok": "2026-10-01" } }))!;
     expect(next.id).toBe("setka");
     const all = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, "2026-11-01"]));
     expect(nextAchievement(progress({ achievements: all }))).toBeNull();

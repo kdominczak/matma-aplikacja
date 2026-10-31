@@ -38,7 +38,7 @@ export default function PrivacyPage() {
 
         <Section title="Jakie dane i po co">
           <p>
-            <strong className="text-ink">Na urządzeniu (zawsze):</strong> postęp nauki, wyniki testów i arkuszy, Pudełko porażek, ustawienia, imię i zdjęcie
+            <strong className="text-ink">Na urządzeniu (zawsze):</strong> postęp nauki, wyniki zadań i arkuszy, Pudełko porażek, ustawienia, imię i zdjęcie
             z profilu. Te dane nie opuszczają telefonu, dopóki nie założysz konta.
           </p>
           {AI_ENABLED && (

@@ -131,10 +131,17 @@ function practiceClosedRefs(topic: Topic): QuestionRef[] {
   }));
 }
 
-/** Wszystkie zadania zamknięte aplikacji: testy działów, zestawy z „Zadań” i test na start. */
+/** Pytania sprawdzające przy krokach teorii (poziom podstawowy – sprawdzają zrozumienie, nie trudne rachunki). */
+export function theoryChecks(topic: Topic): QuizQuestion[] {
+  const label = `${topic.title} · Sprawdź się`;
+  return (topic.content?.theory ?? []).flatMap((section) => (section.check ? [{ ...section.check, label }] : []));
+}
+
+/** Wszystkie zadania zamknięte aplikacji: zadania działów, pytania przy teorii, zestawy z „Zadań” i test na start. */
 export function allQuestionRefs(): QuestionRef[] {
   return [
     ...topics.flatMap((topic) => DIFFICULTIES.flatMap((d) => testQuestions(topic, d.id).map((question) => ({ question, topic, difficulty: d.id })))),
+    ...topics.flatMap((topic) => theoryChecks(topic).map((question) => ({ question, topic, difficulty: "podstawowy" as const }))),
     ...topics.flatMap(practiceClosedRefs),
     ...placementQuestions(),
   ];

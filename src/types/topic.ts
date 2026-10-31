@@ -29,6 +29,11 @@ export interface TheorySection {
   body: string;
   example?: { prompt: string; solution: string };
   plot?: Plot;
+  /**
+   * Pytanie sprawdzające zaraz po tym kroku (zamknięte ABCD, z wyjaśnieniem) – uczeń od razu widzi, czy zrozumiał.
+   * Nowe pytanie = nowe id i `npm run db:keys` jak przy zadaniach testów.
+   */
+  check?: Question;
 }
 
 export interface TopicContent {
