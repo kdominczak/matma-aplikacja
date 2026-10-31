@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { goalPoints } from "@/lib/goal";
+import CountUp from "@/components/ui/CountUp";
 import Icon from "@/components/ui/Icon";
 import { answersToEstimate, currentEstimate, ESTIMATE_MIN_ANSWERS, estimateHistory } from "@/lib/estimate";
 import { MATURA_POINTS } from "@/lib/exam-weights";
@@ -25,8 +26,8 @@ export default function EstimateCard({ progress }: { progress: Progress }) {
         <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Szacowany wynik</p>
         <Icon name="arrow" className="h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5" />
       </div>
-      <p className="mt-1 text-4xl font-extrabold tracking-tight text-ink tabular-nums">
-        {value}% <span className="text-base font-bold text-muted">· ok. {Math.round((value / 100) * MATURA_POINTS)}/{MATURA_POINTS} pkt</span>
+      <p className="mt-1 font-display text-4xl font-extrabold tracking-tight text-ink tabular-nums">
+        <CountUp value={value} suffix="%" /> <span className="text-base font-bold text-muted">· ok. {Math.round((value / 100) * MATURA_POINTS)}/{MATURA_POINTS} pkt</span>
       </p>
       <p className={`text-sm font-semibold ${delta > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted"}`}>
         {delta > 0 ? `+${delta} pp w ostatnim tygodniu` : "Każde rozwiązane zadanie podnosi wynik"}

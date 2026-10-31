@@ -19,7 +19,7 @@ export default function GlobalError({ retry }: { error: unknown; retry: () => vo
           <button
             type="button"
             onClick={() => retry()}
-            className="mt-1 min-h-11 rounded-2xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-float"
+            className="mt-1 min-h-11 rounded-2xl bg-brand px-5 py-3 text-sm font-bold text-on-brand shadow-float"
           >
             Spróbuj ponownie
           </button>

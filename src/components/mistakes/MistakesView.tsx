@@ -46,7 +46,7 @@ export default function MistakesView() {
         {entries.length > 0 && (
           <Link
             href="/bledy/trening"
-            className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
+            className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
           >
             <Icon name="refresh" className="h-4 w-4" />
             Przećwicz swoje błędy ({trainingCount})

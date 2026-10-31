@@ -43,7 +43,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
     const base = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold";
     if (checked && key === question.correct) return `${base} bg-emerald-500 text-white`;
     if (checked && key === selected) return `${base} bg-rose-500 text-white`;
-    if (!checked && key === selected) return `${base} bg-brand text-white`;
+    if (!checked && key === selected) return `${base} bg-brand text-on-brand`;
     return `${base} bg-subtle text-muted`;
   }
 
@@ -69,7 +69,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
         <button
           onClick={onCheck}
           disabled={!selected}
-          className="rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+          className="rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
         >
           Sprawdź odpowiedź
         </button>

@@ -125,7 +125,7 @@ export default function PhotoGrading({ task, onGraded }: { task: OpenQuestion; o
           <button
             onClick={() => fileRef.current?.click()}
             disabled={busy || left === 0}
-            className="flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-float active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+            className="flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-on-brand shadow-float active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
           >
             <Icon name="camera" className="h-4 w-4" />
             {phase.name === "reading" ? "Odczytuję kartkę…" : phase.name === "done" ? "Oceń inne zdjęcie" : "Oceń ze zdjęcia (AI)"}
@@ -155,7 +155,7 @@ export default function PhotoGrading({ task, onGraded }: { task: OpenQuestion; o
             <button
               onClick={() => void grade(phase.text)}
               disabled={phase.name === "grading" || !phase.text.trim()}
-              className="flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-float active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+              className="flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-on-brand shadow-float active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
             >
               <Icon name="sparkles" className="h-4 w-4" />
               {phase.name === "grading" ? "Oceniam według schematu…" : "Oceń według schematu"}

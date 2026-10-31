@@ -67,7 +67,7 @@ export default function ErrorState({ title, message, onRetry, compact = false, o
           type="button"
           onClick={() => void retry()}
           disabled={busy}
-          className="mt-1 flex min-h-11 items-center gap-2 rounded-2xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark disabled:opacity-70"
+          className="mt-1 flex min-h-11 items-center gap-2 rounded-2xl bg-brand px-5 py-3 text-sm font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:opacity-70"
         >
           <Icon name="refresh" className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />
           {busy ? "Łączę…" : "Spróbuj ponownie"}

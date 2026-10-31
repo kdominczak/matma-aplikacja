@@ -53,7 +53,7 @@ function bottomTab(active: string): string {
 export function Logo() {
   return (
     <Link href="/" className="flex min-h-11 items-center gap-2">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-xl font-extrabold text-white shadow-float">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-xl font-extrabold text-on-brand shadow-float">
         Σ
       </span>
       <span className="text-xl font-extrabold tracking-tight text-ink">matma</span>
@@ -276,7 +276,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
     <header className="flex items-start justify-between gap-4">
       <div>
         {/* w jasnym motywie granat → niebieski (biały gradient byłby niewidoczny na jasnym tle) */}
-        <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-blue-400 text-3xl font-extrabold tracking-tight lg:text-4xl">{title}</h1>
+        <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-transparent dark:from-white dark:via-amber-100 dark:to-brand text-3xl font-extrabold tracking-tight lg:text-4xl">{title}</h1>
         {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
       </div>
       {action}

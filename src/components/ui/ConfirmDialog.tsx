@@ -80,8 +80,8 @@ export default function ConfirmDialog({ title, children, confirmLabel, confirmWo
             <button
               type="submit"
               disabled={!unlocked || busy}
-              className={`min-h-11 flex-1 rounded-2xl py-3 font-bold text-white transition-colors disabled:bg-subtle disabled:text-faint ${
-                brand ? "bg-brand active:bg-brand-dark" : "bg-rose-500 active:bg-rose-600"
+              className={`min-h-11 flex-1 rounded-2xl py-3 font-bold transition-colors disabled:bg-subtle disabled:text-faint ${
+                brand ? "bg-brand text-on-brand active:bg-brand-dark" : "bg-rose-500 text-white active:bg-rose-600"
               }`}
             >
               {busy ? "Chwila…" : confirmLabel}

@@ -6,7 +6,7 @@ import { DEFAULT_REMINDER, type ReminderSettings } from "@/lib/reminders";
 // Zdjęcie profilowe trzymamy tu zawsze (działa bez rankingu); uczniowie w rankingu wgrywają je też do Supabase.
 
 export const AVATAR_COLORS = {
-  brand: "from-brand to-violet-500",
+  brand: "from-amber-200 to-brand",
   sunset: "from-orange-400 to-rose-500",
   mint: "from-emerald-400 to-teal-600",
   ocean: "from-sky-400 to-blue-600",

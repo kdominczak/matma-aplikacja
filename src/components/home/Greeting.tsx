@@ -32,7 +32,7 @@ export default function Greeting({ progress, plan }: { progress: Progress | null
   return (
     <section>
       <p className="text-sm font-bold text-faint">{today}</p>
-      <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-3xl leading-tight font-extrabold tracking-tight text-transparent sm:text-4xl dark:from-white dark:via-blue-200 dark:to-blue-400">
+      <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-3xl leading-tight font-extrabold tracking-tight text-transparent sm:text-4xl dark:from-white dark:via-amber-100 dark:to-brand">
         {first ? `Cześć, ${first}!` : "Cześć!"}
       </h1>
       <p className="mt-1 text-muted">{line}</p>

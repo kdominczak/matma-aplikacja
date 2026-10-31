@@ -79,7 +79,7 @@ export default function SheetsView() {
                 aria-checked={level === l.id}
                 onClick={() => setLevel(l.id)}
                 className={`rounded-xl py-2 text-sm font-bold transition-colors ${
-                  level === l.id ? "bg-brand text-white shadow-float" : "text-muted hover:text-ink"
+                  level === l.id ? "bg-brand text-on-brand shadow-float" : "text-muted hover:text-ink"
                 }`}
               >
                 {l.label}
@@ -174,7 +174,7 @@ function FileButton({ href, icon, primary = false, children }: { href: string; i
     <ExternalLink
       href={href}
       className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold btn-hover ${
-        primary ? "bg-brand text-white shadow-float active:bg-brand-dark" : "border border-line bg-surface text-ink hover:border-brand/40"
+        primary ? "bg-brand text-on-brand shadow-float active:bg-brand-dark" : "border border-line bg-surface text-ink hover:border-brand/40"
       }`}
     >
       <Icon name={icon} className="h-4 w-4 shrink-0" />

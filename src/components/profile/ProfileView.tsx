@@ -101,7 +101,7 @@ function PremiumStrip() {
   if (!AI_ENABLED || premium.status === "unavailable") return null;
   return (
     <Link href="/premium" className="card card-hover flex items-center gap-4 p-4 hover:border-brand/40">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-float">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-on-brand shadow-float">
         <Icon name="sparkles" className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
@@ -164,7 +164,7 @@ function Section({ title, action, children }: { title: string; action?: { label:
 
 /** Nazwy kolorów awatara dla czytnika ekranu. */
 const AVATAR_COLOR_NAMES: Record<AvatarColor, string> = {
-  brand: "Fioletowy",
+  brand: "Szampański",
   sunset: "Pomarańczowy",
   mint: "Miętowy",
   ocean: "Niebieski",
@@ -217,7 +217,7 @@ function ProfileCard({ progress }: { progress: Progress }) {
             onClick={() => fileRef.current?.click()}
             disabled={busy}
             aria-label="Zmień zdjęcie profilowe"
-            className="absolute -right-2 -bottom-2 flex h-11 w-11 items-center justify-center rounded-full border-4 border-navy bg-brand text-white shadow-float disabled:opacity-60"
+            className="absolute -right-2 -bottom-2 flex h-11 w-11 items-center justify-center rounded-full border-4 border-navy bg-brand text-on-brand shadow-float disabled:opacity-60"
           >
             <Icon name="camera" className="h-4 w-4" />
           </button>
@@ -301,7 +301,7 @@ function NameEditor() {
           className="min-w-0 flex-1 rounded-xl bg-white/10 px-3 py-2 text-xl font-extrabold text-white placeholder:text-white/40 focus:bg-white/15 focus:outline-none"
         />
         {draft !== null && (
-          <button type="submit" className="rounded-xl bg-brand px-4 text-sm font-bold">
+          <button type="submit" className="rounded-xl bg-brand px-4 text-sm font-bold text-on-brand">
             Zapisz
           </button>
         )}
@@ -362,7 +362,7 @@ function NickEditor({ nick }: { nick: string }) {
           maxLength={20}
           className="min-w-0 flex-1 rounded-xl bg-white/10 px-3 py-2 text-xl font-extrabold text-white focus:outline-none"
         />
-        <button type="submit" disabled={!NICK_PATTERN.test(draft.trim())} className="rounded-xl bg-brand px-4 text-sm font-bold disabled:opacity-50">
+        <button type="submit" disabled={!NICK_PATTERN.test(draft.trim())} className="rounded-xl bg-brand px-4 text-sm font-bold text-on-brand disabled:opacity-50">
           Zapisz
         </button>
       </div>

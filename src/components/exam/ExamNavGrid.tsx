@@ -41,7 +41,7 @@ export default function ExamNavGrid({ tasks, answers, flagged, current, onSelect
             aria-current={isCurrent ? "step" : undefined}
             aria-label={`Zadanie ${i + 1}${answered ? ", rozwiązane" : ", bez odpowiedzi"}${isFlagged ? ", oznaczone do powrotu" : ""}`}
             className={`relative flex h-11 min-w-11 shrink-0 items-center justify-center rounded-xl px-2 text-sm font-extrabold tabular-nums transition-all ${
-              answered ? "bg-brand text-white shadow-float" : "border border-line bg-card text-muted"
+              answered ? "bg-brand text-on-brand shadow-float" : "border border-line bg-card text-muted"
             } ${isCurrent ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}`}
           >
             {i + 1}

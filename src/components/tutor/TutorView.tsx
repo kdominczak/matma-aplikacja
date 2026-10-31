@@ -232,7 +232,7 @@ function Chat() {
           m.role === "user" ? (
             <li key={i} className="ml-auto flex max-w-[85%] flex-col items-end gap-2">
               <SentAttachments message={m} />
-              <p className="whitespace-pre-wrap rounded-3xl rounded-br-lg bg-brand px-4 py-3 text-white shadow-float">{m.content}</p>
+              <p className="whitespace-pre-wrap rounded-3xl rounded-br-lg bg-brand px-4 py-3 text-on-brand shadow-float">{m.content}</p>
             </li>
           ) : (
             <li key={i} className="flex max-w-[95%] gap-3">
@@ -310,7 +310,7 @@ function Chat() {
               title={TUTOR_STYLES[id].hint}
               onClick={() => setStyle(id)}
               className={`min-h-9 rounded-full px-2 text-xs font-bold transition-colors ${
-                style === id ? "bg-brand text-white" : "bg-subtle text-muted hover:text-ink"
+                style === id ? "bg-brand text-on-brand" : "bg-subtle text-muted hover:text-ink"
               }`}
             >
               {TUTOR_STYLES[id].label}
@@ -389,7 +389,7 @@ function Chat() {
               type="submit"
               disabled={(!input.trim() && attachments.length === 0) || preparing}
               aria-label="Wyślij"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-float transition-colors active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-on-brand shadow-float transition-colors active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
             >
               <Icon name="send" className="h-5 w-5" />
             </button>
@@ -428,7 +428,7 @@ function StartPanel({
         <button
           onClick={onCamera}
           disabled={busy}
-          className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-3xl bg-brand p-4 text-left text-white shadow-float btn-hover active:bg-brand-dark disabled:opacity-60"
+          className="flex min-h-24 flex-col items-start justify-between gap-2 rounded-3xl bg-brand p-4 text-left text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:opacity-60"
         >
           <Icon name="camera" className="h-6 w-6" />
           <span>

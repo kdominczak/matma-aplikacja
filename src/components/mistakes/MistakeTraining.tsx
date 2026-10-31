@@ -30,7 +30,7 @@ function Session({ progress }: { progress: Progress }) {
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-surface p-6 text-center">
         <p className="text-2xl font-extrabold text-ink">Pudełko jest puste 🎉</p>
         <p className="text-muted">Nie masz żadnych błędów do przećwiczenia.</p>
-        <Link href="/" className="rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-float">
+        <Link href="/" className="rounded-2xl bg-brand px-6 py-3 font-bold text-on-brand shadow-float">
           Wróć do nauki
         </Link>
       </div>

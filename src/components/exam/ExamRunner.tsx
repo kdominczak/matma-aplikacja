@@ -173,7 +173,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
             hapticTap();
             onStart();
           }}
-          className="mt-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+          className="mt-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
         >
           Rozpocznij arkusz <Icon name="arrow" className="h-4 w-4" />
         </button>
@@ -297,7 +297,7 @@ function ExamInProgress({
             <ExamTimer elapsed={elapsed} durationMin={exam.durationMin} onTimeUp={() => void finish()} />
             <button
               onClick={() => setPanel("finish")}
-              className="flex min-h-11 shrink-0 items-center rounded-xl bg-brand px-3 text-sm font-bold text-white shadow-float active:bg-brand-dark"
+              className="flex min-h-11 shrink-0 items-center rounded-xl bg-brand px-3 text-sm font-bold text-on-brand shadow-float active:bg-brand-dark"
             >
               Zakończ
             </button>
@@ -382,14 +382,14 @@ function ExamInProgress({
           {index < exam.tasks.length - 1 ? (
             <button
               onClick={() => go(index + 1)}
-              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover active:bg-brand-dark sm:ml-auto sm:flex-none sm:px-8"
+              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark sm:ml-auto sm:flex-none sm:px-8"
             >
               Następne <Icon name="chevron" className="h-4 w-4" />
             </button>
           ) : (
             <button
               onClick={() => setPanel("finish")}
-              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark sm:ml-auto sm:flex-none sm:px-8"
+              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark sm:ml-auto sm:flex-none sm:px-8"
             >
               Zakończ arkusz <Icon name="checkCircle" className="h-4 w-4" />
             </button>
@@ -492,7 +492,7 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
                 selected ? "border-brand bg-brand-soft text-brand shadow-card" : "border-line glass-card text-ink hover:border-brand/40 active:scale-[0.99]"
               }`}
             >
-              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${selected ? "bg-brand text-white" : "bg-subtle text-muted"}`}>
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${selected ? "bg-brand text-on-brand" : "bg-subtle text-muted"}`}>
                 {label}
               </span>
               <MathText display text={text} className="min-w-0 flex-1" />

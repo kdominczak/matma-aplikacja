@@ -141,7 +141,7 @@ function PlanCard({ progress, plan }: { progress: Progress | null; plan: DailyPl
           href="/plan"
           onClick={() => hapticTap()}
           className={`flex items-center justify-center gap-2 rounded-2xl py-3.5 font-bold sm:min-w-64 sm:px-6 ${
-            done ? "bg-white/10 text-white hover:bg-white/15" : "bg-brand text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+            done ? "bg-white/10 text-white hover:bg-white/15" : "bg-brand text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
           }`}
         >
           {done ? "Kolejna runda" : "Zaczynamy"} <Icon name="arrow" className="h-4 w-4" />

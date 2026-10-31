@@ -49,7 +49,7 @@ export default function ReminderNudge({ progress }: { progress: Progress }) {
       <div className="mt-4 flex gap-2">
         <button
           onClick={enable}
-          className="flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-brand px-4 text-sm font-bold text-white shadow-float btn-hover active:bg-brand-dark"
+          className="flex min-h-11 flex-1 items-center justify-center rounded-2xl bg-brand px-4 text-sm font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
         >
           Tak, o {time}
         </button>

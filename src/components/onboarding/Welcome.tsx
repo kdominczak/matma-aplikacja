@@ -91,7 +91,7 @@ export default function Welcome() {
               )}
               <button
                 onClick={next}
-                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
               >
                 Dalej <Icon name="arrow" className="h-4 w-4" />
               </button>
@@ -104,7 +104,7 @@ export default function Welcome() {
                   hapticTap();
                   void save();
                 }}
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
               >
                 Test na start · ok. 10 min <Icon name="arrow" className="h-4 w-4" />
               </Link>
@@ -203,7 +203,7 @@ function PlanSlide() {
           <span className="rounded-full bg-white/10 px-2.5 py-1">6 zadań · dział dnia</span>
           <span className="rounded-full bg-white/10 px-2.5 py-1">2 dla odmiany</span>
         </div>
-        <span className="mt-4 flex h-10 items-center justify-center rounded-xl bg-brand text-sm font-bold">Zaczynamy →</span>
+        <span className="mt-4 flex h-10 items-center justify-center rounded-xl bg-brand text-sm font-bold text-on-brand">Zaczynamy →</span>
       </div>
       <Title eyebrow="Jak to działa">Plan na dziś myśli za Ciebie</Title>
       <Points

@@ -199,7 +199,7 @@ function BuySection() {
             <button
               onClick={() => void buy()}
               disabled={busy !== null || !consent}
-              className="min-h-12 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+              className="min-h-12 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
             >
               {busy === "buy" ? "Łączę z Google Play…" : `Kup – ${store.offers.find((o) => o.plan === plan)?.price ?? ""}`}
             </button>

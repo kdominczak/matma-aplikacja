@@ -16,8 +16,8 @@ import type { Progress } from "@/types/progress";
 
 // Kolory z tokenów motywu (Recharts potrzebuje wartości, nie klas). Linia sprawdzona walidatorem kontrastu.
 const CHART_COLORS = {
-  light: { line: "#2f5bff", grid: "#e2e7ef", axis: "#64748b", surface: "#ffffff", target: "#94a3b8" },
-  dark: { line: "#6b8aff", grid: "#262b38", axis: "#8f98ad", surface: "#151821", target: "#5f687c" },
+  light: { line: "#8c6b14", grid: "#e5e1d8", axis: "#6b7280", surface: "#ffffff", target: "#9ca3af" },
+  dark: { line: "#d4af37", grid: "#232b3b", axis: "#8b94a7", surface: "#111827", target: "#5b6476" },
 };
 
 /** Szacowany wynik matury dzień po dniu, z linią celu. */

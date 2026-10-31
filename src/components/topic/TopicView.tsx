@@ -78,7 +78,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
                   aria-selected={tab === t.id}
                   onClick={() => setTab(t.id)}
                   className={`min-h-10 rounded-xl py-2 text-sm font-bold transition-colors ${
-                    tab === t.id ? "bg-brand text-white shadow-float" : "text-muted hover:text-ink"
+                    tab === t.id ? "bg-brand text-on-brand shadow-float" : "text-muted hover:text-ink"
                   }`}
                 >
                   {t.label}
@@ -169,7 +169,7 @@ function TopicHero({ topic }: { topic: Topic }) {
           <p className="text-xs font-bold uppercase tracking-widest text-white/60">
             {topic.lesson} · {topic.category}
           </p>
-          <h1 className="bg-linear-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-xl leading-tight font-extrabold text-transparent lg:text-2xl">{topic.title}</h1>
+          <h1 className="bg-linear-to-r from-white via-amber-100 to-amber-300 bg-clip-text text-xl leading-tight font-extrabold text-transparent lg:text-2xl">{topic.title}</h1>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {chips.map((chip) => (
               <span key={chip.text} className="flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold">
@@ -235,7 +235,7 @@ function NextStep({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
+      className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
     >
       {label} <Icon name="arrow" className="h-4 w-4" />
     </button>
@@ -287,7 +287,7 @@ function TopicTasks({ topic, progress }: { topic: Topic; progress: Progress | nu
         <Link
           href={`/zadania/${topic.id}`}
           onClick={() => hapticTap()}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
         >
           {solved === 0 ? "Rozwiąż zadania" : "Rozwiązuj dalej"} <Icon name="arrow" className="h-4 w-4" />
         </Link>

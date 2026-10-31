@@ -76,7 +76,7 @@ function MyCode() {
         <button
           onClick={reveal}
           disabled={busy}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand px-5 font-bold text-white shadow-float btn-hover active:bg-brand-dark disabled:opacity-60"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand px-5 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:opacity-60"
         >
           <Icon name="send" className="h-4 w-4" />
           {busy ? "Tworzymy kod…" : "Pokaż mój kod polecenia"}
@@ -95,7 +95,7 @@ function MyCode() {
         </span>
         <button
           onClick={share}
-          className="flex min-h-12 items-center gap-2 rounded-2xl bg-brand px-5 font-bold text-white shadow-float btn-hover active:bg-brand-dark"
+          className="flex min-h-12 items-center gap-2 rounded-2xl bg-brand px-5 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
         >
           <Icon name="send" className="h-4 w-4" />
           Wyślij znajomemu

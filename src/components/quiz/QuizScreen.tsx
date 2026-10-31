@@ -187,7 +187,7 @@ export default function QuizScreen(props: Props) {
     const base = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold";
     if (checked && key === question.correct) return `${base} bg-emerald-500 text-white`;
     if (checked && key === selected) return `${base} bg-rose-500 text-white`;
-    if (!checked && key === selected) return `${base} bg-brand text-white`;
+    if (!checked && key === selected) return `${base} bg-brand text-on-brand`;
     return `${base} bg-subtle text-muted`;
   }
 
@@ -388,7 +388,7 @@ export default function QuizScreen(props: Props) {
               <button
                 onClick={handleCheck}
                 disabled={!selected}
-                className="w-full rounded-2xl bg-brand py-4 text-base font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
+                className="w-full rounded-2xl bg-brand py-4 text-base font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
               >
                 Sprawdź odpowiedź
               </button>

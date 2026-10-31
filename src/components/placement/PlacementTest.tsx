@@ -107,7 +107,7 @@ function PlacementSummary({ result, outcome }: SummaryProps) {
 
         <Link
           href="/"
-          className="mt-auto flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark lg:mt-2"
+          className="mt-auto flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark lg:mt-2"
         >
           Zobacz swój plan <Icon name="arrow" className="h-4 w-4" />
         </Link>

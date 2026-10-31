@@ -160,7 +160,7 @@ function SignInFlow({ anonymous, intro }: { anonymous: boolean; intro?: string }
           <button
             type="submit"
             disabled={busy || !email.trim()}
-            className="min-h-12 rounded-2xl bg-brand px-5 font-bold text-white shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+            className="min-h-12 rounded-2xl bg-brand px-5 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
           >
             {busy ? "Wysyłam…" : "Wyślij kod"}
           </button>
@@ -194,7 +194,7 @@ function SignInFlow({ anonymous, intro }: { anonymous: boolean; intro?: string }
             <button
               type="submit"
               disabled={busy || code.length < 6}
-              className="min-h-12 rounded-2xl bg-brand px-5 font-bold text-white shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+              className="min-h-12 rounded-2xl bg-brand px-5 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
             >
               {busy ? "Sprawdzam…" : "Potwierdź"}
             </button>

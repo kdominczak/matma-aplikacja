@@ -65,7 +65,7 @@ export default function Calculator({ onInsert, onClose }: Props) {
     }
   }
 
-  const tone = { op: "bg-brand-soft text-brand", fn: "bg-subtle text-body", eq: "bg-brand text-white", none: "bg-card text-ink border border-line" };
+  const tone = { op: "bg-brand-soft text-brand", fn: "bg-subtle text-body", eq: "bg-brand text-on-brand", none: "bg-card text-ink border border-line" };
 
   return (
     <div className="w-64 rounded-3xl border border-line glass-card p-3 shadow-2xl" role="dialog" aria-label="Kalkulator">

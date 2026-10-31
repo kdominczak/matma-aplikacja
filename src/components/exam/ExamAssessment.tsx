@@ -79,7 +79,7 @@ export default function ExamAssessment({
               hapticTap();
               onDone(assessed());
             }}
-            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white shadow-float btn-hover active:bg-brand-dark"
+            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
           >
             Pokaż wynik{gained > 0 ? ` (+${gained} pkt za kroki)` : ""} <Icon name="arrow" className="h-4 w-4" />
           </button>

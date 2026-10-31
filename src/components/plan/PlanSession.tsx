@@ -41,7 +41,7 @@ function PlanRunner({ initial }: { initial: Progress }) {
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-surface px-6 text-center">
         <p className="text-xl font-extrabold text-ink">Na dziś nie mamy dla Ciebie nowych zadań.</p>
         <p className="text-muted">Wszystkie działy z Twojego celu są opanowane – spróbuj arkusza w trybie egzaminu.</p>
-        <Link href="/arkusze" className="rounded-2xl bg-brand px-6 py-3 font-bold text-white">
+        <Link href="/arkusze" className="rounded-2xl bg-brand px-6 py-3 font-bold text-on-brand">
           Przejdź do arkuszy
         </Link>
       </div>
@@ -147,7 +147,7 @@ function PlanSummary({ result, outcome }: SummaryProps) {
         <div className="mt-auto flex flex-col gap-3 lg:mt-2">
           <Link
             href="/"
-            className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+            className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
           >
             Gotowe na dziś <Icon name="checkCircle" className="h-5 w-5" />
           </Link>

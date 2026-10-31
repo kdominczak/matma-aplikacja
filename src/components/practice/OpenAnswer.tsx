@@ -83,7 +83,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
               <button
                 type="submit"
                 disabled={!state.input.trim()}
-                className="flex-1 rounded-2xl bg-brand py-3.5 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+                className="flex-1 rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
               >
                 Sprawdź wynik
               </button>
@@ -157,7 +157,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
           {canSelfAssess && (
             <button
               onClick={() => onSaveSelfAssessment(selfPoints)}
-              className="mt-4 w-full rounded-2xl bg-brand py-3 font-bold text-white shadow-float btn-hover btn-shine active:bg-brand-dark"
+              className="mt-4 w-full rounded-2xl bg-brand py-3 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
             >
               Zapisz wynik: {selfPoints}/{task.points} pkt
             </button>

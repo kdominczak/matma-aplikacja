@@ -133,7 +133,7 @@ export default function InlineCheck({
         <button
           onClick={check}
           disabled={!chosen}
-          className="min-h-12 rounded-2xl bg-brand font-bold text-white shadow-float active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+          className="min-h-12 rounded-2xl bg-brand font-bold text-on-brand shadow-float active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
         >
           Sprawdź
         </button>
@@ -147,7 +147,7 @@ export default function InlineCheck({
           </button>
         </div>
       ) : (
-        <button onClick={nextQuestion} className="min-h-12 rounded-2xl bg-brand font-bold text-white shadow-float active:bg-brand-dark">
+        <button onClick={nextQuestion} className="min-h-12 rounded-2xl bg-brand font-bold text-on-brand shadow-float active:bg-brand-dark">
           Dalej
         </button>
       )}

@@ -148,7 +148,7 @@ function Leaderboard() {
                 setRows(null);
               }}
               className={`rounded-xl py-2 text-sm font-bold transition-colors ${
-                period === p.id ? "bg-brand text-white shadow-float" : "text-muted hover:text-ink"
+                period === p.id ? "bg-brand text-on-brand shadow-float" : "text-muted hover:text-ink"
               }`}
             >
               {p.label}
@@ -313,7 +313,7 @@ function JoinCard() {
         <button
           type="submit"
           disabled={busy || !NICK_PATTERN.test(nick.trim())}
-          className="mt-1 rounded-2xl bg-brand py-3 font-bold text-white shadow-float disabled:bg-white/10 disabled:text-white/40 disabled:shadow-none"
+          className="mt-1 rounded-2xl bg-brand py-3 font-bold text-on-brand shadow-float disabled:bg-white/10 disabled:text-white/40 disabled:shadow-none"
         >
           {busy ? "Dołączam…" : "Dołącz"}
         </button>
@@ -353,7 +353,7 @@ function MyCard({ profile }: { profile: RankingProfile }) {
           <NickInput id="rename-nick" value={nick} onChange={setNick} />
           {error && <p className="text-sm font-semibold text-rose-500">{error}</p>}
           <div className="flex gap-2">
-            <button type="submit" className="flex-1 rounded-2xl bg-brand py-2.5 text-sm font-bold text-white">
+            <button type="submit" className="flex-1 rounded-2xl bg-brand py-2.5 text-sm font-bold text-on-brand">
               Zapisz
             </button>
             <button type="button" onClick={() => setEditing(false)} className="flex-1 rounded-2xl bg-subtle py-2.5 text-sm font-bold text-muted">

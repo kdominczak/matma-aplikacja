@@ -83,7 +83,7 @@ export default function PracticeHub() {
                 onClick={() => setCategory(c)}
                 aria-pressed={category === c}
                 className={`min-h-11 shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                  category === c ? "border-brand bg-brand text-white shadow-float" : "border-line bg-card text-muted hover:text-ink"
+                  category === c ? "border-brand bg-brand text-on-brand shadow-float" : "border-line bg-card text-muted hover:text-ink"
                 }`}
               >
                 {c}
