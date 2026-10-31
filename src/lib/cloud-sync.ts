@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
 import { accountState, startAccount, subscribeAccount } from "@/lib/account";
-import { clearAttempts, mergeAttempts, onAttemptSaved, readAttempts } from "@/lib/exam";
+import { attemptDurationSec, clearAttempts, mergeAttempts, onAttemptSaved, readAttempts } from "@/lib/exam";
 import { mergeRemoteProgress, onProgressSaved, readProgress } from "@/lib/progress";
 import { supabase, SUPABASE_ENABLED } from "@/lib/supabase";
 import type { ExamAttempt, ExamTaskResult } from "@/types/exam";
@@ -163,22 +163,41 @@ async function syncAttempts(id: string) {
 
   const remoteIds = new Set(remote.map((a) => a.id));
   const missing = (await readAttempts()).filter((a) => !remoteIds.has(a.id));
-  if (missing.length === 0) return;
-  const { error: insertError } = await db.from("exam_attempts").upsert(
-    missing.map((a) => ({
-      id: a.id,
-      user_id: id,
-      exam_id: a.examId,
-      started_at: a.startedAt,
-      finished_at: a.finishedAt,
-      duration_sec: a.durationSec,
-      points: a.points,
-      max_points: a.maxPoints,
-      answers: a.results,
-    })),
-    { onConflict: "id", ignoreDuplicates: true },
-  );
+  const rows = missing.map((a) => attemptRow(a, id)).filter((row) => row !== null);
+  if (rows.length === 0) return;
+  const { error: insertError } = await db.from("exam_attempts").upsert(rows, { onConflict: "id", ignoreDuplicates: true });
   if (insertError) throw insertError;
+}
+
+/**
+ * Wiersz exam_attempts zgodny z ograniczeniami tabeli. Czas przycinamy (attemptDurationSec); próby, których baza
+ * i tak by nie przyjęła (np. uszkodzony zapis), pomijamy – jedna zła próba nie może blokować wysyłki pozostałych.
+ */
+export function attemptRow(a: ExamAttempt, userId: string) {
+  const valid =
+    /^[a-z0-9-]{2,40}$/.test(a.examId) &&
+    a.maxPoints > 0 &&
+    a.points >= 0 &&
+    a.points <= a.maxPoints &&
+    Array.isArray(a.results) &&
+    a.results.length <= 100 &&
+    !Number.isNaN(Date.parse(a.startedAt)) &&
+    Date.parse(a.finishedAt) >= Date.parse(a.startedAt);
+  if (!valid) {
+    console.warn("Pomijam próbę arkusza, której nie przyjmie kopia w chmurze:", a.id);
+    return null;
+  }
+  return {
+    id: a.id,
+    user_id: userId,
+    exam_id: a.examId,
+    started_at: a.startedAt,
+    finished_at: a.finishedAt,
+    duration_sec: attemptDurationSec(a),
+    points: a.points,
+    max_points: a.maxPoints,
+    answers: a.results,
+  };
 }
 
 /** Pełna synchronizacja: pobranie i scalenie kopii, wysłanie zmian i brakujących prób arkuszy. */

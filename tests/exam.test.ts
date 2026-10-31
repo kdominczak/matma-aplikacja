@@ -101,3 +101,13 @@ describe("źródło zadań arkusza", () => {
     expect(incomplete).toEqual([]);
   });
 });
+
+describe("czas próby do statystyk i chmury", () => {
+  it("przycina do 0–180 min i zaokrągla (dawne próby po 27 h nie blokują synchronizacji)", async () => {
+    const { attemptDurationSec } = await import("@/lib/exam");
+    expect(attemptDurationSec({ durationSec: 27 * 3600 })).toBe(180 * 60);
+    expect(attemptDurationSec({ durationSec: -5 })).toBe(0);
+    expect(attemptDurationSec({ durationSec: 1234.6 })).toBe(1235);
+    expect(attemptDurationSec({ durationSec: Number.NaN })).toBe(0);
+  });
+});

@@ -136,6 +136,34 @@ describe("kopia postępu i arkusze – prywatne dane", () => {
     expect(await t.errorCode("authenticated", A, `update public.exam_attempts set points = 46`)).toBe("42501");
     expect(await t.errorCode("authenticated", B, insert, [A])).toBe("42501");
   });
+
+  it("próba z dawnym czasem 27 h: wiersz z klienta (attemptRow) przechodzi przez ograniczenia tabeli", async () => {
+    const { attemptRow } = await import("@/lib/cloud-sync");
+    const finished = new Date();
+    const started = new Date(finished.getTime() - 27 * 3_600_000);
+    const row = attemptRow(
+      {
+        id: "7d0c7c1e-8a77-4c6f-9a1b-5a6d3f0b2c11",
+        examId: "probny-2",
+        startedAt: started.toISOString(),
+        finishedAt: finished.toISOString(),
+        durationSec: 27 * 3600,
+        points: 20,
+        maxPoints: 50,
+        percent: 40,
+        results: [],
+      },
+      A,
+    )!;
+    expect(row.duration_sec).toBe(180 * 60);
+    await t.as(
+      "authenticated",
+      A,
+      `insert into public.exam_attempts (id, user_id, exam_id, started_at, finished_at, duration_sec, points, max_points, answers)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [row.id, row.user_id, row.exam_id, row.started_at, row.finished_at, row.duration_sec, row.points, row.max_points, JSON.stringify(row.answers)],
+    );
+  });
 });
 
 describe("moderacja nicków", () => {

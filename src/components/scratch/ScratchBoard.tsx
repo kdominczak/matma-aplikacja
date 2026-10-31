@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import ScratchBackground, { type ScratchTemplate } from "@/components/scratch/ScratchBackground";
 import { armsAt, buildScene, edgeSegment, heightLine, lineEnds, removeLineFrom, removeShapeFrom, sameEdge, sceneSnapTargets, type Scene } from "@/components/scratch/scene";
@@ -755,7 +756,7 @@ export default function ScratchBoard(props: Props) {
           ? "Stuknij figurę albo linię, aby ją przesunąć, przeskalować, obrócić lub usunąć"
           : null;
 
-  return (
+  const board = (
     <div
       className={
         full
@@ -816,7 +817,7 @@ export default function ScratchBoard(props: Props) {
           ))}
         </div>
         {full ? (
-          <button onClick={props.onClose} className="min-h-11 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-float active:bg-brand-dark">
+          <button onClick={props.onClose} className="min-h-11 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-on-brand shadow-float active:bg-brand-dark">
             Gotowe
           </button>
         ) : (
@@ -859,7 +860,9 @@ export default function ScratchBoard(props: Props) {
         </div>
       )}
 
-      <div ref={boardRef} className={`relative overflow-hidden ${full ? "flex-1" : "h-80 lg:h-[26rem]"}`}>
+      {/* kartka i kalkulator: na telefonie kalkulator nad kartką, na szerokim ekranie (pełny ekran) – kolumna obok */}
+      <div className={`relative flex min-h-0 ${full ? "flex-1" : ""}`}>
+      <div ref={boardRef} className={`relative min-w-0 flex-1 overflow-hidden ${full ? "" : "h-80 lg:h-[26rem]"}`}>
         <ScratchBackground template={template} width={size.width} height={size.height} zoom={view.zoom} pan={[view.pan[0] * W, view.pan[1] * W]} />
         <canvas
           ref={canvasRef}
@@ -961,8 +964,9 @@ export default function ScratchBoard(props: Props) {
           </p>
         )}
 
+        {/* przy otwartym kalkulatorze na telefonie podpowiedź i tak byłaby zasłonięta */}
         {hint && !draft && (
-          <p className="pointer-events-none absolute top-2 left-1/2 max-w-[90%] -translate-x-1/2 truncate rounded-full bg-navy/90 px-3 py-1 text-[11px] font-bold text-white shadow-card">
+          <p className={`pointer-events-none absolute top-2 ${calcOpen ? "max-lg:hidden" : ""} left-1/2 max-w-[90%] -translate-x-1/2 truncate rounded-full bg-navy/90 px-3 py-1 text-[11px] font-bold text-white shadow-card`}>
             {hint}
           </p>
         )}
@@ -984,8 +988,14 @@ export default function ScratchBoard(props: Props) {
           </button>
         </div>
 
+      </div>
+
         {calcOpen && (
-          <div className="absolute right-2 bottom-2 z-20 max-h-[calc(100%-1rem)] overflow-y-auto">
+          <div
+            className={`absolute right-2 bottom-2 z-20 max-h-[calc(100%-1rem)] overflow-y-auto ${
+              full ? "lg:static lg:max-h-none lg:w-80 lg:shrink-0 lg:border-l lg:border-line lg:bg-surface lg:p-3" : ""
+            }`}
+          >
             <Calculator onInsert={(value) => addFormula(value.replace(",", "{,}"))} onClose={() => setCalcOpen(false)} />
           </div>
         )}
@@ -1127,6 +1137,9 @@ export default function ScratchBoard(props: Props) {
       )}
     </div>
   );
+  // Pełny ekran przez portal do <body>: rodzic bywa osobną warstwą (np. przyklejona kolumna zadania – `sticky`),
+  // a wtedy z-50 działał tylko w jej obrębie i ułamki KaTeX z sąsiedniej kolumny przebijały przez brudnopis.
+  return full && typeof document !== "undefined" ? createPortal(board, document.body) : board;
 }
 
 function ToolButton({ icon, label, selected, onClick }: { icon: IconName; label: string; selected: boolean; onClick: () => void }) {

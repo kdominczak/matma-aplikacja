@@ -205,8 +205,17 @@ export interface ExamStats {
   totalSec: number;
 }
 
-/** Najdłuższa sensowna próba w statystykach: czas matury podstawowej (180 min). */
-const MAX_ATTEMPT_SEC = 180 * 60;
+/** Najdłuższa sensowna próba w statystykach i w chmurze: czas matury podstawowej (180 min). */
+export const MAX_ATTEMPT_SEC = 180 * 60;
+
+/**
+ * Czas próby do statystyk i do chmury: całe sekundy, 0–180 min. Starsze próby liczyły też czas z zamkniętą
+ * aplikacją (np. 27 h) – bez przycięcia baza (check 0–86400 s) odrzucała całą wysyłkę prób przy każdej synchronizacji.
+ */
+export function attemptDurationSec(attempt: Pick<ExamAttempt, "durationSec">): number {
+  const sec = Number.isFinite(attempt.durationSec) ? Math.round(attempt.durationSec) : 0;
+  return Math.min(Math.max(sec, 0), MAX_ATTEMPT_SEC);
+}
 
 export function examStats(list: ExamAttempt[]): ExamStats | null {
   if (list.length === 0) return null;
@@ -214,8 +223,7 @@ export function examStats(list: ExamAttempt[]): ExamStats | null {
     count: list.length,
     bestPercent: Math.max(...list.map((a) => a.percent)),
     averagePercent: Math.round(list.reduce((sum, a) => sum + a.percent, 0) / list.length),
-    // starsze próby liczyły też czas z zamkniętą aplikacją (np. 27 h) – w sumie najwyżej czas matury na próbę
-    totalSec: list.reduce((sum, a) => sum + Math.min(a.durationSec, MAX_ATTEMPT_SEC), 0),
+    totalSec: list.reduce((sum, a) => sum + attemptDurationSec(a), 0),
   };
 }
 
