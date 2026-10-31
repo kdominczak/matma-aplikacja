@@ -1,5 +1,5 @@
 import type { OptionKey } from "@/types/quiz";
-import type { Target } from "@/types/topic";
+import type { Level, Target } from "@/types/topic";
 
 export type Stars = 1 | 2 | 3;
 
@@ -76,6 +76,10 @@ export interface Progress {
   dailyDone?: string;
   /** Cel w % (30–100) – w aplikacji pokazywany jako punkty na 50 (src/lib/goal.ts). Dawne cele 30/60/85 dalej działają. */
   target: number;
+  /** Poziomy matury, które zdaje uczeń (src/lib/level.ts). Brak = tylko podstawowa (starsze zapisy). */
+  levels?: Level[];
+  /** Cel na maturze rozszerzonej w % (jak `target`, skala 50 pkt). Brak = 30%. */
+  targetExtended?: number;
   stats: Stats;
   /** Zdobyte odznaki: id → dzień zdobycia. */
   achievements: Record<string, string>;

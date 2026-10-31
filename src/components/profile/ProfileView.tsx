@@ -17,7 +17,10 @@ import { AI_ENABLED } from "@/lib/ai-config";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { AVATAR_COLORS, prepareAvatar, saveAppSettings, useAppSettings, type AvatarColor } from "@/lib/app-settings";
 import { answersToEstimate, currentEstimate } from "@/lib/estimate";
-import { MATURA_POINTS } from "@/lib/exam-weights";
+import { LEVEL_POINTS } from "@/lib/exam-weights";
+import { LEVEL_LONG } from "@/lib/level";
+import LevelSwitch, { useActiveLevel } from "@/components/progress/LevelSwitch";
+import CountUp from "@/components/ui/CountUp";
 import { hapticTap } from "@/lib/haptics";
 import { topicMastery } from "@/lib/mastery";
 import { longestPlanStreak } from "@/lib/planner";
@@ -69,28 +72,41 @@ export default function ProfileView() {
       </Section>
 
       <Section title="Szacowany wynik">
+        <EstimateSection progress={progress} />
+      </Section>
+    </Page>
+  );
+}
+
+/** Szacowany wynik z wykresem – dla poziomu z przełącznika (przy obu maturach). */
+function EstimateSection({ progress }: { progress: Progress }) {
+  const { level } = useActiveLevel(progress);
+  const value = currentEstimate(progress, level);
+  const max = LEVEL_POINTS[level];
+  return (
         <section className="card p-5 lg:p-6">
+          <LevelSwitch progress={progress} className="mb-4 sm:max-w-sm" />
           <div className="flex flex-wrap items-end justify-between gap-2">
-            <p className="text-sm text-muted">Ze skuteczności we wszystkich zadaniach i wagi działów na maturze</p>
+            <p className="text-sm text-muted">
+              {LEVEL_LONG[level]} – ze skuteczności we wszystkich zadaniach i wagi działów na maturze
+            </p>
             {answersToEstimate(progress) > 0 ? (
               <p className="text-sm font-bold text-brand">
                 Zbieramy dane – jeszcze {answersToEstimate(progress)} {plural(answersToEstimate(progress), "zadanie", "zadania", "zadań")}
               </p>
             ) : (
-              <p className="text-3xl font-extrabold tracking-tight text-brand tabular-nums">
-                {currentEstimate(progress)}%{" "}
+              <p className="font-display text-3xl font-extrabold tracking-tight text-brand tabular-nums">
+                <CountUp value={value} suffix="%" />{" "}
                 <span className="text-base font-bold text-muted">
-                  · ok. {Math.round((currentEstimate(progress) / 100) * MATURA_POINTS)}/{MATURA_POINTS} pkt
+                  · ok. {Math.round((value / 100) * max)}/{max} pkt
                 </span>
               </p>
             )}
           </div>
           <div className="mt-4">
-            <EstimateChart progress={progress} />
+            <EstimateChart progress={progress} level={level} />
           </div>
         </section>
-      </Section>
-    </Page>
   );
 }
 

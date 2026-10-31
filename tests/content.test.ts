@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import katex from "katex";
 import { describe, expect, it } from "vitest";
-import { allQuestionRefs, findQuestion, formulaGroup, practiceTasks, theoryChecks, topics } from "@/data/topics";
+import { allQuestionRefs, allTopics, findQuestion, formulaGroup, practiceTasks, theoryChecks } from "@/data/topics";
 import { matchesAnswer } from "@/lib/calc";
 import { questionKeysSql } from "../scripts/question-keys";
 
@@ -23,17 +23,17 @@ function texErrors(text: string, display = false): string[] {
 
 describe("treść zadań", () => {
   it("każdy dział ma zadania do zakładki „Zadania”", () => {
-    const empty = topics.filter((t) => practiceTasks(t).length === 0).map((t) => t.id);
+    const empty = allTopics.filter((t) => practiceTasks(t).length === 0).map((t) => t.id);
     expect(empty).toEqual([]);
   });
 
   it("identyfikatory zadań są unikalne w całej aplikacji", () => {
-    const ids = [...allQuestionRefs().map((r) => r.question.id), ...topics.flatMap((t) => practiceTasks(t).filter((x) => x.kind === "open").map((x) => x.id))];
+    const ids = [...allQuestionRefs().map((r) => r.question.id), ...allTopics.flatMap((t) => practiceTasks(t).filter((x) => x.kind === "open").map((x) => x.id))];
     const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
     expect(duplicates).toEqual([]);
   });
 
-  for (const topic of topics) {
+  for (const topic of allTopics) {
     describe(topic.title, () => {
       const tasks = practiceTasks(topic);
 

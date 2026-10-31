@@ -7,7 +7,8 @@ import { Page, PageHeader } from "@/components/layout/AppShell";
 import CategoryTile from "@/components/topic/CategoryTile";
 import LearningPath from "@/components/topic/LearningPath";
 import Icon from "@/components/ui/Icon";
-import { practiceTasks, topics } from "@/data/topics";
+import LevelSwitch, { useActiveLevel } from "@/components/progress/LevelSwitch";
+import { extendedTopics, practiceTasks, topics } from "@/data/topics";
 import { hapticTap } from "@/lib/haptics";
 import { useProgress } from "@/lib/progress";
 import type { Progress } from "@/types/progress";
@@ -32,7 +33,16 @@ export default function PracticeHub() {
   const progress = useProgress();
   const [view, setView] = useView();
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("Wszystkie");
-  const shown = topics.filter((t) => practiceTasks(t).length > 0 && (category === "Wszystkie" || t.category === category));
+  const { level } = useActiveLevel(progress);
+  const fits = (t: Topic) => practiceTasks(t).length > 0 && (category === "Wszystkie" || t.category === category);
+  // rozszerzenie: najpierw działy rozszerzenia, pod nimi podstawa (arkusz rozszerzony sprawdza też wymagania podstawowe)
+  const groups: { title: string | null; list: Topic[] }[] =
+    level === "rozszerzony"
+      ? [
+          { title: "Rozszerzenie", list: extendedTopics.filter(fits) },
+          { title: "Podstawa – też na arkuszu rozszerzonym", list: topics.filter(fits) },
+        ]
+      : [{ title: null, list: topics.filter(fits) }];
 
   return (
     <Page>
@@ -49,6 +59,8 @@ export default function PracticeHub() {
           </Link>
         }
       />
+
+      <LevelSwitch progress={progress} className="sm:max-w-sm" />
 
       <div role="tablist" aria-label="Widok" className="grid grid-cols-2 gap-1 rounded-2xl bg-subtle p-1">
         {(
@@ -73,7 +85,7 @@ export default function PracticeHub() {
       </div>
 
       {view === "lekcje" ? (
-        <LearningPath progress={progress} />
+        <LearningPath progress={progress} level={level} />
       ) : (
         <>
           <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Kategorie">
@@ -91,11 +103,18 @@ export default function PracticeHub() {
             ))}
           </nav>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {shown.map((topic) => (
-              <TopicTasksCard key={topic.id} topic={topic} progress={progress} />
+          {groups
+            .filter((g) => g.list.length > 0)
+            .map((group) => (
+              <section key={group.title ?? "all"} className="flex flex-col gap-3">
+                {group.title && <h2 className="text-xs font-extrabold uppercase tracking-widest text-brand">{group.title}</h2>}
+                <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {group.list.map((topic) => (
+                    <TopicTasksCard key={topic.id} topic={topic} progress={progress} />
+                  ))}
+                </div>
+              </section>
             ))}
-          </div>
         </>
       )}
     </Page>

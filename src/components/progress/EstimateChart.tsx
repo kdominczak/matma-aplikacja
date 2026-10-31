@@ -12,7 +12,9 @@ import {
 } from "recharts";
 import { estimateHistory } from "@/lib/estimate";
 import { useTheme } from "@/lib/theme";
+import { levelTarget } from "@/lib/level";
 import type { Progress } from "@/types/progress";
+import type { Level } from "@/types/topic";
 
 // Kolory z tokenów motywu (Recharts potrzebuje wartości, nie klas). Linia sprawdzona walidatorem kontrastu.
 const CHART_COLORS = {
@@ -21,10 +23,11 @@ const CHART_COLORS = {
 };
 
 /** Szacowany wynik matury dzień po dniu, z linią celu. */
-export default function EstimateChart({ progress }: { progress: Progress }) {
+export default function EstimateChart({ progress, level = "podstawowy" }: { progress: Progress; level?: Level }) {
   const { isDark } = useTheme();
   const colors = isDark ? CHART_COLORS.dark : CHART_COLORS.light;
-  const data = estimateHistory(progress);
+  const data = estimateHistory(progress, level);
+  const target = levelTarget(progress, level);
   const lastIndex = data.length - 1;
 
   return (
@@ -56,10 +59,10 @@ export default function EstimateChart({ progress }: { progress: Progress }) {
               axisLine={false}
             />
             <ReferenceLine
-              y={progress.target}
+              y={target}
               stroke={colors.target}
               strokeDasharray="4 4"
-              label={{ value: `Cel ${progress.target}%`, position: "insideTopLeft", fill: colors.axis, fontSize: 11, fontWeight: 700 }}
+              label={{ value: `Cel ${target}%`, position: "insideTopLeft", fill: colors.axis, fontSize: 11, fontWeight: 700 }}
             />
             <Tooltip
               cursor={{ stroke: colors.axis, strokeWidth: 1, strokeDasharray: "3 3" }}

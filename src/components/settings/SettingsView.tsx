@@ -20,7 +20,9 @@ import { deleteAccountAndData } from "@/lib/delete-account";
 import { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
 import { hapticTap } from "@/lib/haptics";
 import GoalSlider from "@/components/progress/GoalSlider";
-import { formatDay, resetProgress, setTarget, useProgress } from "@/lib/progress";
+import LevelPicker from "@/components/progress/LevelPicker";
+import { levelTarget, studentLevels } from "@/lib/level";
+import { formatDay, resetProgress, setLevels, setTarget, useProgress } from "@/lib/progress";
 import { leaveRanking, useRanking } from "@/lib/ranking";
 import type { Progress } from "@/types/progress";
 
@@ -156,8 +158,27 @@ function AccountHero() {
 
 // ── Nauka ──
 
+/** Matury ucznia i cel na każdej z nich (cel rozszerzenia – osobny suwak w skali 50 pkt). */
 function TargetPicker({ progress }: { progress: Progress }) {
-  return <GoalSlider percent={progress.target} onChange={(target) => void setTarget(target)} id="settings-goal" />;
+  const levels = studentLevels(progress);
+  const both = levels.length > 1;
+  return (
+    <div className="flex flex-col gap-5">
+      <LevelPicker value={levels} onChange={(next) => void setLevels(next)} allowExtendedOnly />
+      {levels.includes("podstawowy") && (
+        <GoalSlider percent={progress.target} onChange={(target) => void setTarget(target)} id="settings-goal" showLevel={both} />
+      )}
+      {levels.includes("rozszerzony") && (
+        <GoalSlider
+          percent={levelTarget(progress, "rozszerzony")}
+          onChange={(target) => void setTarget(target, "rozszerzony")}
+          id="settings-goal-extended"
+          level="rozszerzony"
+          showLevel
+        />
+      )}
+    </div>
+  );
 }
 
 function PlacementRow({ progress }: { progress: Progress }) {

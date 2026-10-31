@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import TopicCard from "@/components/topic/TopicCard";
-import { topics } from "@/data/topics";
+import { topicsOfLevel } from "@/data/topics";
 import { goalPoints, topicsForGoal } from "@/lib/goal";
+import { levelTarget } from "@/lib/level";
 import { plural } from "@/lib/plural";
 import { topicTaskProgress } from "@/lib/topic-progress";
 import type { Progress } from "@/types/progress";
+import type { Level } from "@/types/topic";
 
 /**
  * Ścieżka nauki: działy potrzebne do celu ucznia (wyliczone z wag na maturze) w kolejności programu,
  * a pod nimi pozostałe – „na wyższy wynik”.
  */
-export default function LearningPath({ progress }: { progress: Progress | null }) {
-  const target = progress?.target ?? 30;
-  const needed = new Set(topicsForGoal(target).map((t) => t.id));
-  const withLessons = topics.filter((t) => t.content);
+export default function LearningPath({ progress, level = "podstawowy" }: { progress: Progress | null; level?: Level }) {
+  const target = progress ? levelTarget(progress, level) : 30;
+  const needed = new Set(topicsForGoal(target, level).map((t) => t.id));
+  const withLessons = topicsOfLevel(level).filter((t) => t.content);
   const pathTopics = withLessons.filter((t) => needed.has(t.id));
   const rest = withLessons.filter((t) => !needed.has(t.id));
   const counts = pathTopics.map((t) => topicTaskProgress(t, progress));
@@ -26,7 +28,7 @@ export default function LearningPath({ progress }: { progress: Progress | null }
     <section className="flex min-w-0 flex-col gap-4 lg:col-start-1">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-ink">Ścieżka na {goalPoints(target)} pkt</h2>
+          <h2 className="text-xl font-extrabold text-ink">Ścieżka na {goalPoints(target, level)} pkt</h2>
           <p className="text-sm text-muted">
             Działy potrzebne do Twojego celu ·{" "}
             <Link href="/ustawienia#cel" className="font-bold text-brand hover:underline">

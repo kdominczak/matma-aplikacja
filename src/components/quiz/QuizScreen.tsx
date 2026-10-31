@@ -171,21 +171,21 @@ export default function QuizScreen(props: Props) {
 
   function optionClasses(key: OptionKey) {
     const base =
-      "flex w-full items-center gap-3 rounded-2xl border-2 p-4 text-left text-base font-semibold transition-all duration-150";
+      "press flex w-full items-center gap-3 rounded-2xl border-2 p-4 text-left text-base font-semibold";
     if (!checked) {
       return key === selected
-        ? `${base} border-brand bg-brand-soft text-brand shadow-card`
-        : `${base} border-line bg-card text-ink hover:border-brand/40 active:scale-[0.99]`;
+        ? `${base} border-brand bg-brand-soft text-brand shadow-float ring-4 ring-brand/15`
+        : `${base} border-line bg-card text-ink hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-card`;
     }
     if (key === question.correct)
-      return `${base} border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`;
+      return `${base} border-emerald-500 bg-emerald-500/10 text-emerald-700 ring-4 ring-emerald-500/15 dark:text-emerald-300`;
     if (key === selected) return `${base} animate-shake border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300`;
     return `${base} border-line bg-card text-faint opacity-60`;
   }
 
   function badgeClasses(key: OptionKey) {
     const base = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold";
-    if (checked && key === question.correct) return `${base} bg-emerald-500 text-white`;
+    if (checked && key === question.correct) return `${base} animate-pop bg-emerald-500 text-white`;
     if (checked && key === selected) return `${base} bg-rose-500 text-white`;
     if (!checked && key === selected) return `${base} bg-brand text-on-brand`;
     return `${base} bg-subtle text-muted`;

@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import TopicTest from "@/components/quiz/TopicTest";
-import { DIFFICULTIES, getTopic, topics } from "@/data/topics";
+import { allTopics, DIFFICULTIES, getTopic } from "@/data/topics";
 import type { Difficulty } from "@/types/topic";
 
 // Static export: plik HTML dla każdej pary dział × poziom, innych adresów nie ma.
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return topics
+  return allTopics
     .filter((topic) => topic.content)
     .flatMap((topic) => DIFFICULTIES.map((d) => ({ topicId: topic.id, difficulty: d.id })));
 }

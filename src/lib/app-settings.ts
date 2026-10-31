@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
 import { DEFAULT_REMINDER, type ReminderSettings } from "@/lib/reminders";
+import type { Level } from "@/types/topic";
 
 // Ustawienia aplikacji i wygląd profilu – zapisane na urządzeniu (Preferences).
 // Zdjęcie profilowe trzymamy tu zawsze (działa bez rankingu); uczniowie w rankingu wgrywają je też do Supabase.
@@ -30,10 +31,12 @@ export interface AppSettings {
   reminder: ReminderSettings;
   /** Czy pokazaliśmy już na ekranie głównym propozycję włączenia przypomnienia (pytamy raz). */
   reminderAsked: boolean;
+  /** Poziom pokazywany na ekranie głównym i w „Zadaniach”, gdy uczeń zdaje obie matury (przełącznik – tylko na urządzeniu). */
+  activeLevel: Level;
 }
 
 const STORAGE_KEY = "settings.v1";
-const DEFAULTS: AppSettings = { name: "", avatar: null, avatarColor: "brand", haptics: true, sounds: true, confetti: true, reminder: DEFAULT_REMINDER, reminderAsked: false };
+const DEFAULTS: AppSettings = { name: "", avatar: null, avatarColor: "brand", haptics: true, sounds: true, confetti: true, reminder: DEFAULT_REMINDER, reminderAsked: false, activeLevel: "podstawowy" };
 
 let current: AppSettings = DEFAULTS;
 let loaded = false;

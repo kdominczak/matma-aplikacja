@@ -1,4 +1,4 @@
-import type { Difficulty, FormulaGroup, Target, Topic } from "@/types/topic";
+import type { Difficulty, FormulaGroup, Level, Target, Topic } from "@/types/topic";
 import type { OpenQuestion, QuizQuestion } from "@/types/quiz";
 import { PLACEMENT } from "@/data/placement";
 import { generatedTasks } from "@/data/templates";
@@ -27,6 +27,16 @@ import ukladyRownan from "./uklady-rownan";
 import wartoscBezwzgledna from "./wartosc-bezwzgledna";
 import wykresFunkcji from "./wykres-funkcji";
 import wzorySkroconegoMnozenia from "./wzory-skroconego-mnozenia";
+import rzGeometriaAnalityczna from "./rozszerzenie/geometria-analityczna";
+import rzGranice from "./rozszerzenie/granice";
+import rzKombinatoryka from "./rozszerzenie/kombinatoryka";
+import rzParametr from "./rozszerzenie/parametr";
+import rzPlanimetria from "./rozszerzenie/planimetria";
+import rzPochodna from "./rozszerzenie/pochodna";
+import rzPrawdopodobienstwo from "./rozszerzenie/prawdopodobienstwo";
+import rzStereometria from "./rozszerzenie/stereometria";
+import rzTrygonometria from "./rozszerzenie/trygonometria";
+import rzWielomiany from "./rozszerzenie/wielomiany";
 
 // Kolejność = kolejność w planie nauki. Priorytet, częstość, punkty i czas – z analizy arkuszy.
 /** Dokłada działom warianty zadań z szablonów parametrycznych. */
@@ -70,6 +80,40 @@ export const topics: Topic[] = withGenerated([
   { id: "optymalizacja", section: "XIII", lesson: "Lekcja 46", title: "Zadania optymalizacyjne", icon: "max", category: "Funkcje", target: 85, priority: "S", examShare: 100, points: 3, studyHours: 5, content: optymalizacja },
 ]);
 
+/**
+ * Działy rozszerzenia (matura rozszerzona, formuła 2023). Osobna lista: `topics` zostaje zakresem podstawowym
+ * (arkusze próbne, test na start, odznaki „fundamentów”), a rozszerzenie dochodzi tam, gdzie uczeń je wybrał
+ * (`topicsOfLevel`). Działy podstawy programowej – jak w „Zasadach oceniania” matury rozszerzonej (wymagania „R”).
+ * `target: 85` – poza grupą fundamentów; `points`/`examShare` – względne wagi w obrębie działu podstawy.
+ */
+export const extendedTopics: Topic[] = withGenerated([
+  { id: "rz-wielomiany", section: "III", level: "rozszerzony", lesson: "Rozszerzenie", title: "Wielomiany", icon: "W(x)", category: "Algebra", target: 85, priority: "S+", examShare: 100, points: 3, studyHours: 4, content: rzWielomiany },
+  { id: "rz-parametr", section: "III", level: "rozszerzony", lesson: "Rozszerzenie", title: "Wartość bezwzględna i równania z parametrem", icon: "m", category: "Algebra", target: 85, priority: "S+", examShare: 100, points: 3, studyHours: 5, content: rzParametr },
+  { id: "rz-granice", section: "VI", level: "rozszerzony", lesson: "Rozszerzenie", title: "Granice ciągów i szereg geometryczny", icon: "lim", category: "Algebra", target: 85, priority: "S", examShare: 70, points: 2, studyHours: 3, content: rzGranice },
+  { id: "rz-pochodna", section: "XIII", level: "rozszerzony", lesson: "Rozszerzenie", title: "Pochodna i optymalizacja", icon: "f′", category: "Funkcje", target: 85, priority: "S+", examShare: 100, points: 6, studyHours: 6, content: rzPochodna },
+  { id: "rz-trygonometria", section: "VII", level: "rozszerzony", lesson: "Rozszerzenie", title: "Trygonometria: wzory i równania", icon: "sin 2x", category: "Funkcje", target: 85, priority: "S+", examShare: 100, points: 5, studyHours: 5, content: rzTrygonometria },
+  { id: "rz-planimetria", section: "VIII", level: "rozszerzony", lesson: "Rozszerzenie", title: "Planimetria: twierdzenie sinusów i dowody", icon: "⊙", category: "Geometria", target: 85, priority: "S", examShare: 100, points: 5, studyHours: 6, content: rzPlanimetria },
+  { id: "rz-geometria-analityczna", section: "IX", level: "rozszerzony", lesson: "Rozszerzenie", title: "Geometria analityczna: okręgi i styczne", icon: "(x,y)", category: "Geometria", target: 85, priority: "S+", examShare: 100, points: 5, studyHours: 5, content: rzGeometriaAnalityczna },
+  { id: "rz-stereometria", section: "X", level: "rozszerzony", lesson: "Rozszerzenie", title: "Stereometria: kąty i przekroje", icon: "▱", category: "Geometria", target: 85, priority: "S", examShare: 100, points: 6, studyHours: 6, content: rzStereometria },
+  { id: "rz-kombinatoryka", section: "XI", level: "rozszerzony", lesson: "Rozszerzenie", title: "Kombinatoryka: symbol i dwumian Newtona", icon: "(ⁿₖ)", category: "Statystyka", target: 85, priority: "A", examShare: 70, points: 2, studyHours: 3, content: rzKombinatoryka },
+  { id: "rz-prawdopodobienstwo", section: "XII", level: "rozszerzony", lesson: "Rozszerzenie", title: "Prawdopodobieństwo warunkowe i całkowite", icon: "P(A|B)", category: "Statystyka", target: 85, priority: "S", examShare: 100, points: 3, studyHours: 3, content: rzPrawdopodobienstwo },
+]);
+
+/** Wszystkie działy (podstawa + rozszerzenie) – do wyszukiwania po id, kluczy odpowiedzi i stron działów. */
+export const allTopics: Topic[] = [...topics, ...extendedTopics];
+
+export function topicLevel(topic: Topic): Level {
+  return topic.level ?? "podstawowy";
+}
+
+/**
+ * Działy do nauki na danym poziomie: podstawa – zakres podstawowy; rozszerzenie – najpierw działy rozszerzenia,
+ * potem podstawa (arkusz rozszerzony sprawdza też wymagania podstawowe).
+ */
+export function topicsOfLevel(level: Level): Topic[] {
+  return level === "rozszerzony" ? [...extendedTopics, ...topics] : topics;
+}
+
 export const TARGETS: { value: Target; label: string; subtitle: string }[] = [
   { value: 30, label: "Na 30%", subtitle: "Fundamenty – zdana matura" },
   { value: 60, label: "Na 60%", subtitle: "Solidny wynik" },
@@ -91,7 +135,7 @@ export function getDifficulty(id: Difficulty) {
 }
 
 export function getTopic(id: string): Topic | undefined {
-  return topics.find((t) => t.id === id);
+  return allTopics.find((t) => t.id === id);
 }
 
 /** Działy potrzebne do danego celu (kumulatywnie: cel 60% obejmuje też działy na 30%). */
@@ -140,9 +184,9 @@ export function theoryChecks(topic: Topic): QuizQuestion[] {
 /** Wszystkie zadania zamknięte aplikacji: zadania działów, pytania przy teorii, zestawy z „Zadań” i test na start. */
 export function allQuestionRefs(): QuestionRef[] {
   return [
-    ...topics.flatMap((topic) => DIFFICULTIES.flatMap((d) => testQuestions(topic, d.id).map((question) => ({ question, topic, difficulty: d.id })))),
-    ...topics.flatMap((topic) => theoryChecks(topic).map((question) => ({ question, topic, difficulty: "podstawowy" as const }))),
-    ...topics.flatMap(practiceClosedRefs),
+    ...allTopics.flatMap((topic) => DIFFICULTIES.flatMap((d) => testQuestions(topic, d.id).map((question) => ({ question, topic, difficulty: d.id })))),
+    ...allTopics.flatMap((topic) => theoryChecks(topic).map((question) => ({ question, topic, difficulty: "podstawowy" as const }))),
+    ...allTopics.flatMap(practiceClosedRefs),
     ...placementQuestions(),
   ];
 }
@@ -194,11 +238,11 @@ let practiceIndex: Map<string, PracticeTask> | null = null;
 
 /** Zadanie z zakładki „Zadania” po id (np. do odtworzenia zamrożonego arkusza próbnego). */
 export function practiceTaskById(id: string): PracticeTask | undefined {
-  practiceIndex ??= new Map(topics.flatMap((topic) => practiceTasks(topic).map((task) => [task.id, task] as const)));
+  practiceIndex ??= new Map(allTopics.flatMap((topic) => practiceTasks(topic).map((task) => [task.id, task] as const)));
   return practiceIndex.get(id);
 }
 
 export function findTask(id: string): { topic: Topic; difficulty: Difficulty } | undefined {
-  taskIndex ??= new Map(topics.flatMap((topic) => practiceTasks(topic).map((task) => [task.id, { topic, difficulty: task.difficulty }] as const)));
+  taskIndex ??= new Map(allTopics.flatMap((topic) => practiceTasks(topic).map((task) => [task.id, { topic, difficulty: task.difficulty }] as const)));
   return taskIndex.get(id) ?? findQuestion(id);
 }

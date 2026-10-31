@@ -20,7 +20,7 @@ import { dayKey, isPassed, starsFor, testKey } from "@/lib/stats";
 import type { ExamAttempt } from "@/types/exam";
 import type { Progress } from "@/types/progress";
 import type { OptionKey, QuizAnswer, QuizResult } from "@/types/quiz";
-import type { Difficulty } from "@/types/topic";
+import type { Difficulty, Level } from "@/types/topic";
 
 // Obliczenia pomocnicze (seria, gwiazdki, poziomy…) – importowane razem z magazynem.
 export * from "@/lib/stats";
@@ -552,6 +552,13 @@ export function syncLearning(): Promise<void> {
   return syncing;
 }
 
-export async function setTarget(target: number) {
-  await update((progress) => ({ ...progress, target }));
+/** Cel ucznia (procent) na maturze danego poziomu – podstawowa: `target`, rozszerzona: `targetExtended`. */
+export async function setTarget(target: number, level: Level = "podstawowy") {
+  await update((progress) => (level === "rozszerzony" ? { ...progress, targetExtended: target } : { ...progress, target }));
+}
+
+/** Poziomy matury ucznia (co najmniej jeden). */
+export async function setLevels(levels: Level[]) {
+  if (levels.length === 0) return;
+  await update((progress) => ({ ...progress, levels }));
 }

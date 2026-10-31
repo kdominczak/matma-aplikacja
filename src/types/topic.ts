@@ -4,6 +4,9 @@ import type { OpenQuestion, Question } from "@/types/quiz";
 
 export type Difficulty = "podstawowy" | "sredni" | "zaawansowany";
 
+/** Poziom matury: dział z zakresu podstawowego albo rozszerzonego (rozszerzona sprawdza też podstawę). */
+export type Level = "podstawowy" | "rozszerzony";
+
 /** Wynik na maturze, do którego potrzebny jest dział (kumulatywnie). */
 export type Target = 30 | 60 | 85;
 
@@ -72,6 +75,8 @@ export interface Topic {
    */
   points: number;
   studyHours: number;
+  /** Poziom matury – brak = podstawowy. Działy rozszerzenia mają wagi z arkuszy rozszerzonych (src/lib/exam-weights.ts). */
+  level?: Level;
   /** Brak treści = lekcja (teoria, testy) „Wkrótce”. */
   content?: TopicContent;
   /** Zadania do zakładki „Zadania” dla działów bez pełnej lekcji. */

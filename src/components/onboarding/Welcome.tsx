@@ -10,7 +10,9 @@ import { hapticTap } from "@/lib/haptics";
 import { daysToMatura } from "@/lib/matura";
 import { plural } from "@/lib/plural";
 import GoalSlider from "@/components/progress/GoalSlider";
-import { setTarget, skipPlacement } from "@/lib/progress";
+import LevelPicker from "@/components/progress/LevelPicker";
+import { setLevels, setTarget, skipPlacement } from "@/lib/progress";
+import type { Level } from "@/types/topic";
 
 /**
  * Powitanie nowego ucznia – cztery krótkie ekrany (ok. minuty): obietnica, Plan na dziś, brudnopis, cel i start.
@@ -21,12 +23,16 @@ export default function Welcome() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [target, setTargetChoice] = useState(30);
+  const [levels, setLevelChoice] = useState<Level[]>(["podstawowy"]);
+  const [targetExtended, setTargetExtended] = useState(30);
   const [closing, setClosing] = useState(false);
   const last = STEPS - 1;
 
   async function save() {
     if (name.trim()) await saveAppSettings({ name: name.trim().slice(0, 30) });
+    await setLevels(levels);
     await setTarget(target);
+    if (levels.includes("rozszerzony")) await setTarget(targetExtended, "rozszerzony");
   }
 
   async function skipTest() {
@@ -74,7 +80,16 @@ export default function Welcome() {
           {step === 0 && <PromiseSlide name={name} onName={setName} />}
           {step === 1 && <PlanSlide />}
           {step === 2 && <ScratchSlide />}
-          {step === 3 && <TargetSlide target={target} onTarget={setTargetChoice} />}
+          {step === 3 && (
+            <TargetSlide
+              levels={levels}
+              onLevels={setLevelChoice}
+              target={target}
+              onTarget={setTargetChoice}
+              targetExtended={targetExtended}
+              onTargetExtended={setTargetExtended}
+            />
+          )}
         </div>
 
         <div className="flex flex-col gap-2 px-6 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
@@ -260,15 +275,36 @@ function ScratchSlide() {
 
 // ── 4. Cel i start ──
 
-function TargetSlide({ target, onTarget }: { target: number; onTarget: (target: number) => void }) {
+function TargetSlide(props: {
+  levels: Level[];
+  onLevels: (levels: Level[]) => void;
+  target: number;
+  onTarget: (target: number) => void;
+  targetExtended: number;
+  onTargetExtended: (target: number) => void;
+}) {
+  const both = props.levels.length > 1;
   return (
     <>
-      <Title eyebrow="Ostatni krok">Jaki wynik chcesz mieć?</Title>
+      <Title eyebrow="Ostatni krok">Którą maturę zdajesz i na ile?</Title>
       <p className="mt-2 text-sm text-muted">
         Z celu wyliczymy działy, które są Ci potrzebne. Test na start ({PLACEMENT.length} zadań) sprawdzi, co już umiesz.
       </p>
-      <div className="mt-5 rounded-2xl border border-line p-4">
-        <GoalSlider percent={target} onChange={onTarget} id="welcome-goal" debounceMs={0} />
+      <div className="mt-4">
+        <LevelPicker value={props.levels} onChange={props.onLevels} />
+      </div>
+      <div className="mt-4 flex flex-col gap-5 rounded-2xl border border-line p-4">
+        <GoalSlider percent={props.target} onChange={props.onTarget} id="welcome-goal" debounceMs={0} showLevel={both} />
+        {both && (
+          <GoalSlider
+            percent={props.targetExtended}
+            onChange={props.onTargetExtended}
+            id="welcome-goal-extended"
+            debounceMs={0}
+            level="rozszerzony"
+            showLevel
+          />
+        )}
       </div>
     </>
   );

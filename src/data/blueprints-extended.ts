@@ -1,0 +1,78 @@
+// WYGENEROWANE z „Zasad oceniania rozwiązań zadań” CKE (matura rozszerzona, formuła 2023, termin główny, maj) –
+// sama struktura arkusza: numer zadania, punkty, działy i kody wymagań. Bez treści zadań. Wszystkie zadania
+// na poziomie rozszerzonym są otwarte (rozwiązanie oceniane schematem). Kod z „R” to wymaganie z zakresu rozszerzonego.
+// Źródło: https://cke.gov.pl (pliki w polu `source`). Przy nowym arkuszu dopisz kolejny rok.
+import type { ExamBlueprint } from "@/types/blueprint";
+
+export const EXTENDED_BLUEPRINTS: ExamBlueprint[] = [
+  {
+    id: "matura-rozszerzona-2026",
+    year: 2026,
+    totalPoints: 50,
+    durationMin: 180,
+    current: true,
+    source: "MMAP-R0-100-2605-zasady.pdf",
+    slots: [
+      { number: "1", points: 2, format: "extended", sections: ["XI", "VI"], requirements: ["XI.R2", "VI.R1"] },
+      { number: "2", points: 3, format: "extended", sections: ["XII"], requirements: ["XII.1"] },
+      { number: "3", points: 3, format: "extended", sections: ["II"], requirements: ["II.R5"] },
+      { number: "4", points: 3, format: "extended", sections: ["VIII"], requirements: ["VIII.8", "VIII.11"] },
+      { number: "5", points: 4, format: "extended", sections: ["III"], requirements: ["III.R4"] },
+      { number: "6", points: 4, format: "extended", sections: ["VI"], requirements: ["VI.7"] },
+      { number: "7", points: 4, format: "extended", sections: ["VII"], requirements: ["VII.R6"] },
+      { number: "8", points: 4, format: "extended", sections: ["X"], requirements: ["X.R2"] },
+      { number: "9", points: 5, format: "extended", sections: ["IX"], requirements: ["IX.R3", "IX.R4"] },
+      { number: "10", points: 5, format: "extended", sections: ["III"], requirements: ["III.R5"] },
+      { number: "11", points: 6, format: "extended", sections: ["VIII"], requirements: ["VIII.R1"] },
+      { number: "12.1", points: 3, format: "extended", sections: ["VIII"], requirements: ["VIII.8"] },
+      { number: "12.2", points: 4, format: "extended", sections: ["XIII"], requirements: ["XIII.R4", "XIII.R5", "XIII.R6"] },
+    ],
+  },
+  {
+    id: "matura-rozszerzona-2025",
+    year: 2025,
+    totalPoints: 50,
+    durationMin: 180,
+    current: true,
+    source: "MMAP-R0-100-2505-zasady.pdf",
+    slots: [
+      { number: "1", points: 2, format: "extended", sections: ["V"], requirements: ["V.14"] },
+      { number: "2", points: 3, format: "extended", sections: ["II"], requirements: ["II.R5"] },
+      { number: "3", points: 3, format: "extended", sections: ["VII"], requirements: ["VII.R8"] },
+      { number: "4", points: 3, format: "extended", sections: ["XII"], requirements: ["XII.R1"] },
+      { number: "5", points: 4, format: "extended", sections: ["III"], requirements: ["III.R4"] },
+      { number: "6", points: 4, format: "extended", sections: ["VI"], requirements: ["VI.R2"] },
+      { number: "7", points: 4, format: "extended", sections: ["VIII"], requirements: ["VIII.11"] },
+      { number: "8", points: 5, format: "extended", sections: ["IX"], requirements: ["IX.R2", "IX.R3"] },
+      { number: "9", points: 5, format: "extended", sections: ["VII"], requirements: ["VII.R6"] },
+      { number: "10", points: 5, format: "extended", sections: ["X"], requirements: ["X.3", "X.5"] },
+      { number: "11", points: 6, format: "extended", sections: ["III"], requirements: ["III.R3", "III.R5"] },
+      { number: "12.1", points: 2, format: "extended", sections: ["X"], requirements: ["X.5"] },
+      { number: "12.2", points: 4, format: "extended", sections: ["XIII"], requirements: ["XIII.R4", "XIII.R5", "XIII.R6"] },
+    ],
+  },
+  {
+    id: "matura-rozszerzona-2024",
+    year: 2024,
+    totalPoints: 50,
+    durationMin: 180,
+    current: true,
+    source: "MMAP-R0-100-2405-zasady.pdf",
+    slots: [
+      { number: "1", points: 2, format: "extended", sections: ["V"], requirements: ["V.13"] },
+      { number: "2", points: 2, format: "extended", sections: ["XIII"], requirements: ["XIII.R1"] },
+      { number: "3", points: 3, format: "extended", sections: ["XII"], requirements: ["XII.R2"] },
+      { number: "4", points: 3, format: "extended", sections: ["XIII"], requirements: ["XIII.R2", "XIII.R3"] },
+      { number: "5", points: 3, format: "extended", sections: ["I"], requirements: ["I.9", "I.R1"] },
+      { number: "6", points: 3, format: "extended", sections: ["XI"], requirements: ["XI.R1"] },
+      { number: "7", points: 4, format: "extended", sections: ["VI"], requirements: ["VI.6"] },
+      { number: "8", points: 4, format: "extended", sections: ["VIII"], requirements: ["VIII.R3"] },
+      { number: "9", points: 4, format: "extended", sections: ["VIII"], requirements: ["VIII.7"] },
+      { number: "10", points: 5, format: "extended", sections: ["VII"], requirements: ["VII.R6"] },
+      { number: "11", points: 5, format: "extended", sections: ["IX"], requirements: ["IX.3", "IX.5", "IX.R1"] },
+      { number: "12", points: 6, format: "extended", sections: ["III"], requirements: ["III.R3", "III.R5"] },
+      { number: "13.1", points: 2, format: "extended", sections: ["X"], requirements: ["X.4"] },
+      { number: "13.2", points: 4, format: "extended", sections: ["XIII"], requirements: ["XIII.R3", "XIII.R4", "XIII.R5"] },
+    ],
+  },
+];

@@ -1,4 +1,4 @@
-import { allQuestionRefs, DIFFICULTIES, findQuestion, formulaGroup, placementQuestions, topics, type QuestionRef } from "@/data/topics";
+import { allQuestionRefs, DIFFICULTIES, findQuestion, formulaGroup, placementQuestions, topicsOfLevel, type QuestionRef } from "@/data/topics";
 import { seededRandom, shuffled } from "@/lib/random";
 import { topicExamPoints } from "@/lib/exam-weights";
 import { topicsForGoal } from "@/lib/goal";
@@ -7,7 +7,8 @@ import { dueReviews } from "@/lib/reviews";
 import { dayKey, parseDay, testKey } from "@/lib/stats";
 import type { Progress } from "@/types/progress";
 import type { QuizQuestion } from "@/types/quiz";
-import type { Difficulty, FormulaGroup, Topic } from "@/types/topic";
+import { levelTarget } from "@/lib/level";
+import type { Difficulty, FormulaGroup, Level, Topic } from "@/types/topic";
 
 export { topicMastery };
 
@@ -96,12 +97,13 @@ function hasQuestions(topic: Topic) {
  * Ranking działów do nauki: ile punktów da się jeszcze zdobyć (waga × brak opanowania).
  * Dział ćwiczony dziś schodzi niżej (kolejna runda = inny dział), zaniedbany od tygodnia – wyżej.
  */
-export function rankTopics(progress: Progress, today = dayKey()): { topic: Topic; score: number }[] {
-  const inTarget = topicsForGoal(progress.target).filter(hasQuestions);
-  const candidates = inTarget.some((t) => topicMastery(progress, t) < 1) ? inTarget : topics.filter(hasQuestions);
+export function rankTopics(progress: Progress, today = dayKey(), level: Level = "podstawowy"): { topic: Topic; score: number }[] {
+  const inTarget = topicsForGoal(levelTarget(progress, level), level).filter(hasQuestions);
+  const all = topicsOfLevel(level).filter((t) => hasQuestions(t) && topicExamPoints(t, level) > 0);
+  const candidates = inTarget.some((t) => topicMastery(progress, t) < 1) ? inTarget : all;
   return candidates
     .map((topic) => {
-      const examPoints = topicExamPoints(topic);
+      const examPoints = topicExamPoints(topic, level);
       let score = examPoints * (1 - topicMastery(progress, topic) * 0.9);
       const last = lastPracticed(progress, topic);
       if (last === today) score *= 0.4;
@@ -127,7 +129,8 @@ function levelRefs(topic: Topic, from: Difficulty): QuestionRef[] {
   return levels.flatMap((level) => questionPool().get(testKey(topic.id, level)) ?? []);
 }
 
-export function buildPlan(progress: Progress, today = dayKey()): DailyPlan {
+/** Plan na dziś pod cel na maturze danego poziomu (powtórki – ze wszystkich działów, jak dotąd). */
+export function buildPlan(progress: Progress, today = dayKey(), level: Level = "podstawowy"): DailyPlan {
   const round = progress.planDays[today] ?? 0;
   const random = seededRandom(`${today}/${round}`);
   const used = new Set<string>();
@@ -141,7 +144,7 @@ export function buildPlan(progress: Progress, today = dayKey()): DailyPlan {
     reviews.push({ question: { ...ref.question, label: `Powtórka · ${ref.topic.title}` }, topic: ref.topic, difficulty: ref.difficulty, kind: "review" });
   }
 
-  const ranked = rankTopics(progress, today);
+  const ranked = rankTopics(progress, today, level);
   const focusTopic = ranked[0]?.topic;
   const mixTopic = ranked.find((r) => r.topic !== focusTopic)?.topic ?? null;
   const items = [...reviews];
@@ -159,7 +162,7 @@ export function buildPlan(progress: Progress, today = dayKey()): DailyPlan {
     focus = {
       topic: focusTopic,
       difficulty,
-      examPoints: Math.round(topicExamPoints(focusTopic) * 10) / 10,
+      examPoints: Math.round(topicExamPoints(focusTopic, level) * 10) / 10,
       accuracy: answered > 0 ? correct / answered : null,
       answered,
       correct,

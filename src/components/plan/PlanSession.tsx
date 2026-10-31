@@ -7,6 +7,8 @@ import Icon from "@/components/ui/Icon";
 import { QuizSkeleton } from "@/components/ui/Skeleton";
 import { getDifficulty } from "@/data/topics";
 import { AI_ENABLED } from "@/lib/ai-config";
+import { useAppSettings } from "@/lib/app-settings";
+import { activeLevel } from "@/lib/level";
 import { celebrate } from "@/lib/celebrate";
 import { buildPlan, planStreak, type DailyPlan } from "@/lib/planner";
 import { readProgress, savePlanResult, useProgress } from "@/lib/progress";
@@ -14,6 +16,7 @@ import { plural } from "@/lib/plural";
 import { reviewsDueOn } from "@/lib/reviews";
 import { dayKey, shiftDays } from "@/lib/stats";
 import type { Progress } from "@/types/progress";
+import type { Level } from "@/types/topic";
 
 /** Plan bieżącej sesji i start kolejnej rundy – dla ekranu wyniku (QuizScreen przyjmuje komponent, nie dane). */
 const PlanContext = createContext<{ plan: DailyPlan; nextRound: () => void } | null>(null);
@@ -21,18 +24,19 @@ const PlanContext = createContext<{ plan: DailyPlan; nextRound: () => void } | n
 /** Plan na dziś – codzienna sesja: powtórki, dział dnia i przeplatanie (src/lib/planner.ts). */
 export default function PlanSession() {
   const progress = useProgress();
-  // Czekamy na postęp – plan liczymy z danych ucznia, w przeglądarce.
-  if (!progress) return <QuizSkeleton />;
-  return <PlanRunner initial={progress} />;
+  const settings = useAppSettings();
+  // Czekamy na postęp i ustawienia – plan liczymy z danych ucznia dla poziomu z przełącznika (jak na ekranie głównym).
+  if (!progress || !settings) return <QuizSkeleton />;
+  return <PlanRunner initial={progress} level={activeLevel(progress, settings)} />;
 }
 
-function PlanRunner({ initial }: { initial: Progress }) {
+function PlanRunner({ initial, level }: { initial: Progress; level: Level }) {
   // Plan zamrożony na czas sesji – zapis wyniku zmienia postęp, ale nie może podmienić zadań w trakcie.
-  const [plan, setPlan] = useState(() => buildPlan(initial));
+  const [plan, setPlan] = useState(() => buildPlan(initial, dayKey(), level));
   const [session, setSession] = useState(0);
 
   async function nextRound() {
-    setPlan(buildPlan(await readProgress()));
+    setPlan(buildPlan(await readProgress(), dayKey(), level));
     setSession((s) => s + 1);
   }
 

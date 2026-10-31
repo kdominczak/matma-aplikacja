@@ -2,7 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 import Icon from "@/components/ui/Icon";
-import { MATURA_DATE } from "@/lib/matura";
+import { useAppSettings } from "@/lib/app-settings";
+import { activeLevel } from "@/lib/level";
+import { MATURA_DATES } from "@/lib/matura";
+import { useProgress } from "@/lib/progress";
 import { plural } from "@/lib/plural";
 
 
@@ -35,10 +38,11 @@ export function useNow(): number | null {
   return useSyncExternalStore(subscribe, () => now, () => null);
 }
 
-/** Pasek „Do matury z matematyki zostało: X dni, Y godzin”. */
+/** Pasek „Do matury z matematyki zostało: X dni, Y godzin” – dla poziomu z przełącznika (rozszerzona jest kilka dni później). */
 export default function Countdown() {
   const current = useNow();
-  const left = current === null ? null : MATURA_DATE.getTime() - current;
+  const level = activeLevel(useProgress(), useAppSettings());
+  const left = current === null ? null : MATURA_DATES[level].getTime() - current;
 
   const days = left === null ? 0 : Math.floor(left / 86_400_000);
   const hours = left === null ? 0 : Math.floor((left % 86_400_000) / 3_600_000);
@@ -54,7 +58,7 @@ export default function Countdown() {
             {left !== null && left <= 0 ? "Matura z matematyki już za Tobą – trzymamy kciuki za wynik!" : (
               <>
                 <span className="sm:hidden">Do matury z matmy:</span>
-                <span className="hidden sm:inline">Do matury z matematyki zostało:</span>
+                <span className="hidden sm:inline">Do matury {level === "rozszerzony" ? "rozszerzonej " : ""}z matematyki zostało:</span>
               </>
             )}
           </span>

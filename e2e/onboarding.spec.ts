@@ -20,7 +20,7 @@ test("nowy uczeń przechodzi powitanie i trafia na plan", async ({ page }) => {
   for (const [i, title] of [
     [2, "Plan na dziś myśli za Ciebie"],
     [3, "Brudnopis jak kartka na maturze"],
-    [4, "Jaki wynik chcesz mieć?"],
+    [4, "Którą maturę zdajesz i na ile?"],
   ] as const) {
     await dialog.getByRole("button", { name: "Dalej" }).click();
     await expect(dialog.getByRole("heading")).toHaveText(title);
@@ -50,7 +50,7 @@ test("„Pomiń” przeskakuje do wyboru celu, a test na start otwiera /start", 
   await page.goto("/");
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Pomiń", exact: true }).click();
-  await expect(dialog.getByRole("heading")).toHaveText("Jaki wynik chcesz mieć?");
+  await expect(dialog.getByRole("heading")).toHaveText("Którą maturę zdajesz i na ile?");
   await dialog.getByRole("link", { name: /Test na start/ }).click();
   await expect(page).toHaveURL(/\/start\/?$/);
 });

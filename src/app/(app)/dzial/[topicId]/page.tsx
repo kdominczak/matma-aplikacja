@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import TopicView from "@/components/topic/TopicView";
-import { getTopic, topics } from "@/data/topics";
+import { allTopics, getTopic } from "@/data/topics";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return topics.filter((topic) => topic.content).map((topic) => ({ topicId: topic.id }));
+  return allTopics.filter((topic) => topic.content).map((topic) => ({ topicId: topic.id }));
 }
 
 export default async function TopicPage({ params }: PageProps<"/dzial/[topicId]">) {
