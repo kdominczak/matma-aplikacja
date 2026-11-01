@@ -45,3 +45,6 @@ next-env.d.ts
 /screenshots/
 /test-results/
 /playwright-report/
+
+# Supabase CLI – lokalny stan (powiązany projekt, wersje); różny na każdym komputerze
+supabase/.temp/
