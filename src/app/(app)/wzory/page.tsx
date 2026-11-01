@@ -17,7 +17,7 @@ export default function FormulasPage() {
           <a
             key={topic.id}
             href={`#${topic.id}`}
-            className="flex min-h-10 shrink-0 items-center rounded-full border border-line bg-card px-3 py-1.5 text-sm font-bold text-muted transition-colors hover:border-brand/40 hover:text-brand"
+            className="flex min-h-10 shrink-0 items-center rounded-full border border-line bg-card px-3 py-1.5 text-sm font-bold text-muted transition-colors hover:border-brand/60 dark:hover:border-brand/40 hover:text-brand"
           >
             {topic.title}
           </a>
@@ -30,7 +30,7 @@ export default function FormulasPage() {
             <div className="mb-3 flex items-center gap-3">
               <CategoryTile topic={topic} />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-faint">{topic.lesson}</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-muted">{topic.lesson}</p>
                 <h2 className="text-lg font-extrabold text-ink">{topic.title}</h2>
               </div>
             </div>

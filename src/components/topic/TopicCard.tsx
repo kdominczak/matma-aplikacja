@@ -19,7 +19,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
     <>
       <CategoryTile topic={topic} muted={!ready && !tasksOnly} />
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-faint">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
           {topic.lesson} · Priorytet {topic.priority}
         </p>
         <p className={`leading-snug font-extrabold ${ready ? "text-ink" : "text-muted"}`}>{topic.title}</p>
@@ -30,7 +30,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${tasks.total ? (tasks.solved / tasks.total) * 100 : 0}%` }} />
               </div>
             )}
-            <span className="text-xs font-semibold text-faint">
+            <span className="text-xs font-semibold text-muted">
               ~{topic.studyHours} h · {topic.examShare}% matur
             </span>
           </div>
@@ -58,7 +58,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
     <Link
       href={ready ? `/dzial/${topic.id}` : `/zadania/${topic.id}`}
       onClick={() => hapticTap()}
-      className={`${className} shadow-card card-hover hover:border-brand/40`}
+      className={`${className} shadow-card card-hover hover:border-brand/60 dark:hover:border-brand/40`}
     >
       {body}
     </Link>

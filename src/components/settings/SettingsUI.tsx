@@ -11,7 +11,7 @@ const TONES: Record<Tone, string> = {
   brand: "bg-brand-soft text-brand",
   violet: "bg-violet-500/15 text-violet-600 dark:text-violet-300",
   emerald: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
-  amber: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+  amber: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
   rose: "bg-rose-500/15 text-rose-600 dark:text-rose-300",
   sky: "bg-sky-500/15 text-sky-600 dark:text-sky-300",
   slate: "bg-subtle text-muted",
@@ -31,7 +31,7 @@ export function SettingsGroup({ id, title, hint, children }: { id?: string; titl
   return (
     <section id={id} className="flex scroll-mt-24 flex-col gap-2" aria-labelledby={id ? `${id}-title` : undefined}>
       <div className="px-1">
-        <h2 id={id ? `${id}-title` : undefined} className="text-xs font-extrabold uppercase tracking-widest text-faint">
+        <h2 id={id ? `${id}-title` : undefined} className="text-xs font-extrabold uppercase tracking-widest text-muted">
           {title}
         </h2>
         {hint && <p className="text-sm text-muted">{hint}</p>}

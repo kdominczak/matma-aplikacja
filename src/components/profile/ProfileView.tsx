@@ -116,7 +116,7 @@ function PremiumStrip() {
   const active = isPremium(premium);
   if (!AI_ENABLED || premium.status === "unavailable") return null;
   return (
-    <Link href="/premium" className="card card-hover flex items-center gap-4 p-4 hover:border-brand/40">
+    <Link href="/premium" className="card card-hover flex items-center gap-4 p-4 hover:border-brand/60 dark:hover:border-brand/40">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-on-brand shadow-float">
         <Icon name="sparkles" className="h-5 w-5" />
       </span>
@@ -147,7 +147,7 @@ function QuickLinks({ progress }: { progress: Progress }) {
         <Link
           key={link.href}
           href={link.href}
-          className="flex min-h-11 flex-col items-center gap-1.5 rounded-3xl border border-line bg-card p-3 text-center shadow-card transition-colors hover:border-brand/40"
+          className="flex min-h-11 flex-col items-center gap-1.5 rounded-3xl border border-line bg-card p-3 text-center shadow-card transition-colors hover:border-brand/60 dark:hover:border-brand/40"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
             <Icon name={link.icon} className="h-5 w-5" />
@@ -478,7 +478,7 @@ function AccuracyCard({ progress }: { progress: Progress }) {
         </svg>
         <span className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-extrabold tracking-tight text-ink tabular-nums">{answered > 0 ? `${accuracy}%` : "–"}</span>
-          <span className="text-[11px] font-bold text-faint">skuteczność</span>
+          <span className="text-[11px] font-bold text-muted">skuteczność</span>
         </span>
       </div>
       <div className="min-w-0">
@@ -523,7 +523,7 @@ function Tile({ icon, tone, value, label, note, href }: { icon: IconName; tone: 
   return (
     <Link
       href={href}
-      className="card group flex min-w-0 flex-col gap-2 p-4 card-hover hover:border-brand/40 active:scale-[0.98]"
+      className="card group flex min-w-0 flex-col gap-2 p-4 card-hover hover:border-brand/60 dark:hover:border-brand/40 active:scale-[0.98]"
     >
       <span className="flex items-center justify-between">
         <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}>
@@ -534,7 +534,7 @@ function Tile({ icon, tone, value, label, note, href }: { icon: IconName; tone: 
       <span>
         <span className="block text-3xl font-extrabold tracking-tight text-ink tabular-nums">{value}</span>
         <span className="line-clamp-2 block text-sm leading-snug font-bold text-body">{label}</span>
-        <span className="block truncate text-xs text-faint">{note}</span>
+        <span className="block truncate text-xs text-muted">{note}</span>
       </span>
     </Link>
   );
@@ -612,7 +612,7 @@ function MasteryList({ progress }: { progress: Progress }) {
                   <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-subtle">
                     <span className={`bar-grow block h-full rounded-full ${tone}`} style={{ width: `${Math.max(mastery, 3)}%` }} />
                   </span>
-                  <span className="mt-1.5 flex items-center gap-2 text-xs text-faint">
+                  <span className="mt-1.5 flex items-center gap-2 text-xs text-muted">
                     {levels.map(({ level, stat }) => {
                       const ratio = stat && stat.answered > 0 ? stat.correct / stat.answered : null;
                       const dot = ratio === null ? "bg-line" : ratio >= 0.8 ? "bg-emerald-500" : ratio >= 0.5 ? "bg-amber-400" : "bg-rose-500";
@@ -660,14 +660,14 @@ function SecureAccountNudge() {
       href="/ustawienia#konto"
       className="flex items-center gap-3 rounded-3xl border border-amber-500/30 bg-amber-500/10 p-4 card-hover hover:border-amber-500/60"
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-700 dark:text-amber-400">
         <Icon name="lock" className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block font-extrabold text-ink">Zabezpiecz swój postęp</span>
         <span className="block text-sm text-muted">Bez konta odznaki i Pudełko porażek znikną przy zmianie telefonu. Zajmie to minutę.</span>
       </span>
-      <Icon name="arrow" className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+      <Icon name="arrow" className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
     </Link>
   );
 }

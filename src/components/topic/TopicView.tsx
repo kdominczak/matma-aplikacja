@@ -193,7 +193,7 @@ function endCheck(topic: Topic): QuizQuestion[] {
 function TaskSummary({ topic, progress, onOpen }: { topic: Topic; progress: Progress | null; onOpen: () => void }) {
   const { total, solved } = topicTaskProgress(topic, progress);
   return (
-    <button onClick={onOpen} className="card hidden flex-col gap-3 p-5 text-left card-hover hover:border-brand/40 lg:flex">
+    <button onClick={onOpen} className="card hidden flex-col gap-3 p-5 text-left card-hover hover:border-brand/60 dark:hover:border-brand/40 lg:flex">
       <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Zadania z działu</p>
       <p className="text-2xl font-extrabold text-ink tabular-nums">
         {solved}/{total}
@@ -235,7 +235,7 @@ function NextStep({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
+      className="flex items-center justify-center gap-2 rounded-2xl bg-cta py-4 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark sm:max-w-xs"
     >
       {label} <Icon name="arrow" className="h-4 w-4" />
     </button>
@@ -287,7 +287,7 @@ function TopicTasks({ topic, progress }: { topic: Topic; progress: Progress | nu
         <Link
           href={`/zadania/${topic.id}`}
           onClick={() => hapticTap()}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-cta font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark"
         >
           {solved === 0 ? "Rozwiąż zadania" : "Rozwiązuj dalej"} <Icon name="arrow" className="h-4 w-4" />
         </Link>

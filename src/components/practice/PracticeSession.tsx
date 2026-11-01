@@ -45,7 +45,7 @@ function status(record: PracticeRecord | undefined) {
 const PILL: Record<ReturnType<typeof status>, string> = {
   new: "bg-subtle text-muted",
   solved: "bg-emerald-500 text-white",
-  partial: "bg-amber-400 text-white",
+  partial: "bg-amber-400 text-amber-950",
   wrong: "bg-rose-500 text-white",
 };
 
@@ -147,7 +147,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
             </div>
             <button
               onClick={() => setPanel("formulas")}
-              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/60 dark:hover:border-brand/40"
             >
               <Icon name="book" className="h-4 w-4" />
               Wzory
@@ -194,7 +194,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold uppercase tracking-wide">
-            <span className="text-faint">Zadanie {index + 1}</span>
+            <span className="text-muted">Zadanie {index + 1}</span>
             <span
               className={`rounded-full px-2.5 py-1 ${
                 task.kind === "closed" ? "bg-brand-soft text-brand" : "bg-violet-500/15 text-violet-600 dark:text-violet-300"
@@ -224,7 +224,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
                 {state.hints < hints.length && (
                   <button
                     onClick={() => patch({ hints: state.hints + 1 })}
-                    className="flex min-h-11 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 dark:text-amber-400"
+                    className="flex min-h-11 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-700 dark:text-amber-400"
                   >
                     <Icon name="bulb" className="h-4 w-4" />
                     Podpowiedź {state.hints + 1}/{hints.length}
@@ -234,7 +234,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
                   <ol className="mt-3 flex flex-col gap-2">
                     {hints.slice(0, state.hints).map((hint, i) => (
                       <li key={i} className="flex gap-2.5 rounded-2xl bg-amber-500/10 p-3 text-sm text-amber-950 dark:text-amber-100">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-extrabold text-white">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-extrabold text-amber-950">
                           {i + 1}
                         </span>
                         <MathText text={hint} />

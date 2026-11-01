@@ -122,7 +122,7 @@ function TopBar({ active }: { active: string }) {
           aria-label="Twój profil"
           aria-current={active === "/profil" ? "page" : undefined}
           className={`flex items-center gap-2.5 rounded-full border bg-card p-1 transition-colors sm:pr-4 ${
-            active === "/profil" ? "border-brand ring-2 ring-brand/30" : "border-line hover:border-brand/40"
+            active === "/profil" ? "border-brand ring-2 ring-brand/30" : "border-line hover:border-brand/60 dark:hover:border-brand/40"
           }`}
         >
           <ProfileAvatar size="h-9 w-9 text-sm" />
@@ -242,7 +242,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   href={item.href}
                   aria-current={tab === item.href ? "page" : undefined}
                   className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-bold transition-colors sm:text-xs ${
-                    tab === item.href ? "text-brand" : "text-faint"
+                    tab === item.href ? "text-brand" : "text-muted"
                   }`}
                 >
                   <Icon name={item.icon} className="h-6 w-6" />

@@ -32,7 +32,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
     if (!checked) {
       return key === selected
         ? `${base} border-brand bg-brand-soft text-brand shadow-card`
-        : `${base} border-line bg-card text-ink hover:border-brand/40 active:scale-[0.99]`;
+        : `${base} border-line bg-card text-ink hover:border-brand/60 dark:hover:border-brand/40 active:scale-[0.99]`;
     }
     if (key === question.correct) return `${base} border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`;
     if (key === selected) return `${base} animate-shake border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300`;
@@ -69,7 +69,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
         <button
           onClick={onCheck}
           disabled={!selected}
-          className="rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+          className="rounded-2xl bg-cta py-3.5 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
         >
           Sprawdź odpowiedź
         </button>
@@ -103,7 +103,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
       )}
 
       {checked && onNext && (
-        <button onClick={onNext} className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3.5 font-bold text-brand hover:border-brand/40">
+        <button onClick={onNext} className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3.5 font-bold text-brand hover:border-brand/60 dark:hover:border-brand/40">
           Następne zadanie <Icon name="arrow" className="h-4 w-4" />
         </button>
       )}

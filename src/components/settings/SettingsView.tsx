@@ -58,7 +58,7 @@ export default function SettingsView() {
           <a
             key={s.id}
             href={`#${s.id}`}
-            className="shrink-0 rounded-full border border-line bg-card px-3.5 py-2 text-sm font-bold text-muted transition-colors hover:border-brand/40 hover:text-ink active:scale-[0.97]"
+            className="shrink-0 rounded-full border border-line bg-card px-3.5 py-2 text-sm font-bold text-muted transition-colors hover:border-brand/60 dark:hover:border-brand/40 hover:text-ink active:scale-[0.97]"
           >
             {s.label}
           </a>
@@ -110,7 +110,7 @@ export default function SettingsView() {
 
       <DangerZone progress={progress} />
 
-      <footer className="pb-4 text-center text-xs text-faint">
+      <footer className="pb-4 text-center text-xs text-muted">
         Matma – codzienna nauka do matury z matematyki. Aplikacja nie jest powiązana z Centralną Komisją Egzaminacyjną.
       </footer>
     </Page>
@@ -382,7 +382,7 @@ function AccountId({ id }: { id: string }) {
   return (
     <div className="mt-3 flex items-center gap-2 rounded-2xl bg-card px-3 py-2">
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-faint">ID konta (do zgłoszeń mailowych)</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-muted">ID konta (do zgłoszeń mailowych)</p>
         <p className="truncate font-mono text-xs text-body select-all">{id}</p>
       </div>
       <button onClick={() => void copy()} className="min-h-11 shrink-0 px-2 text-sm font-bold text-brand">

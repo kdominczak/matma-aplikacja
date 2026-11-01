@@ -24,7 +24,7 @@ type Filter = "all" | "wrong" | "skipped";
 
 const STATUS = {
   correct: { icon: "checkCircle", label: "Dobrze", style: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
-  partial: { icon: "check", label: "Częściowo", style: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
+  partial: { icon: "check", label: "Częściowo", style: "bg-amber-500/15 text-amber-700 dark:text-amber-400" },
   wrong: { icon: "close", label: "Źle", style: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
   skipped: { icon: "more", label: "Bez odpowiedzi", style: "bg-subtle text-muted" },
 } as const;
@@ -222,7 +222,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                             </p>
                           )}
                           <div>
-                            <p className="mb-2 text-xs font-extrabold uppercase tracking-widest text-faint">Schemat oceniania</p>
+                            <p className="mb-2 text-xs font-extrabold uppercase tracking-widest text-muted">Schemat oceniania</p>
                             <ol className="flex flex-col gap-2">
                               {task.task.solution.map((step, i) => {
                                 const awarded = result.assessment?.steps[i];
@@ -258,7 +258,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={onRetry}
-            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-cta font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark"
           >
             <Icon name="refresh" className="h-4 w-4" /> Rozwiąż ponownie
           </button>
@@ -267,7 +267,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
           </Link>
         </div>
 
-        <div className="flex flex-col gap-1 text-center text-xs text-faint">
+        <div className="flex flex-col gap-1 text-center text-xs text-muted">
           <p>{examSource(exam)}.</p>
           <CkeNotice />
         </div>

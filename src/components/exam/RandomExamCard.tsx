@@ -72,7 +72,7 @@ export default function RandomExamCard() {
         <button
           onClick={() => void draw()}
           disabled={busy}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-brand px-6 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:opacity-60"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-cta px-6 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark disabled:opacity-60"
         >
           <Icon name="refresh" className="h-4 w-4" />
           Losuj arkusz

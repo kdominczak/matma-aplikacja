@@ -44,7 +44,7 @@ export function ThemeSwitcher({ preview = false }: { preview?: boolean }) {
               aria-checked={selected}
               onClick={() => setTheme(option.value)}
               className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-2 text-sm font-bold transition-all active:scale-[0.97] ${
-                selected ? "border-brand bg-brand-soft text-brand" : "border-line text-muted hover:border-brand/40 hover:text-ink"
+                selected ? "border-brand bg-brand-soft text-brand" : "border-line text-muted hover:border-brand/60 dark:hover:border-brand/40 hover:text-ink"
               }`}
             >
               <ThemePreview value={option.value} />

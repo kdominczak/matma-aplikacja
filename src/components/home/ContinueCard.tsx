@@ -74,13 +74,13 @@ export default function ContinueCard({ progress }: { progress: Progress | null }
     <Link
       href={resume.href}
       onClick={() => hapticTap()}
-      className="card group flex items-center gap-4 p-4 card-hover hover:border-brand/40 active:scale-[0.99]"
+      className="card group flex items-center gap-4 p-4 card-hover hover:border-brand/60 dark:hover:border-brand/40 active:scale-[0.99]"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
         <Icon name={exam ? "file" : "tasks"} className="h-6 w-6" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-bold uppercase tracking-wide text-faint">Wróć do · {resume.kicker}</span>
+        <span className="block text-[11px] font-bold uppercase tracking-wide text-muted">Wróć do · {resume.kicker}</span>
         <span className="block truncate font-extrabold text-ink">{resume.title}</span>
         <span className="block truncate text-sm text-muted">{resume.detail}</span>
       </span>

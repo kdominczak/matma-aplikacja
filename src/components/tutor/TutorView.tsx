@@ -71,7 +71,7 @@ function AiQuotaLine() {
   if (premium.status !== "ready") return null;
   const left = Math.max(0, premium.aiLimit - premium.aiUsed);
   return (
-    <p className="-mt-3 text-center text-xs text-faint">
+    <p className="-mt-3 text-center text-xs text-muted">
       {isPremium(premium) ? `Premium – do ${AI_PREMIUM_DAILY_LIMIT} wiadomości dziennie` : `Zostało ${left} z ${premium.aiLimit} wiadomości na dziś`} ·{" "}
       <Link href="/premium" className="font-bold underline">
         {isPremium(premium) ? "szczegóły" : "więcej z Premium"}
@@ -219,7 +219,7 @@ function Chat() {
         />
       ) : (
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-widest text-faint">Rozmowa</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted">Rozmowa</p>
           <button onClick={reset} className="flex items-center gap-1.5 text-sm font-bold text-muted hover:text-ink">
             <Icon name="refresh" className="h-4 w-4" />
             Nowa rozmowa
@@ -396,7 +396,7 @@ function Chat() {
           )}
         </div>
       </form>
-      <p className="-mt-2 text-center text-xs text-faint">
+      <p className="-mt-2 text-center text-xs text-muted">
         Korepetytor może się pomylić – sprawdzaj obliczenia. Zdjęcia czyta model {VISION_MODEL_LABEL} (do {MAX_IMAGES} na wiadomość).
       </p>
     </div>
@@ -439,7 +439,7 @@ function StartPanel({
         <button
           onClick={onFiles}
           disabled={busy}
-          className="card card-hover flex min-h-24 flex-col items-start justify-between gap-2 p-4 text-left hover:border-brand/40 disabled:opacity-60"
+          className="card card-hover flex min-h-24 flex-col items-start justify-between gap-2 p-4 text-left hover:border-brand/60 dark:hover:border-brand/40 disabled:opacity-60"
         >
           <Icon name="image" className="h-6 w-6 text-brand" />
           <span>
@@ -451,12 +451,12 @@ function StartPanel({
 
       {suggestions.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-faint">Twoje zadania</p>
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Twoje zadania</p>
           {suggestions.map((s) => (
             <button
               key={s.id}
               onClick={() => onSuggestion(s)}
-              className="card card-hover flex items-center gap-3 p-4 text-left hover:border-brand/40"
+              className="card card-hover flex items-center gap-3 p-4 text-left hover:border-brand/60 dark:hover:border-brand/40"
             >
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-bold text-brand">{s.source}</span>

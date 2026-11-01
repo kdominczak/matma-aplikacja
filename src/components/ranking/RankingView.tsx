@@ -68,7 +68,7 @@ export default function RankingView() {
           </ErrorBoundary>
           <aside className="flex flex-col gap-4 lg:sticky lg:top-10">
             {ranking.status === "guest" ? <JoinCard /> : <MyCard profile={ranking.profile} />}
-            <p className="px-1 text-xs text-faint">
+            <p className="px-1 text-xs text-muted">
               Ranking tygodniowy startuje od nowa w każdy poniedziałek o północy. W rankingu widać tylko nick, zdjęcie, liczbę zadań i serię –
               nie używaj imienia i nazwiska.
             </p>
@@ -244,20 +244,20 @@ function Podium({ rows }: { rows: LeaderboardRow[] }) {
 function Row({ row }: { row: LeaderboardRow }) {
   return (
     <div className={`flex items-center gap-3 border-t border-line px-4 py-3 first:border-t-0 ${row.is_me ? "bg-brand-soft" : ""}`}>
-      <span className="w-8 shrink-0 text-center text-sm font-extrabold text-faint">{row.rank}</span>
+      <span className="w-8 shrink-0 text-center text-sm font-extrabold text-muted">{row.rank}</span>
       <RowAvatar row={row} className="h-9 w-9 text-sm" fallback="bg-subtle text-body" />
       <p className={`min-w-0 flex-1 truncate font-bold ${row.is_me ? "text-brand" : "text-ink"}`}>
         {row.nick}
         {row.is_me && <span className="ml-1.5 text-xs font-extrabold uppercase">Ty</span>}
       </p>
       {row.streak > 0 && (
-        <span className="flex items-center gap-0.5 text-xs font-bold text-orange-500" title="Seria dni">
+        <span className="flex items-center gap-0.5 text-xs font-bold text-orange-700 dark:text-orange-400" title="Seria dni">
           <Icon name="flame" className="h-3.5 w-3.5" />
           {row.streak}
         </span>
       )}
       <span className="w-24 shrink-0 text-right text-sm font-extrabold text-ink tabular-nums">
-        {row.solved} <span className="text-xs font-semibold text-faint">{plural(row.solved)}</span>
+        {row.solved} <span className="text-xs font-semibold text-muted">{plural(row.solved)}</span>
       </span>
     </div>
   );
@@ -338,7 +338,7 @@ function MyCard({ profile }: { profile: RankingProfile }) {
 
   return (
     <section className="card p-5">
-      <p className="text-xs font-extrabold uppercase tracking-widest text-faint">Twój profil</p>
+      <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Twój profil</p>
       {editing ? (
         <form
           onSubmit={(e) => {
@@ -411,7 +411,7 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-2xl bg-subtle py-2">
       <p className="text-lg font-extrabold text-ink tabular-nums">{value}</p>
-      <p className="text-[11px] font-bold uppercase text-faint">{label}</p>
+      <p className="text-[11px] font-bold uppercase text-muted">{label}</p>
     </div>
   );
 }

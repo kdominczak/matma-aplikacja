@@ -17,12 +17,12 @@ export default function NextBadge({ progress, achievement, card = false }: { pro
     <Link
       href="/odznaki"
       className={`group flex items-center gap-3 transition-colors active:scale-[0.99] ${
-        card ? "card p-4 card-hover hover:border-brand/40" : "rounded-2xl bg-subtle/70 p-3 hover:bg-subtle"
+        card ? "card p-4 card-hover hover:border-brand/60 dark:hover:border-brand/40" : "rounded-2xl bg-subtle/70 p-3 hover:bg-subtle"
       }`}
     >
       <BadgeIcon achievement={achievement} unlocked={false} />
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-bold uppercase tracking-wide text-faint">Następna odznaka</span>
+        <span className="block text-[11px] font-bold uppercase tracking-wide text-muted">Następna odznaka</span>
         <span className="block truncate font-extrabold text-ink">{achievement.title}</span>
         <span className="block truncate text-xs text-muted">{achievement.description}</span>
         <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-line">

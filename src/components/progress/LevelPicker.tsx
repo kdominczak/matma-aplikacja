@@ -44,7 +44,7 @@ export default function LevelPicker({
               onChange(option.levels);
             }}
             className={`press flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors ${
-              checked ? "border-brand bg-brand-soft/60 ring-1 ring-brand/40" : "border-line hover:border-brand/40"
+              checked ? "border-brand bg-brand-soft/60 ring-1 ring-brand/40" : "border-line hover:border-brand/60 dark:hover:border-brand/40"
             }`}
           >
             <span

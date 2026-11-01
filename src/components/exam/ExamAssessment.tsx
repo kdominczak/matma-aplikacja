@@ -140,7 +140,7 @@ function AssessCard({
       </p>
       {AI_ENABLED && <PhotoGrading task={task.task} onGraded={graded} />}
       <fieldset>
-        <legend className="mb-2 text-xs font-extrabold uppercase tracking-widest text-faint">
+        <legend className="mb-2 text-xs font-extrabold uppercase tracking-widest text-muted">
           {byAi ? "Ocena korepetytora AI – możesz ją poprawić" : "Które kroki masz w rozwiązaniu?"}
         </legend>
         <ul className="flex flex-col gap-2">

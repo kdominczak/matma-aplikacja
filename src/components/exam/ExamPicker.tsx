@@ -48,7 +48,7 @@ export default function ExamPicker() {
             { label: "Czas nad arkuszami", value: formatDuration(stats.totalSec) },
           ].map((item) => (
             <div key={item.label} className="rounded-2xl border border-line glass-card px-3 py-2 shadow-card">
-              <dt className="text-[11px] font-bold uppercase tracking-wide text-faint">{item.label}</dt>
+              <dt className="text-[11px] font-bold uppercase tracking-wide text-muted">{item.label}</dt>
               <dd className="text-lg font-extrabold text-ink tabular-nums">{item.value}</dd>
             </div>
           ))}
@@ -66,7 +66,7 @@ export default function ExamPicker() {
               key={exam.id}
               href={examHref(exam)}
               onClick={() => hapticTap()}
-              className="card group flex flex-col gap-3 p-5 card-hover hover:border-brand/40"
+              className="card group flex flex-col gap-3 p-5 card-hover hover:border-brand/60 dark:hover:border-brand/40"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -84,7 +84,7 @@ export default function ExamPicker() {
               <p className="text-sm text-muted">
                 {exam.tasks.length} zadań · {examMaxPoints(exam)} pkt · {exam.durationMin} min
               </p>
-              <p className="-mt-2 text-xs text-faint">{examSource(exam)}</p>
+              <p className="-mt-2 text-xs text-muted">{examSource(exam)}</p>
               <span className="mt-auto flex min-h-11 items-center gap-2 text-sm font-bold text-brand">
                 {session ? `Wróć do arkusza (${answered}/${exam.tasks.length})` : last ? "Rozwiąż ponownie" : "Rozpocznij"}
                 <Icon name="arrow" className="h-4 w-4 transition-transform group-hover:translate-x-1" />

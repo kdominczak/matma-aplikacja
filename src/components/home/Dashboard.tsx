@@ -43,7 +43,7 @@ export default function Dashboard() {
           <ContinueCard progress={progress} />
           <Link
             href="/zadania/?widok=lekcje"
-            className="card card-hover press flex min-h-11 items-center gap-4 p-5 hover:border-brand/40"
+            className="card card-hover press flex min-h-11 items-center gap-4 p-5 hover:border-brand/60 dark:hover:border-brand/40"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
               <Icon name="layers" className="h-5 w-5" />
@@ -104,7 +104,7 @@ function PlanCard({ progress, plan }: { progress: Progress | null; plan: DailyPl
       <p className="relative flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-extrabold uppercase tracking-widest text-muted">
         <span>Plan na dziś{plan ? ` · ~${plan.minutes} min` : ""}</span>
         {days > 0 && (
-          <span className="flex items-center gap-1 text-orange-600 dark:text-orange-300">
+          <span className="flex items-center gap-1 text-orange-700 dark:text-orange-300">
             <Icon name="flame" className="h-3.5 w-3.5" />
             {days} {plural(days, "dzień", "dni", "dni")} z planem
           </span>
@@ -144,7 +144,7 @@ function PlanCard({ progress, plan }: { progress: Progress | null; plan: DailyPl
           href="/plan"
           onClick={() => hapticTap()}
           className={`flex items-center justify-center gap-2 rounded-2xl py-3.5 font-bold sm:min-w-64 sm:px-6 ${
-            done ? "press border border-line bg-subtle text-ink hover:border-brand/40" : "bg-brand text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+            done ? "press border border-line bg-subtle text-ink hover:border-brand/60 dark:hover:border-brand/40" : "bg-cta text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark"
           }`}
         >
           {done ? "Kolejna runda" : "Zaczynamy"} <Icon name="arrow" className="h-4 w-4" />

@@ -46,7 +46,7 @@ export default function MistakesView() {
         {entries.length > 0 && (
           <Link
             href="/bledy/trening"
-            className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark sm:max-w-xs"
+            className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-cta py-3.5 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark sm:max-w-xs"
           >
             <Icon name="refresh" className="h-4 w-4" />
             Przećwicz swoje błędy ({trainingCount})
@@ -82,7 +82,7 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
       <div className="flex items-start gap-3">
         <CategoryTile topic={topic} />
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-faint">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
             {topic.title} · {getDifficulty(difficulty).label}
           </p>
           <p className={`mt-1 font-semibold text-ink ${open ? "" : "line-clamp-2"}`}>

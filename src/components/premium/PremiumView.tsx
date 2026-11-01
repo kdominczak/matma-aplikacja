@@ -146,7 +146,7 @@ function BuySection() {
         <div className="card flex flex-col gap-3 p-5">
           <p className="text-sm text-body">Premium z Google Play jest aktywne na tym koncie. Dziękujemy za wsparcie!</p>
           {store.manageUrl && (
-            <button onClick={() => void manageSubscription()} className="min-h-11 self-start rounded-2xl border border-line px-4 text-sm font-bold text-brand hover:border-brand/40">
+            <button onClick={() => void manageSubscription()} className="min-h-11 self-start rounded-2xl border border-line px-4 text-sm font-bold text-brand hover:border-brand/60 dark:hover:border-brand/40">
               Zarządzaj subskrypcją w Google Play
             </button>
           )}
@@ -214,7 +214,7 @@ function BuySection() {
       )}
 
       {canBuy && (
-        <div className="flex flex-col items-center gap-1 text-center text-xs text-faint">
+        <div className="flex flex-col items-center gap-1 text-center text-xs text-muted">
           <p>Płatność obsługuje Google Play. Subskrypcja odnawia się co miesiąc, dopóki jej nie anulujesz w Google Play; pakiet maturalny płacisz raz.</p>
           {hasEmail && (
             <button onClick={() => void restore()} disabled={busy !== null} className="min-h-11 font-bold text-muted underline hover:text-ink disabled:text-faint">
@@ -270,7 +270,7 @@ function PlanCard({ offer, selected, selectable, onSelect }: { offer: Offer; sel
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={`card flex flex-col gap-1 p-5 text-left transition-colors ${selected ? "border-brand ring-2 ring-brand/30" : "hover:border-brand/40"}`}
+      className={`card flex flex-col gap-1 p-5 text-left transition-colors ${selected ? "border-brand ring-2 ring-brand/30" : "hover:border-brand/60 dark:hover:border-brand/40"}`}
     >
       {content}
     </button>

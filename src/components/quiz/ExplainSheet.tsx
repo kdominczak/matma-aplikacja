@@ -95,7 +95,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
         {AI_ENABLED && (
           <button
             onClick={askTutor}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3 font-bold text-brand transition-colors hover:border-brand/40"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3 font-bold text-brand transition-colors hover:border-brand/60 dark:hover:border-brand/40"
           >
             <Icon name="message" className="h-4 w-4" />
             Dopytaj korepetytora

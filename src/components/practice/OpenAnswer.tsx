@@ -59,7 +59,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
               className="min-w-0 flex-1 bg-transparent py-3.5 text-lg font-bold text-ink placeholder:font-medium placeholder:text-faint focus:outline-none disabled:opacity-70"
             />
           </div>
-          <p className="text-xs text-faint">Ułamki zapisuj jako 3/2, kilka rozwiązań oddziel średnikiem. Zapisz rozwiązanie w brudnopisie.</p>
+          <p className="text-xs text-muted">Ułamki zapisuj jako 3/2, kilka rozwiązań oddziel średnikiem. Zapisz rozwiązanie w brudnopisie.</p>
 
           {state.verdict === "wrong" ? (
             <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
@@ -83,7 +83,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
               <button
                 type="submit"
                 disabled={!state.input.trim()}
-                className="flex-1 rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+                className="flex-1 rounded-2xl bg-cta py-3.5 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
               >
                 Sprawdź wynik
               </button>
@@ -124,7 +124,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
                 <li key={i}>
                   <label
                     className={`flex gap-3 rounded-2xl border p-3 text-sm ${
-                      canSelfAssess ? "cursor-pointer hover:border-brand/40" : ""
+                      canSelfAssess ? "cursor-pointer hover:border-brand/60 dark:hover:border-brand/40" : ""
                     } ${checked && state.verdict !== "revealed" ? "border-emerald-500/40 bg-emerald-500/5" : "border-line"}`}
                   >
                     {canSelfAssess ? (
@@ -157,7 +157,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
           {canSelfAssess && (
             <button
               onClick={() => onSaveSelfAssessment(selfPoints)}
-              className="mt-4 w-full rounded-2xl bg-brand py-3 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+              className="mt-4 w-full rounded-2xl bg-cta py-3 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark"
             >
               Zapisz wynik: {selfPoints}/{task.points} pkt
             </button>
@@ -171,7 +171,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
       )}
 
       {onNext && (state.verdict === "correct" || state.verdict === "revealed" || state.saved) && (
-        <button onClick={onNext} className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3.5 font-bold text-brand hover:border-brand/40">
+        <button onClick={onNext} className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3.5 font-bold text-brand hover:border-brand/60 dark:hover:border-brand/40">
           Następne zadanie <Icon name="arrow" className="h-4 w-4" />
         </button>
       )}

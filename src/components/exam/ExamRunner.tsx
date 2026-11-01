@@ -131,7 +131,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-ink">{exam.title}</h1>
         <p className="mt-1 text-muted">{exam.subtitle}</p>
-        <p className="mt-2 flex items-start gap-1.5 text-xs font-semibold text-faint">
+        <p className="mt-2 flex items-start gap-1.5 text-xs font-semibold text-muted">
           <Icon name="file" className="mt-px h-3.5 w-3.5 shrink-0" />
           {examSource(exam)}
         </p>
@@ -144,7 +144,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
           ].map((item) => (
             <div key={item.label} className="rounded-2xl bg-subtle py-3">
               <dd className="text-2xl font-extrabold text-ink tabular-nums">{item.value}</dd>
-              <dt className="text-xs font-bold uppercase text-faint">{item.label}</dt>
+              <dt className="text-xs font-bold uppercase text-muted">{item.label}</dt>
             </div>
           ))}
         </dl>
@@ -173,7 +173,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
             hapticTap();
             onStart();
           }}
-          className="mt-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+          className="mt-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-cta py-4 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark"
         >
           Rozpocznij arkusz <Icon name="arrow" className="h-4 w-4" />
         </button>
@@ -389,7 +389,7 @@ function ExamInProgress({
           ) : (
             <button
               onClick={() => setPanel("finish")}
-              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark sm:ml-auto sm:flex-none sm:px-8"
+              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-cta font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark sm:ml-auto sm:flex-none sm:px-8"
             >
               Zakończ arkusz <Icon name="checkCircle" className="h-4 w-4" />
             </button>
@@ -489,7 +489,7 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
               }}
               aria-pressed={selected}
               className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 text-left text-base font-semibold transition-all duration-150 ${
-                selected ? "border-brand bg-brand-soft text-brand shadow-card" : "border-line glass-card text-ink hover:border-brand/40 active:scale-[0.99]"
+                selected ? "border-brand bg-brand-soft text-brand shadow-card" : "border-line glass-card text-ink hover:border-brand/60 dark:hover:border-brand/40 active:scale-[0.99]"
               }`}
             >
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${selected ? "bg-brand text-on-brand" : "bg-subtle text-muted"}`}>
@@ -530,7 +530,7 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
           className="min-h-12 min-w-0 flex-1 bg-transparent py-3 text-lg font-bold text-ink placeholder:font-medium placeholder:text-faint focus:outline-none"
         />
       </div>
-      <p className="text-xs text-faint">
+      <p className="text-xs text-muted">
         Ułamki zapisuj jako 3/2, kilka rozwiązań oddziel średnikiem. Za poprawny wynik dostajesz {task.points} pkt – tok rozwiązania porównasz ze
         schematem na podsumowaniu.
       </p>
@@ -578,7 +578,7 @@ function ExamTimer({ elapsed, durationMin, onTimeUp }: { elapsed: () => number; 
   const m = Math.floor((left % 3600) / 60);
   const s = left % 60;
   const label = h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
-  const tone = left <= 300 ? "text-rose-500" : left <= 900 ? "text-amber-600 dark:text-amber-400" : "text-muted";
+  const tone = left <= 300 ? "text-rose-500" : left <= 900 ? "text-amber-700 dark:text-amber-400" : "text-muted";
   return (
     <span
       className={`flex shrink-0 items-center gap-1 text-sm font-extrabold tabular-nums ${tone}`}
@@ -614,7 +614,7 @@ function ShareCode({ code }: { code: string }) {
   return (
     <div className="mt-5 flex items-center gap-3 rounded-2xl bg-subtle px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-faint">Kod arkusza</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-muted">Kod arkusza</p>
         <p className="font-mono text-xl font-extrabold tracking-widest text-ink select-all">{code.toUpperCase()}</p>
       </div>
       <button onClick={() => void share()} className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-bold text-brand">

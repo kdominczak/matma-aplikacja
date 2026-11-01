@@ -162,7 +162,7 @@ function YearCard({ exam, level }: { exam: ExamYear; level: SheetLevel }) {
         )}
       </div>
 
-      <ExternalLink href={exam.page} className="mt-auto -mb-2 flex min-h-11 items-center text-xs font-bold text-faint hover:text-brand">
+      <ExternalLink href={exam.page} className="mt-auto -mb-2 flex min-h-11 items-center text-xs font-bold text-muted hover:text-brand">
         Inne wersje arkusza na cke.gov.pl →
       </ExternalLink>
     </article>
@@ -174,12 +174,12 @@ function FileButton({ href, icon, primary = false, children }: { href: string; i
     <ExternalLink
       href={href}
       className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold btn-hover ${
-        primary ? "bg-brand text-on-brand shadow-float active:bg-brand-dark" : "border border-line bg-surface text-ink hover:border-brand/40"
+        primary ? "bg-brand text-on-brand shadow-float active:bg-brand-dark" : "border border-line bg-surface text-ink hover:border-brand/60 dark:hover:border-brand/40"
       }`}
     >
       <Icon name={icon} className="h-4 w-4 shrink-0" />
       <span className="flex-1">{children}</span>
-      <span className={`text-[11px] font-extrabold ${primary ? "text-white/70" : "text-faint"}`}>PDF</span>
+      <span className={`text-[11px] font-extrabold ${primary ? "text-white/70" : "text-muted"}`}>PDF</span>
     </ExternalLink>
   );
 }

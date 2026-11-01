@@ -15,7 +15,7 @@ export default function CkeNotice({ variant = "footer", className = "" }: { vari
     );
   }
   return (
-    <p className={`flex items-center justify-center gap-1.5 text-center text-xs text-faint ${className}`}>
+    <p className={`flex items-center justify-center gap-1.5 text-center text-xs text-muted ${className}`}>
       <Icon name="info" className="h-3.5 w-3.5 shrink-0" />
       {CKE_DISCLAIMER}
     </p>

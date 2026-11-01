@@ -64,7 +64,7 @@ export function BadgeCard({ achievement, progress }: { achievement: Achievement;
           <div className="h-2 overflow-hidden rounded-full bg-subtle">
             <div className="h-full rounded-full bg-brand transition-all duration-500" style={{ width: `${percent}%` }} />
           </div>
-          <p className="mt-1.5 text-xs font-bold text-faint">
+          <p className="mt-1.5 text-xs font-bold text-muted">
             {current}/{achievement.goal}
           </p>
         </div>
