@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { Capacitor } from "@capacitor/core";
 import { DARK_QUERY, THEME_STORAGE_KEY as STORAGE_KEY } from "@/lib/theme-script";
 
 export type ThemePreference = "light" | "dark" | "system";
@@ -17,6 +18,18 @@ function readPreference(): ThemePreference {
 function apply(preference: ThemePreference) {
   const dark = preference === "dark" || (preference === "system" && matchMedia(DARK_QUERY).matches);
   document.documentElement.classList.toggle("dark", dark);
+  syncStatusBar(dark);
+}
+
+/**
+ * Ikony paska stanu w aplikacji na telefonie (godzina, bateria): jasne na ciemnym motywie, ciemne na jasnym.
+ * Bez tego Android rysuje czarne ikony na grafitowym tle. W przeglądarce nic nie robi.
+ */
+export function syncStatusBar(dark = document.documentElement.classList.contains("dark")) {
+  if (!Capacitor.isNativePlatform()) return;
+  void import("@capacitor/status-bar")
+    .then(({ StatusBar, Style }) => StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }))
+    .catch((error) => console.warn("Pasek stanu:", error));
 }
 
 export function setTheme(preference: ThemePreference) {

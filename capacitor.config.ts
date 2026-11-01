@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
     // przypomnienia o planie (src/lib/reminders.ts): biała ikona Σ w pasku stanu, kolor marki
     LocalNotifications: {
       smallIcon: 'ic_stat_matma',
-      iconColor: '#2F5BFF',
+      iconColor: '#D4AF37',
     },
   },
 };
