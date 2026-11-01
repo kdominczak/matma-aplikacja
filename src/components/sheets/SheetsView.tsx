@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, type MouseEvent, type ReactNode } from "react";
+import Link from "next/link";
 import { Capacitor } from "@capacitor/core";
 import ExamPicker from "@/components/exam/ExamPicker";
 import { Page, PageHeader } from "@/components/layout/AppShell";
@@ -48,6 +49,8 @@ export default function SheetsView() {
         />
 
         <ExamPicker />
+
+        <MistakeSheetCard />
 
         <h2 className="-mb-2 text-xl font-extrabold text-ink">Oficjalne arkusze CKE (PDF)</h2>
 
@@ -202,5 +205,27 @@ function ExternalLink({ href, className, children }: { href: string; className?:
     <a href={href} target="_blank" rel="noopener noreferrer" onClick={handleClick} className={className}>
       {children}
     </a>
+  );
+}
+
+/** Wejście do arkusza poprawek z błędów (PDF) – zadania, które sprawiły uczniowi najwięcej kłopotu w ostatnim miesiącu. */
+function MistakeSheetCard() {
+  return (
+    <Link
+      href="/bledy/arkusz"
+      onClick={() => hapticTap()}
+      className="card card-hover press flex items-center gap-4 p-5 hover:border-brand/60 dark:hover:border-brand/40"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-300">
+        <Icon name="archive" className="h-6 w-6" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-extrabold text-ink">Generuj mój arkusz poprawek z błędów</span>
+        <span className="block text-sm text-muted">
+          Zadania, które sprawiły Ci najwięcej kłopotu w ostatnim miesiącu – z odpowiedziami i schematem oceniania, do wydruku albo PDF.
+        </span>
+      </span>
+      <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint" />
+    </Link>
   );
 }

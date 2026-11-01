@@ -446,3 +446,52 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Kartka do druku / PDF (arkusz poprawek): zawsze jasne kolory – także w ciemnym motywie na ekranie,
+ * żeby wykresy (`stroke-line`, `fill-muted`) i wzory wyglądały jak na wydruku.
+ */
+.paper {
+  --color-surface: #ffffff;
+  --color-card: #ffffff;
+  --color-subtle: #f2f1ed;
+  --color-line: #d6d3cc;
+  --color-ink: #0b0f19;
+  --color-body: #1f2937;
+  --color-muted: #4b5563;
+  --color-faint: #6b7280;
+  --color-brand: #7a5c0e;
+  background-color: #ffffff;
+  color: var(--color-ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* pole na rozwiązanie: kratka 5 mm jak w zeszycie */
+.paper-grid {
+  background-image:
+    linear-gradient(to right, rgb(11 15 25 / 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(11 15 25 / 0.09) 1px, transparent 1px);
+  background-size: 5mm 5mm;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 14mm 16mm;
+  }
+  /* marginesy strony maluje „płótno” w kolorze schematu – w ciemnym motywie wychodziły czarne ramki */
+  :root {
+    color-scheme: light !important;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+  }
+  .print-break {
+    break-before: page;
+  }
+  .print-avoid {
+    break-inside: avoid;
+  }
+}

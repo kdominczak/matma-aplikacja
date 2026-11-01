@@ -43,15 +43,25 @@ export default function MistakesView() {
             <p className="mt-1 text-4xl font-extrabold text-emerald-300">{progress.stats.mistakesBeaten}</p>
           </div>
         </div>
-        {entries.length > 0 && (
+        <div className="relative mt-5 flex flex-col gap-2 sm:flex-row">
+          {entries.length > 0 && (
+            <Link
+              href="/bledy/trening"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-cta px-5 py-3.5 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark"
+            >
+              <Icon name="refresh" className="h-4 w-4" />
+              Przećwicz swoje błędy ({trainingCount})
+            </Link>
+          )}
+          {/* kartka do wydruku / PDF – też z nierozwiązanych zadań otwartych i błędów z arkuszy, więc nawet przy pustym pudełku */}
           <Link
-            href="/bledy/trening"
-            className="relative mt-5 flex items-center justify-center gap-2 rounded-2xl bg-cta py-3.5 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark sm:max-w-xs"
+            href="/bledy/arkusz"
+            className="press flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-5 py-3.5 font-bold text-white transition-colors hover:bg-white/15"
           >
-            <Icon name="refresh" className="h-4 w-4" />
-            Przećwicz swoje błędy ({trainingCount})
+            <Icon name="file" className="h-4 w-4" />
+            Arkusz poprawek (PDF)
           </Link>
-        )}
+        </div>
       </section>
 
       {entries.length === 0 ? (
