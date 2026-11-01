@@ -1,250 +1,155 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useDisplayName } from "@/components/layout/AppShell";
-import FunctionPlot from "@/components/ui/FunctionPlot";
+import TaskSession, { type SessionTask } from "@/components/practice/TaskSession";
 import Icon from "@/components/ui/Icon";
-import MathText from "@/components/ui/MathText";
 import { QuizSkeleton } from "@/components/ui/Skeleton";
-import { LEGAL } from "@/data/legal";
+import { findTask, formulaGroup } from "@/data/topics";
 import { useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
-import { buildMistakeSheet, SHEET_DAYS, type SheetItem } from "@/lib/mistake-sheet";
-import { displayedOptions, displayKey } from "@/lib/options";
+import { buildMistakeSheet, SHEET_DAYS, type MistakeSheet, type SheetItem } from "@/lib/mistake-sheet";
 import { plural } from "@/lib/plural";
-import { printPage } from "@/lib/print";
 import { useProgress } from "@/lib/progress";
 import { formatDay } from "@/lib/stats";
+import type { Topic } from "@/types/topic";
 
 /**
- * Spersonalizowany arkusz poprawek z błędów – kartka A4 do wydruku albo PDF (systemowy dialog druku).
- * Na ekranie podgląd kartki (zawsze jasnej), nad nią pasek z okresem i przyciskiem; pasek nie trafia na wydruk.
+ * Spersonalizowany arkusz poprawek z błędów – rozwiązywany w aplikacji jak zadania z działu (ten sam ekran:
+ * brudnopis, podpowiedzi, sprawdzanie). Najpierw podsumowanie z wyborem okresu, potem sesja na zamrożonym zestawie:
+ * poprawne odpowiedzi usuwają zadania z Pudełka porażek, a lista na ekranie ma zostać ta sama.
  */
 export default function MistakeSheetView() {
   const progress = useProgress();
   const attempts = useExamAttempts();
-  const name = useDisplayName();
   const [allTime, setAllTime] = useState(false);
-  const [withKey, setWithKey] = useState(true);
-  const [error, setError] = useState(false);
+  const [started, setStarted] = useState<MistakeSheet | null>(null);
 
-  const sheet = useMemo(
-    () => (progress && attempts ? buildMistakeSheet(progress, attempts, { days: allTime ? null : SHEET_DAYS }) : null),
-    [progress, attempts, allTime],
-  );
-  if (!sheet) return <QuizSkeleton />;
+  if (started) return <Session sheet={started} />;
+  if (!progress || !attempts) return <QuizSkeleton />;
 
+  const sheet = buildMistakeSheet(progress, attempts, { days: allTime ? null : SHEET_DAYS });
   const empty = sheet.items.length === 0;
-
-  async function save() {
-    hapticTap();
-    setError(false);
-    try {
-      await printPage(`Arkusz-poprawek-${sheet!.to}`);
-    } catch (e) {
-      console.warn("Nie udało się otworzyć drukowania:", e);
-      setError(true);
-    }
-  }
+  const topics = [...new Set(sheet.items.map((i) => topicOf(i)?.title).filter(Boolean))];
+  const open = sheet.items.filter((i) => i.task.kind === "open").length;
 
   return (
-    <div className="min-h-dvh bg-surface pb-10 print:bg-white print:p-0">
-      <header className="sticky top-0 z-10 border-b border-line bg-surface/95 pt-[env(safe-area-inset-top)] print:hidden">
-        <div className="mx-auto flex max-w-[210mm] flex-col gap-3 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link href="/bledy" aria-label="Wróć do Pudełka porażek" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-muted hover:bg-subtle hover:text-ink">
-              <Icon name="back" className="h-5 w-5" />
-            </Link>
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-extrabold text-ink">Arkusz poprawek z błędów</h1>
-              <p className="truncate text-sm text-muted">
-                {empty ? "Brak zadań do poprawy" : `${sheet.items.length} ${plural(sheet.items.length, "zadanie", "zadania", "zadań")} · ${sheet.points} pkt`}
-              </p>
-            </div>
-            <button
-              onClick={() => void save()}
-              disabled={empty}
-              className="flex min-h-11 shrink-0 items-center gap-2 rounded-2xl bg-cta px-4 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
-            >
-              <Icon name="file" className="h-4 w-4" />
-              Zapisz PDF
-            </button>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <div role="radiogroup" aria-label="Okres" className="flex rounded-2xl border border-line bg-card p-1">
-              {[
-                { all: false, label: `Ostatnie ${SHEET_DAYS} dni` },
-                { all: true, label: "Od początku" },
-              ].map((option) => (
-                <button
-                  key={option.label}
-                  role="radio"
-                  aria-checked={allTime === option.all}
-                  onClick={() => setAllTime(option.all)}
-                  className={`min-h-9 rounded-xl px-3 font-bold transition-colors ${allTime === option.all ? "bg-brand-soft text-brand" : "text-muted hover:text-ink"}`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            <label className="flex min-h-11 items-center gap-2 px-1 font-semibold text-body">
-              <input type="checkbox" checked={withKey} onChange={(e) => setWithKey(e.target.checked)} className="h-4 w-4 accent-[var(--color-brand)]" />
-              Odpowiedzi na osobnej stronie
-            </label>
-          </div>
-          {error && (
-            <p role="alert" className="text-sm font-semibold text-rose-600 dark:text-rose-400">
-              Nie udało się otworzyć drukowania. Spróbuj ponownie albo zaktualizuj aplikację.
-            </p>
-          )}
-          {!empty && <p className="text-xs text-muted">W oknie drukowania wybierz „Zapisz jako PDF”, żeby mieć plik, albo drukarkę.</p>}
-        </div>
-      </header>
+    <div className="flex min-h-dvh animate-fade-in flex-col bg-surface pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 px-4 py-4 sm:px-6">
+        <Link href="/bledy" className="-ml-1 flex min-h-11 items-center gap-1 self-start text-sm font-bold text-muted hover:text-ink">
+          <Icon name="back" className="h-4 w-4" />
+          Pudełko porażek
+        </Link>
 
-      {empty ? (
-        <section className="mx-auto mt-8 flex max-w-md flex-col items-center gap-3 px-6 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
-            <Icon name="checkCircle" className="h-7 w-7" />
-          </span>
-          <h2 className="text-lg font-extrabold text-ink">{allTime ? "Nie ma czego poprawiać" : `Brak błędów z ostatnich ${SHEET_DAYS} dni`}</h2>
-          <p className="text-sm text-muted">
-            Arkusz zbiera zadania z Pudełka porażek, nierozwiązane zadania otwarte i błędy z arkuszy.
-            {!allTime && " Sprawdź „Od początku” albo rozwiąż kilka zadań."}
-          </p>
-          <Link href="/zadania" className="mt-2 flex min-h-11 items-center rounded-2xl bg-cta px-5 font-bold text-on-cta shadow-float active:bg-cta-dark">
-            Przejdź do zadań
-          </Link>
-        </section>
-      ) : (
-        <Paper items={sheet.items} name={name} from={sheet.from} to={sheet.to} points={sheet.points} withKey={withKey} />
-      )}
+        <header>
+          <h1 className="text-2xl font-extrabold text-ink">Arkusz poprawek z błędów</h1>
+          <p className="mt-1 text-muted">Zadania, które sprawiły Ci najwięcej kłopotu – rozwiąż je jeszcze raz, tym razem do końca.</p>
+        </header>
+
+        <div role="radiogroup" aria-label="Okres" className="grid grid-cols-2 rounded-2xl border border-line bg-card p-1 shadow-card">
+          {[
+            { all: false, label: `Ostatnie ${SHEET_DAYS} dni` },
+            { all: true, label: "Od początku" },
+          ].map((option) => (
+            <button
+              key={option.label}
+              role="radio"
+              aria-checked={allTime === option.all}
+              onClick={() => setAllTime(option.all)}
+              className={`min-h-10 rounded-xl text-sm font-bold transition-colors ${allTime === option.all ? "bg-brand-soft text-brand" : "text-muted hover:text-ink"}`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        {empty ? (
+          <section className="card flex flex-col items-center gap-3 p-8 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
+              <Icon name="checkCircle" className="h-7 w-7" />
+            </span>
+            <h2 className="text-lg font-extrabold text-ink">{allTime ? "Nie ma czego poprawiać" : `Brak błędów z ostatnich ${SHEET_DAYS} dni`}</h2>
+            <p className="text-sm text-muted">
+              Arkusz zbiera zadania z Pudełka porażek, nierozwiązane zadania otwarte i błędy z arkuszy.
+              {!allTime && " Sprawdź „Od początku” albo rozwiąż kilka zadań."}
+            </p>
+            <Link href="/zadania" className="mt-2 flex min-h-11 items-center rounded-2xl bg-cta px-5 font-bold text-on-cta shadow-float active:bg-cta-dark">
+              Przejdź do zadań
+            </Link>
+          </section>
+        ) : (
+          <section className="relative overflow-hidden rounded-3xl bg-navy p-5 text-white shadow-card">
+            <div aria-hidden className="pointer-events-none absolute -top-12 -right-12 h-48 w-48 rounded-full bg-rose-500/30 blur-3xl" />
+            <div className="relative grid grid-cols-3 gap-3">
+              <Stat label="Zadania" value={sheet.items.length} />
+              <Stat label="Otwarte" value={open} />
+              <Stat label="Punkty" value={sheet.points} />
+            </div>
+            <p className="relative mt-4 text-sm text-white/75">
+              {sheet.from ? `Błędy z okresu ${formatDay(sheet.from)} – ${formatDay(sheet.to)}` : "Wszystkie zapisane błędy"}
+              {topics.length > 0 && ` · ${topics.slice(0, 4).join(", ")}${topics.length > 4 ? ` i ${topics.length - 4} więcej` : ""}`}
+            </p>
+            <button
+              onClick={() => {
+                hapticTap();
+                setStarted(sheet);
+              }}
+              className="relative mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-cta py-3.5 font-bold text-on-cta shadow-float btn-hover btn-shine active:bg-cta-dark"
+            >
+              Rozwiąż arkusz <Icon name="arrow" className="h-4 w-4" />
+            </button>
+          </section>
+        )}
+
+        {!empty && (
+          <ul className="flex flex-col gap-2">
+            {sheet.items.map((item, i) => (
+              <li key={item.task.id} className="card flex items-center gap-3 p-3 text-sm">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-subtle text-xs font-extrabold text-muted">{i + 1}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-bold text-ink">{topicOf(item)?.title ?? "Zadanie z arkusza"}</span>
+                  <span className="block text-xs text-muted">
+                    {item.task.kind === "closed" ? "Zamknięte" : "Otwarte"} · {item.task.points} pkt · {plural(item.wrong, "błąd", "błędy", "błędów")}: {item.wrong}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
 
-function Paper({ items, name, from, to, points, withKey }: { items: SheetItem[]; name: string; from: string | null; to: string; points: number; withKey: boolean }) {
-  const student = name === "Twój profil" ? null : name;
+function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <article className="paper mx-auto mt-4 max-w-[210mm] rounded-sm p-[12mm] text-[15px] leading-relaxed shadow-card print:mt-0 print:max-w-none print:rounded-none print:p-0 print:shadow-none">
-      <header className="flex flex-col gap-2 border-b-2 border-ink pb-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted">{LEGAL.appName} · arkusz poprawek</p>
-        <h2 className="text-2xl font-extrabold text-ink">Moje zadania do poprawy{student ? ` – ${student}` : ""}</h2>
-        <p className="text-sm text-body">
-          {from ? `Błędy z okresu ${formatDay(from)} – ${formatDay(to)}` : `Wszystkie zapisane błędy, stan na ${formatDay(to)}`} · {items.length}{" "}
-          {plural(items.length, "zadanie", "zadania", "zadań")} · {points} pkt
-        </p>
-        <div className="flex flex-wrap justify-between gap-x-8 gap-y-1 pt-1 text-sm text-body">
-          <span>Data rozwiązania: ………………………</span>
-          <span>
-            Wynik: ……… / {points} pkt
-          </span>
-        </div>
-      </header>
-
-      <p className="mt-3 text-sm text-muted">
-        Rozwiąż zadania bez zaglądania do odpowiedzi. W zamkniętych zakreśl jedną odpowiedź, w otwartych zapisz pełne rozwiązanie – punkty
-        przyznasz sobie ze schematu na końcu.
-      </p>
-
-      <ol className="mt-4 flex flex-col gap-6">
-        {items.map((item, i) => (
-          <Task key={item.task.id} item={item} number={i + 1} />
-        ))}
-      </ol>
-
-      {withKey && <AnswerKey items={items} />}
-
-      <footer className="mt-8 border-t border-line pt-2 text-[11px] text-muted">
-        Wygenerowano w aplikacji {LEGAL.appName} {formatDay(to)} na podstawie Twoich błędów. Zadania bez dopisku źródła są zadaniami autorskimi aplikacji.
-      </footer>
-    </article>
+    <div>
+      <p className="text-xs font-extrabold uppercase tracking-widest text-white/60">{label}</p>
+      <p className="mt-1 font-display text-3xl font-extrabold">{value}</p>
+    </div>
   );
 }
 
-function meta(item: SheetItem): string {
-  const label = item.task.kind === "closed" ? item.task.question.label : item.task.task.label;
-  const parts = [label, `${plural(item.wrong, "błąd", "błędy", "błędów")}: ${item.wrong}`, `ostatnio ${formatDay(item.lastDay)}`];
-  if (item.source) parts.push(item.source);
-  return parts.filter(Boolean).join(" · ");
+function topicOf(item: SheetItem): Topic | undefined {
+  return findTask(item.task.id)?.topic;
 }
 
-function Task({ item, number }: { item: SheetItem; number: number }) {
-  const { task } = item;
-  const figure = task.kind === "closed" ? task.question.figure : task.task.figure;
-  return (
-    <li className="print-avoid flex flex-col gap-2">
-      <p className="flex flex-wrap items-baseline gap-x-2">
-        <span className="font-extrabold text-ink">Zadanie {number}.</span>
-        <span className="text-sm text-muted">
-          ({task.points === 1 ? "0–1 pkt" : `0–${task.points} pkt`})
-        </span>
-      </p>
-      <p className="-mt-1 text-[11px] text-muted">{meta(item)}</p>
-      <p className="text-ink">
-        <MathText text={task.kind === "closed" ? task.question.prompt : task.task.prompt} />
-      </p>
-      {figure && (
-        <div className="max-w-[80mm]">
-          <FunctionPlot plot={figure} />
-        </div>
-      )}
-      {task.kind === "closed" ? (
-        <ul className={`grid gap-x-6 gap-y-1.5 ${task.question.format === "truefalse" ? "" : "sm:grid-cols-2 print:grid-cols-2"}`}>
-          {displayedOptions(task.question).map(({ label, key, text }) => (
-            <li key={key} className="flex items-baseline gap-2">
-              <span className="font-bold text-ink">{label}.</span>
-              <MathText display text={text} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <>
-          <div className="paper-grid rounded-sm border border-line" style={{ height: `${30 + task.points * 18}mm` }} aria-label="Miejsce na rozwiązanie" />
-          <p className="text-sm text-body">
-            Odpowiedź: {task.task.answerLabel ? <MathText text={task.task.answerLabel} /> : null} ……………………………………
-          </p>
-        </>
-      )}
-    </li>
+function Session({ sheet }: { sheet: MistakeSheet }) {
+  // zestaw zamrożony przy starcie (props) – zapis wyników zmienia Pudełko porażek, a lista ma zostać ta sama
+  const [tasks] = useState<SessionTask[]>(() =>
+    sheet.items.map((item) => {
+      const topic = topicOf(item);
+      return {
+        task: item.task,
+        topicId: topic?.id ?? null,
+        note: [topic?.title, item.source, `${plural(item.wrong, "błąd", "błędy", "błędów")}: ${item.wrong}`].filter(Boolean).join(" · "),
+      };
+    }),
   );
-}
+  const [groups] = useState(() => {
+    const topics = [...new Map(tasks.flatMap((t) => (t.topicId ? [findTask(t.task.id)!.topic] : [])).map((topic) => [topic.id, topic])).values()];
+    return topics.map(formulaGroup).filter((group) => group.formulas.length > 0);
+  });
 
-function AnswerKey({ items }: { items: SheetItem[] }) {
-  return (
-    <section className="print-break mt-10 border-t-2 border-ink pt-4 print:mt-0 print:border-t-0 print:pt-0">
-      <h2 className="text-xl font-extrabold text-ink">Odpowiedzi i schemat oceniania</h2>
-      <ol className="mt-3 flex flex-col gap-4 text-sm">
-        {items.map((item, i) => (
-          <li key={item.task.id} className="print-avoid flex flex-col gap-1">
-            {item.task.kind === "closed" ? (
-              <>
-                <p className="font-bold text-ink">
-                  {i + 1}. Odpowiedź {displayKey(item.task.question, item.task.question.correct)}
-                </p>
-                <p className="text-body">
-                  <MathText text={item.task.question.explanation} />
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="font-bold text-ink">
-                  {i + 1}. Wynik: {item.task.task.answerLabel ? <MathText text={item.task.task.answerLabel} /> : null}{" "}
-                  {item.task.task.answers[0].replace(";", "; ")}
-                </p>
-                <ul className="flex flex-col gap-1 pl-4">
-                  {item.task.task.solution.map((step, s) => (
-                    <li key={s} className="flex gap-2 text-body">
-                      <span className="shrink-0 font-bold text-ink">{step.points} pkt</span>
-                      <MathText text={step.step} />
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
+  return <TaskSession title="Arkusz poprawek" exitHref="/bledy" exitLabel="Zakończ arkusz poprawek" tasks={tasks} formulaGroups={groups} />;
 }

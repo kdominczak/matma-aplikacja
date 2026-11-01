@@ -208,7 +208,7 @@ function ExternalLink({ href, className, children }: { href: string; className?:
   );
 }
 
-/** Wejście do arkusza poprawek z błędów (PDF) – zadania, które sprawiły uczniowi najwięcej kłopotu w ostatnim miesiącu. */
+/** Wejście do arkusza poprawek z błędów – zadania, które sprawiły uczniowi najwięcej kłopotu w ostatnim miesiącu. */
 function MistakeSheetCard() {
   return (
     <Link
@@ -222,7 +222,7 @@ function MistakeSheetCard() {
       <span className="min-w-0 flex-1">
         <span className="block font-extrabold text-ink">Generuj mój arkusz poprawek z błędów</span>
         <span className="block text-sm text-muted">
-          Zadania, które sprawiły Ci najwięcej kłopotu w ostatnim miesiącu – z odpowiedziami i schematem oceniania, do wydruku albo PDF.
+          Zadania, które sprawiły Ci najwięcej kłopotu w ostatnim miesiącu – rozwiąż je w aplikacji jeszcze raz.
         </span>
       </span>
       <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint" />

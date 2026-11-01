@@ -53,13 +53,13 @@ export default function MistakesView() {
               Przećwicz swoje błędy ({trainingCount})
             </Link>
           )}
-          {/* kartka do wydruku / PDF – też z nierozwiązanych zadań otwartych i błędów z arkuszy, więc nawet przy pustym pudełku */}
+          {/* arkusz poprawek – też z nierozwiązanych zadań otwartych i błędów z arkuszy, więc nawet przy pustym pudełku */}
           <Link
             href="/bledy/arkusz"
             className="press flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-5 py-3.5 font-bold text-white transition-colors hover:bg-white/15"
           >
             <Icon name="file" className="h-4 w-4" />
-            Arkusz poprawek (PDF)
+            Arkusz poprawek
           </Link>
         </div>
       </section>
