@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import ClosedAnswer, { type ClosedState } from "@/components/practice/ClosedAnswer";
 import OpenAnswer, { type OpenState } from "@/components/practice/OpenAnswer";
 import ExplainSheet from "@/components/quiz/ExplainSheet";
@@ -57,7 +58,9 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
   const progress = useProgress();
 
   const [filter, setFilter] = useState<Filter>("all");
-  const [currentId, setCurrentId] = useState(allTasks[0].id);
+  // `?zadanie=<id>` – karta „Wróć do” otwiera dokładnie to zadanie, na którym uczeń skończył
+  const startId = useSearchParams().get("zadanie");
+  const [currentId, setCurrentId] = useState(() => allTasks.find((t) => t.id === startId)?.id ?? allTasks[0].id);
   const [ui, setUi] = useState<Record<string, TaskUi>>({});
   const [template, setTemplate] = useState<ScratchTemplate>("grid");
   const [panel, setPanel] = useState<"formulas" | "explain" | null>(null);
