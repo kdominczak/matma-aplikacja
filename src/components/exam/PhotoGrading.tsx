@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import Icon from "@/components/ui/Icon";
 import RichText from "@/components/ui/RichText";
 import { gradeSolution, transcribeSolution } from "@/lib/ai";
@@ -37,14 +38,18 @@ export default function PhotoGrading({ task, onGraded }: { task: OpenQuestion; o
 
   if (!active || error?.upsell) {
     return (
-      <Link href="/premium" className="flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand-soft p-3 text-sm font-bold text-brand">
-        <Icon name="camera" className="h-5 w-5 shrink-0" />
-        <span className="min-w-0 flex-1">
-          Ocena ze zdjęcia z AI – Premium
-          <span className="block text-xs font-semibold text-brand/80">Robisz zdjęcie kartki, a korepetytor przyznaje punkty za kroki jak egzaminator.</span>
-        </span>
-        <Icon name="chevron" className="h-4 w-4 shrink-0" />
-      </Link>
+      <div className="flex flex-col gap-1">
+        <Link href="/premium" className="flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand-soft p-3 text-sm font-bold text-brand">
+          <Icon name="camera" className="h-5 w-5 shrink-0" />
+          <span className="min-w-0 flex-1">
+            Ocena ze zdjęcia z AI – Premium
+            <span className="block text-xs font-semibold text-brand/80">Robisz zdjęcie kartki, a korepetytor przyznaje punkty za kroki jak egzaminator.</span>
+          </span>
+          <Icon name="chevron" className="h-4 w-4 shrink-0" />
+        </Link>
+        {/* kod z przedsprzedaży od razu przy blokadzie – po sukcesie blokada znika, a złoty ekran zostaje (root layout) */}
+        <RedeemCodeForm collapsed />
+      </div>
     );
   }
 

@@ -14,6 +14,9 @@ Uruchom po kolei pliki, których jeszcze nie ma na produkcji. Każdy od `2026110
 | `20261106120000_fair_ranking.sql` | ranking: każde zadanie raz dziennie, max 150 pkt dziennie |
 | `20261107120000_funnel.sql` | lejek Premium (`funnel_events`, raport `supabase/admin/lejek.sql`) |
 | `20261108120000_photo_grading.sql` | licznik oceny zdjęć (Premium) |
+| `20261109120000_gift_codes.sql` | kody podarunkowe / z przedsprzedaży (`redeem_gift_code()`, partie: `supabase/admin/kody.sql`) |
+
+Po migracjach uruchom `supabase/admin/kontrola-bezpieczenstwa.sql` – RLS, funkcje i uprawnienia klienta muszą zgadzać się z `tests/db/security.test.ts`.
 
 ## 2. Funkcje serwerowe
 

@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ComponentType } from "react";
 import Link from "next/link";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import ExplainSheet, { TypingDots } from "@/components/quiz/ExplainSheet";
 import QuizSummary from "@/components/quiz/QuizSummary";
 import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
@@ -298,6 +299,7 @@ export default function QuizScreen(props: Props) {
                 </Link>
               </p>
             )}
+            {hintError === "limit" && <RedeemCodeForm collapsed className="mt-1" />}
           </section>
 
           <TaskScratch

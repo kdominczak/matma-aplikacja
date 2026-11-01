@@ -8,7 +8,7 @@ import { supabase, SUPABASE_ANON_KEY, SUPABASE_ENABLED, SUPABASE_URL } from "@/l
 // nie da się więc „podkręcić”. Konto (anonimowe) zakładamy dopiero przy pierwszej akcji, która go wymaga
 // (wiadomość do AI, własny kod, wpisanie kodu) – samo otwarcie ekranu nie tworzy konta.
 
-import { AI_FREE_DAILY_LIMIT, GRADING_DAILY_LIMIT } from "@/lib/limits";
+import { AI_FREE_DAILY_LIMIT, GRADING_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/limits";
 
 export { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, GRADING_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/limits";
 
@@ -160,10 +160,50 @@ const REDEEM_ERRORS: Record<string, string> = {
   MA013: "Kod polecenia można wpisać tylko w pierwszym tygodniu korzystania z aplikacji.",
 };
 
+// ── Kody podarunkowe i z przedsprzedaży (migracja 20261109120000_gift_codes) ──
+
+/** Kod podarunkowy: 12 znaków (pokazywany jako XXXX-XXXX-XXXX), ten sam alfabet co kody poleceń. */
+export const GIFT_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{12}$/;
+
+const GIFT_ERRORS: Record<string, string> = {
+  MA021: "Nie ma takiego kodu – sprawdź, czy jest przepisany bez pomyłki.",
+  MA022: "Ten kod już wygasł.",
+  MA023: "Ten kod był już wpisany na tym koncie.",
+  MA024: "Za dużo nieudanych prób. Spróbuj ponownie za godzinę.",
+  MA025: "Ten kod został już wykorzystany.",
+};
+
+export type RedeemResult = { until: Date; days: number } | { error: string };
+
+/**
+ * Pole „Masz kod?”: rozpoznaje rodzaj po długości – 6 znaków to kod polecenia, 12 – podarunkowy/z przedsprzedaży.
+ * Dni i datę końca Premium zwraca serwer.
+ */
+export async function redeemCode(input: string): Promise<RedeemResult> {
+  const code = normalizeReferralCode(input);
+  if (code.length !== 12) {
+    const outcome = await redeemReferralCode(code);
+    return "until" in outcome ? { ...outcome, days: REFERRAL_DAYS } : outcome;
+  }
+  if (!GIFT_CODE_PATTERN.test(code)) return { error: GIFT_ERRORS.MA021 };
+  try {
+    const session = await client(true);
+    if (!session) return { error: "Kody nie są dostępne w tej wersji aplikacji." };
+    const { data, error } = await session.db.rpc("redeem_gift_code", { p_code: code });
+    if (error) return { error: "Nie udało się wpisać kodu. Spróbuj ponownie za chwilę." };
+    const row = (Array.isArray(data) ? data[0] : data) as { premium_until: string | null; days: number | null; error: string | null };
+    if (row.error || !row.premium_until || !row.days) return { error: GIFT_ERRORS[row.error ?? ""] ?? "Nie udało się wpisać kodu. Spróbuj ponownie za chwilę." };
+    await refreshPremium();
+    return { until: new Date(row.premium_until), days: row.days };
+  } catch (error) {
+    return { error: (error as Error).message };
+  }
+}
+
 /** Wpisuje kod znajomego. Zwraca datę końca Premium albo komunikat błędu. */
 export async function redeemReferralCode(input: string): Promise<{ until: Date } | { error: string }> {
   const code = normalizeReferralCode(input);
-  if (!REFERRAL_CODE_PATTERN.test(code)) return { error: "Kod ma 6 znaków – litery i cyfry." };
+  if (!REFERRAL_CODE_PATTERN.test(code)) return { error: "Kod polecenia ma 6 znaków, a kod podarunkowy 12 – litery i cyfry." };
   try {
     const session = await client(true);
     if (!session) return { error: "Kody poleceń nie są dostępne w tej wersji aplikacji." };

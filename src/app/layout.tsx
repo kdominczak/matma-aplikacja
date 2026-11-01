@@ -3,6 +3,7 @@ import { Inter, Outfit } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import BackgroundServices from "@/components/layout/BackgroundServices";
+import { PremiumUnlockedHost } from "@/components/premium/PremiumUnlockedModal";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 
 // Graphite Glass: Inter – treść i wzory obok tekstu (czytelny przy małych rozmiarach), Outfit – nagłówki i duże liczby
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans">
         <BackgroundServices />
         {children}
+        <PremiumUnlockedHost />
       </body>
     </html>
   );

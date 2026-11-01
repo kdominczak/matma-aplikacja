@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import TrapCard from "@/components/quiz/TrapCard";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Icon from "@/components/ui/Icon";
@@ -87,6 +88,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
                 Darmowe wyjaśnienia AI na dziś się skończyły. Z Premium korepetytor wytłumaczy każde zadanie krok po kroku.
               </Link>
             )}
+            {limited && <RedeemCodeForm collapsed />}
           </>
         )}
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/layout/AppShell";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import AccountCard from "@/components/settings/AccountCard";
 import ReminderSetting from "@/components/settings/ReminderSetting";
 import { IconTile, SettingsBlock, SettingsGroup, SettingsRow, StatusPill } from "@/components/settings/SettingsUI";
@@ -90,7 +91,7 @@ export default function SettingsView() {
           <div className="flex flex-col divide-y divide-line">
             <Switch label="Dźwięki" description="Cichy klik przy wyborze odpowiedzi" checked={settings.sounds} onChange={(sounds) => void saveAppSettings({ sounds })} />
             <Switch label="Wibracje" description="Krótka wibracja przy dobrej i złej odpowiedzi" checked={settings.haptics} onChange={(haptics) => void saveAppSettings({ haptics })} />
-            <Switch label="Konfetti" description="Animacja po zaliczonym teście i planie na dziś" checked={settings.confetti} onChange={(confetti) => void saveAppSettings({ confetti })} />
+            <Switch label="Konfetti" description="Animacja po zaliczonym teście, planie na dziś i odblokowaniu Premium" checked={settings.confetti} onChange={(confetti) => void saveAppSettings({ confetti })} />
           </div>
         </SettingsBlock>
       </SettingsGroup>
@@ -98,6 +99,10 @@ export default function SettingsView() {
       {AI_ENABLED && (
         <SettingsGroup id="ustawienia-ai" title="Korepetytor AI i Premium" hint={`Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości do AI dziennie, z Premium – do ${AI_PREMIUM_DAILY_LIMIT}.`}>
           <SettingsRow icon="sparkles" title="Premium i kody poleceń" description={`${REFERRAL_DAYS} dni Premium dla Ciebie i znajomego za polecenie`} href="/premium" />
+          <SettingsBlock>
+            {/* kod z przedsprzedaży, podarunkowy albo od znajomego – bez szukania go na ekranie Premium */}
+            <RedeemCodeForm />
+          </SettingsBlock>
         </SettingsGroup>
       )}
 
