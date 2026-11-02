@@ -148,7 +148,7 @@ export default function PhotoGrading({ task, onGraded }: { task: OpenQuestion; o
             className="w-full rounded-xl border border-line bg-surface p-3 font-mono text-sm text-ink focus:border-brand focus:outline-none"
           />
           <div className="rounded-xl bg-card p-3 text-sm">
-            <p className="mb-1 text-[11px] font-extrabold uppercase tracking-widest text-faint">Podgląd</p>
+            <p className="mb-1 text-xs font-extrabold uppercase tracking-widest text-faint">Podgląd</p>
             <RichText text={phase.text} className="text-body" />
           </div>
           <div className="flex flex-wrap items-center gap-2">

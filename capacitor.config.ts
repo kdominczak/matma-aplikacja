@@ -10,6 +10,12 @@ const config: CapacitorConfig = {
       smallIcon: 'ic_stat_matma',
       iconColor: '#D4AF37',
     },
+    // logowanie przez Google (src/lib/account.ts) – tylko Google; bez SDK Facebooka i Twittera w APK
+    // (Apple włączymy razem z wersją na iOS)
+    SocialLogin: {
+      providers: { google: true, facebook: false, apple: false, twitter: false },
+      logLevel: 1,
+    },
   },
 };
 

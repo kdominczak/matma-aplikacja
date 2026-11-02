@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, type MouseEvent, type ReactNode } from "react";
 import { Capacitor } from "@capacitor/core";
 import ExamPicker from "@/components/exam/ExamPicker";
+import { useActiveLevel } from "@/components/progress/LevelSwitch";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import ErrorState from "@/components/ui/ErrorState";
 import Icon, { type IconName } from "@/components/ui/Icon";
@@ -11,6 +12,7 @@ import { CKE_ARCHIVE_URL, EXAM_YEARS, FORMULA_SHEET_URL, type ExamYear, type She
 import { hapticTap } from "@/lib/haptics";
 import { openExternal } from "@/lib/external";
 import { useOnline } from "@/lib/network";
+import { useProgress } from "@/lib/progress";
 
 /** Otwiera plik CKE; błąd (brak sieci, zablokowana przeglądarka) zgłasza do widoku zamiast go połykać. */
 const OpenSheetContext = createContext<(href: string) => void>(() => {});
@@ -21,7 +23,10 @@ const LEVELS: { id: SheetLevel; label: string }[] = [
 ];
 
 export default function SheetsView() {
-  const [level, setLevel] = useState<SheetLevel>("podstawowy");
+  // na start poziom z przełącznika Podstawa/Rozszerzenie; wybór tutaj dotyczy tylko tej zakładki
+  const { level: activeLevel } = useActiveLevel(useProgress());
+  const [chosen, setChosen] = useState<SheetLevel | null>(null);
+  const level = chosen ?? activeLevel;
   const online = useOnline();
   const [failed, setFailed] = useState<string | null>(null);
 
@@ -47,9 +52,28 @@ export default function SheetsView() {
           subtitle="Arkusze w układzie prawdziwej matury i oryginalne matury CKE – rozwiąż na czas i sprawdź się z kluczem."
         />
 
-        <ExamPicker />
+        <div className="grid max-w-md grid-cols-2 rounded-2xl border border-line bg-card p-1 shadow-card" role="radiogroup" aria-label="Poziom matury">
+          {LEVELS.map((l) => (
+            <button
+              key={l.id}
+              role="radio"
+              aria-checked={level === l.id}
+              onClick={() => {
+                hapticTap();
+                setChosen(l.id);
+              }}
+              className={`min-h-11 rounded-xl py-2 text-sm font-bold transition-colors ${
+                level === l.id ? "bg-brand text-on-brand shadow-float" : "text-muted hover:text-ink"
+              }`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
 
-        <h2 className="-mb-2 text-xl font-extrabold text-ink">Oficjalne arkusze CKE (PDF)</h2>
+        <ExamPicker level={level} />
+
+        <h2 className="-mb-2 text-xl font-extrabold text-ink">Oficjalne arkusze CKE (PDF) · {level === "podstawowy" ? "poziom podstawowy" : "poziom rozszerzony"}</h2>
 
         {!online && (
           <p role="status" className="flex items-center gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-semibold text-amber-800 dark:text-amber-200">
@@ -70,22 +94,7 @@ export default function SheetsView() {
           </p>
         </section>
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="grid max-w-md flex-1 grid-cols-2 rounded-2xl border border-line bg-card p-1 shadow-card" role="radiogroup" aria-label="Poziom">
-            {LEVELS.map((l) => (
-              <button
-                key={l.id}
-                role="radio"
-                aria-checked={level === l.id}
-                onClick={() => setLevel(l.id)}
-                className={`rounded-xl py-2 text-sm font-bold transition-colors ${
-                  level === l.id ? "bg-brand text-on-brand shadow-float" : "text-muted hover:text-ink"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex">
           <ExternalLink
             href={FORMULA_SHEET_URL}
             className="flex items-center gap-3 rounded-2xl border border-brand/25 bg-brand-soft px-4 py-3 text-sm font-bold text-brand card-hover hover:border-brand/50"
@@ -140,7 +149,7 @@ function YearCard({ exam, level }: { exam: ExamYear; level: SheetLevel }) {
           <p className="text-sm text-muted">Termin główny · maj</p>
         </div>
         <span
-          className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide ${
+          className={`rounded-full px-2.5 py-1 text-xs font-extrabold uppercase tracking-wide ${
             current ? "bg-brand-soft text-brand" : "bg-subtle text-muted"
           }`}
         >
@@ -179,7 +188,7 @@ function FileButton({ href, icon, primary = false, children }: { href: string; i
     >
       <Icon name={icon} className="h-4 w-4 shrink-0" />
       <span className="flex-1">{children}</span>
-      <span className={`text-[11px] font-extrabold ${primary ? "text-white/70" : "text-faint"}`}>PDF</span>
+      <span className={`text-xs font-extrabold ${primary ? "text-white/70" : "text-faint"}`}>PDF</span>
     </ExternalLink>
   );
 }

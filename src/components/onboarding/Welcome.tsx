@@ -106,7 +106,7 @@ export default function Welcome() {
               )}
               <button
                 onClick={next}
-                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
               >
                 Dalej <Icon name="arrow" className="h-4 w-4" />
               </button>
@@ -119,7 +119,7 @@ export default function Welcome() {
                   hapticTap();
                   void save();
                 }}
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
               >
                 Test na start · ok. 10 min <Icon name="arrow" className="h-4 w-4" />
               </Link>
@@ -211,9 +211,9 @@ function PlanSlide() {
     <>
       {/* miniatura karty planu z ekranu głównego */}
       <div aria-hidden className="relative mb-5 overflow-hidden rounded-3xl bg-navy p-5 text-white">
-        <p className="text-[11px] font-extrabold uppercase tracking-widest text-white/60">Plan na dziś · ~15 min</p>
+        <p className="text-xs font-extrabold uppercase tracking-widest text-white/60">Plan na dziś · ~15 min</p>
         <p className="mt-1 text-xl font-extrabold">Funkcja kwadratowa</p>
-        <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] font-bold">
+        <div className="mt-3 flex flex-wrap gap-1.5 text-xs font-bold">
           <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-amber-200">2 powtórki</span>
           <span className="rounded-full bg-white/10 px-2.5 py-1">6 zadań · dział dnia</span>
           <span className="rounded-full bg-white/10 px-2.5 py-1">2 dla odmiany</span>
@@ -254,7 +254,7 @@ function ScratchSlide() {
         </div>
         <div className="mt-3 grid grid-cols-6 gap-1.5">
           {TOOLS.map((tool) => (
-            <span key={tool.label} className="flex flex-col items-center gap-1 rounded-xl bg-card py-2 text-[10px] font-bold text-muted">
+            <span key={tool.label} className="flex flex-col items-center gap-1 rounded-xl bg-card py-2 text-xs font-bold text-muted">
               <Icon name={tool.icon} className="h-5 w-5 text-brand" />
               {tool.label}
             </span>

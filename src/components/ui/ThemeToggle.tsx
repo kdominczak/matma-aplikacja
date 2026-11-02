@@ -66,7 +66,7 @@ export function ThemeSwitcher({ preview = false }: { preview?: boolean }) {
           role="radio"
           aria-checked={preference === option.value}
           onClick={() => setTheme(option.value)}
-          className={`flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] font-bold transition-colors ${
+          className={`flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-xs font-bold transition-colors ${
             preference === option.value ? "bg-card text-ink shadow-card" : "text-muted hover:text-ink"
           }`}
         >

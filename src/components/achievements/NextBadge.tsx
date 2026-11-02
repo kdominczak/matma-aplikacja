@@ -22,7 +22,7 @@ export default function NextBadge({ progress, achievement, card = false }: { pro
     >
       <BadgeIcon achievement={achievement} unlocked={false} />
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-bold uppercase tracking-wide text-faint">Następna odznaka</span>
+        <span className="block text-xs font-bold uppercase tracking-wide text-faint">Następna odznaka</span>
         <span className="block truncate font-extrabold text-ink">{achievement.title}</span>
         <span className="block truncate text-xs text-muted">{achievement.description}</span>
         <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-line">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Icon from "@/components/ui/Icon";
 import QuizScreen from "@/components/quiz/QuizScreen";
 import { QuizSkeleton } from "@/components/ui/Skeleton";
 import { findQuestion } from "@/data/topics";
@@ -28,7 +29,10 @@ function Session({ progress }: { progress: Progress }) {
   if (questions.length === 0) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-surface p-6 text-center">
-        <p className="text-2xl font-extrabold text-ink">Pudełko jest puste 🎉</p>
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+          <Icon name="checkCircle" className="h-7 w-7" />
+        </span>
+        <p className="text-2xl font-extrabold text-ink">Pudełko jest puste</p>
         <p className="text-muted">Nie masz żadnych błędów do przećwiczenia.</p>
         <Link href="/" className="rounded-2xl bg-brand px-6 py-3 font-bold text-on-brand shadow-float">
           Wróć do nauki

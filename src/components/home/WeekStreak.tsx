@@ -28,7 +28,7 @@ export default function WeekStreak({ progress, className = "", showRecord = fals
       <ol className="mt-4 grid grid-cols-7 gap-1 text-center">
         {week.map((day) => (
           <li key={day.key} className="flex flex-col items-center gap-1">
-            <span className={`text-[11px] font-bold ${day.isToday ? "text-orange-600 dark:text-orange-400" : "text-faint"}`}>
+            <span className={`text-xs font-bold ${day.isToday ? "text-orange-600 dark:text-orange-400" : "text-faint"}`}>
               {day.label}
             </span>
             <span

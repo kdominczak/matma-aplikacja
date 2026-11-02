@@ -250,3 +250,19 @@ export function matchesAnswer(given: string, accepted: string[]): boolean {
     return expected !== null && expected.length > 0 && options.some((parts) => sameSet(parts, expected));
   });
 }
+
+/**
+ * Jak aplikacja odczyta wynik ucznia – do podglądu pod polem odpowiedzi („= −1,5”), zanim uczeń go zatwierdzi.
+ * null – zapisu nie da się policzyć (np. „log3 3-3/2”: wynik trzeba uprościć do liczby).
+ */
+export function readAnswer(given: string): number[] | null {
+  if (!given.trim()) return null;
+  const parts = readings(given)[0];
+  const values: number[] = [];
+  for (const part of parts) {
+    const [value] = valueCandidates(part);
+    if (value === undefined) return null;
+    values.push(value);
+  }
+  return values.length ? values : null;
+}

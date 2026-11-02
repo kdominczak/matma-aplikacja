@@ -5,6 +5,7 @@ import Link from "next/link";
 import ExamAssessment from "@/components/exam/ExamAssessment";
 import ExamNavGrid, { NavLegend } from "@/components/exam/ExamNavGrid";
 import ExamSummary from "@/components/exam/ExamSummary";
+import AnswerTools from "@/components/practice/AnswerTools";
 import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
 import TaskScratch from "@/components/scratch/TaskScratch";
 import FormulaList from "@/components/topic/FormulaList";
@@ -16,7 +17,7 @@ import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import { examKindLabel, examMaxPoints, examSource, getExam, taskSource } from "@/data/exams";
 import CkeNotice from "@/components/legal/CkeNotice";
-import { formulaGroup, topics, type PracticeTask } from "@/data/topics";
+import { formulaGroup, topicsOfLevel, type PracticeTask } from "@/data/topics";
 import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam, sessionElapsedMs } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import { displayedOptions } from "@/lib/options";
@@ -24,10 +25,14 @@ import { saveExamResult } from "@/lib/progress";
 import { useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
 import type { ExamAttempt, ExamSession, ExamSheet, ExamTaskResult } from "@/types/exam";
+import type { FormulaGroup, Level } from "@/types/topic";
 
 
-// Karta wzorów na cały arkusz (jak „Wybrane wzory matematyczne” CKE) – ze wszystkich działów.
-const FORMULA_GROUPS = topics.map(formulaGroup).filter((g) => g.formulas.length > 0);
+// Karta wzorów na cały arkusz (jak „Wybrane wzory matematyczne” CKE) – ze wszystkich działów poziomu arkusza.
+const FORMULA_GROUPS: Record<Level, FormulaGroup[]> = {
+  podstawowy: topicsOfLevel("podstawowy").map(formulaGroup).filter((g) => g.formulas.length > 0),
+  rozszerzony: topicsOfLevel("rozszerzony").map(formulaGroup).filter((g) => g.formulas.length > 0),
+};
 
 type Phase =
   | { name: "loading" }
@@ -173,7 +178,7 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
             hapticTap();
             onStart();
           }}
-          className="mt-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+          className="mt-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
         >
           Rozpocznij arkusz <Icon name="arrow" className="h-4 w-4" />
         </button>
@@ -321,7 +326,8 @@ function ExamInProgress({
         key={task.id}
         className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 pb-36 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8"
       >
-        <div className="flex min-w-0 flex-col gap-4">
+        {/* telefon: kolumna rozpada się na elementy siatki – odpowiedź zaraz pod treścią, brudnopis na końcu */}
+        <div className="flex min-w-0 flex-col gap-4 max-lg:contents">
           <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold uppercase tracking-wide">
             <span className={`rounded-full px-2.5 py-1 ${task.kind === "closed" ? "bg-brand-soft text-brand" : "bg-violet-500/15 text-violet-600 dark:text-violet-300"}`}>
               {task.kind === "closed" ? "Zamknięte" : "Otwarte"} · {task.points} pkt
@@ -338,7 +344,7 @@ function ExamInProgress({
               <Icon name="flag" className="h-4 w-4" />
               {flagged ? "Oznaczone – wrócę" : "Wrócę do tego"}
             </button>
-            <button onClick={() => setPanel("formulas")} className="ml-auto flex min-h-11 items-center gap-1.5 rounded-full px-3 normal-case tracking-normal text-brand">
+            <button onClick={() => setPanel("formulas")} className="press ml-auto flex min-h-11 items-center gap-1.5 rounded-full border-2 border-brand/50 bg-brand-soft px-3.5 normal-case tracking-normal font-extrabold text-brand">
               <Icon name="book" className="h-4 w-4" />
               Karta wzorów
             </button>
@@ -355,17 +361,19 @@ function ExamInProgress({
             )}
           </section>
 
-          <TaskScratch
-            prompt={prompt}
-            items={notes}
-            onChange={setNotes}
-            template={template}
-            onTemplateChange={setTemplate}
-            formulaGroups={FORMULA_GROUPS}
-          />
+          <div className="flex flex-col gap-4 max-lg:order-2">
+            <TaskScratch
+              prompt={prompt}
+              items={notes}
+              onChange={setNotes}
+              template={template}
+              onTemplateChange={setTemplate}
+              formulaGroups={FORMULA_GROUPS[exam.level]}
+            />
+          </div>
         </div>
 
-        <div className="min-w-0 lg:pt-9">
+        <div className="min-w-0 max-lg:order-1 lg:pt-9">
           <AnswerInput task={task} session={session} update={update} />
         </div>
       </main>
@@ -389,7 +397,7 @@ function ExamInProgress({
           ) : (
             <button
               onClick={() => setPanel("finish")}
-              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark sm:ml-auto sm:flex-none sm:px-8"
+              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark sm:ml-auto sm:flex-none sm:px-8"
             >
               Zakończ arkusz <Icon name="checkCircle" className="h-4 w-4" />
             </button>
@@ -419,7 +427,7 @@ function ExamInProgress({
       {panel === "formulas" && (
         <BottomSheet title="Karta wzorów" onClose={() => setPanel(null)}>
           <div className="flex flex-col gap-6">
-            {FORMULA_GROUPS.map((group) => (
+            {FORMULA_GROUPS[exam.level].map((group) => (
               <section key={group.title}>
                 <h3 className="mb-2 text-xs font-extrabold uppercase tracking-widest text-brand">{group.title}</h3>
                 <FormulaList formulas={group.formulas} columns />
@@ -455,6 +463,7 @@ function ExamInProgress({
 /** Odpowiedź: litery A–D albo pole na wynik. Bez sprawdzania – jak na egzaminie. */
 function AnswerInput({ task, session, update }: { task: PracticeTask; session: ExamSession; update: (change: (s: ExamSession) => ExamSession) => void }) {
   const answer = session.answers[task.id];
+  const inputRef = useRef<HTMLInputElement>(null);
 
   if (task.kind === "closed") {
     const chosen = answer?.kind === "closed" ? answer.chosen : undefined;
@@ -505,6 +514,7 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
   }
 
   const input = answer?.kind === "open" ? answer.input : "";
+  const setInput = (value: string) => update((s) => ({ ...s, answers: { ...s.answers, [task.id]: { kind: "open", input: value } } }));
   return (
     <section className="flex flex-col gap-3">
       <label htmlFor={`exam-${task.id}`} className="text-sm font-bold text-body">
@@ -517,12 +527,10 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
           </span>
         )}
         <input
+          ref={inputRef}
           id={`exam-${task.id}`}
           value={input}
-          onChange={(e) => {
-            const value = e.target.value;
-            update((s) => ({ ...s, answers: { ...s.answers, [task.id]: { kind: "open", input: value } } }));
-          }}
+          onChange={(e) => setInput(e.target.value)}
           autoComplete="off"
           spellCheck={false}
           inputMode="text"
@@ -530,8 +538,9 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
           className="min-h-12 min-w-0 flex-1 bg-transparent py-3 text-lg font-bold text-ink placeholder:font-medium placeholder:text-faint focus:outline-none"
         />
       </div>
+      <AnswerTools value={input} onChange={setInput} inputRef={inputRef} />
       <p className="text-xs text-faint">
-        Ułamki zapisuj jako 3/2, kilka rozwiązań oddziel średnikiem. Za poprawny wynik dostajesz {task.points} pkt – tok rozwiązania porównasz ze
+        Wpisz sam wynik liczbowy (ułamek jako 3/2), kilka rozwiązań oddziel średnikiem. Za poprawny wynik dostajesz {task.points} pkt – tok rozwiązania porównasz ze
         schematem na podsumowaniu.
       </p>
     </section>
@@ -614,7 +623,7 @@ function ShareCode({ code }: { code: string }) {
   return (
     <div className="mt-5 flex items-center gap-3 rounded-2xl bg-subtle px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-faint">Kod arkusza</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-faint">Kod arkusza</p>
         <p className="font-mono text-xl font-extrabold tracking-widest text-ink select-all">{code.toUpperCase()}</p>
       </div>
       <button onClick={() => void share()} className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-bold text-brand">

@@ -45,7 +45,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
 
         <Trophy passed={passed} />
 
-        <h1 className="bg-linear-to-r from-navy via-brand-dark to-brand bg-clip-text text-transparent dark:from-white dark:via-amber-100 dark:to-brand text-center text-3xl leading-tight font-extrabold lg:text-4xl">
+        <h1 className="text-center text-ink text-3xl leading-tight font-extrabold lg:text-4xl">
           {passed ? (
             <>
               Zrobione!
@@ -121,7 +121,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
           {passed ? (
             <Link
               href={exitHref}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
             >
               Kontynuuj <Icon name="arrow" className="h-4 w-4" />
             </Link>
@@ -129,7 +129,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
             <>
               <button
                 onClick={onRetry}
-                className="w-full rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+                className="w-full rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
               >
                 Spróbuj ponownie
               </button>

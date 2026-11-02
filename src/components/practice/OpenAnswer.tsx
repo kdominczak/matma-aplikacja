@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+import AnswerTools from "@/components/practice/AnswerTools";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import type { OpenQuestion } from "@/types/quiz";
@@ -28,6 +30,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
   const selfPoints = task.solution.reduce((sum, s, i) => sum + (state.steps[i] ? s.points : 0), 0);
   const showSolution = state.verdict !== undefined;
   const canSelfAssess = state.verdict === "wrong" && !state.saved;
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <section className="flex flex-col gap-4">
@@ -49,6 +52,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
               </span>
             )}
             <input
+              ref={inputRef}
               id={`answer-${task.id}`}
               value={state.input}
               onChange={(e) => onChange({ ...state, input: e.target.value, verdict: undefined })}
@@ -59,7 +63,13 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
               className="min-w-0 flex-1 bg-transparent py-3.5 text-lg font-bold text-ink placeholder:font-medium placeholder:text-faint focus:outline-none disabled:opacity-70"
             />
           </div>
-          <p className="text-xs text-faint">Ułamki zapisuj jako 3/2, kilka rozwiązań oddziel średnikiem. Zapisz rozwiązanie w brudnopisie.</p>
+          <AnswerTools
+            value={state.input}
+            onChange={(input) => onChange({ ...state, input, verdict: undefined })}
+            inputRef={inputRef}
+            disabled={state.verdict === "wrong"}
+          />
+          <p className="text-xs text-faint">Wpisz sam wynik liczbowy (ułamek jako 3/2), kilka rozwiązań oddziel średnikiem. Tok rozwiązania zapisz w brudnopisie.</p>
 
           {state.verdict === "wrong" ? (
             <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
@@ -83,7 +93,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
               <button
                 type="submit"
                 disabled={!state.input.trim()}
-                className="flex-1 rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+                className="flex-1 rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
               >
                 Sprawdź wynik
               </button>
@@ -157,7 +167,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
           {canSelfAssess && (
             <button
               onClick={() => onSaveSelfAssessment(selfPoints)}
-              className="mt-4 w-full rounded-2xl bg-brand py-3 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+              className="mt-4 w-full rounded-2xl bg-brand py-3 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
             >
               Zapisz wynik: {selfPoints}/{task.points} pkt
             </button>

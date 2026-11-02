@@ -217,7 +217,7 @@ export default function QuizScreen(props: Props) {
           )}
           <button
             onClick={() => setPanel("formulas")}
-            className="flex min-h-11 items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
+            className="press flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-brand/50 bg-brand-soft px-3.5 py-2 text-sm font-extrabold text-brand shadow-card transition-colors hover:border-brand"
           >
             <Icon name="book" className="h-4 w-4" />
             Wzory
@@ -388,7 +388,7 @@ export default function QuizScreen(props: Props) {
               <button
                 onClick={handleCheck}
                 disabled={!selected}
-                className="w-full rounded-2xl bg-brand py-4 text-base font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
+                className="w-full rounded-2xl bg-brand py-4 text-base font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
               >
                 Sprawdź odpowiedź
               </button>

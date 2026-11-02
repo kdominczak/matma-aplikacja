@@ -69,7 +69,7 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
         <button
           onClick={onCheck}
           disabled={!selected}
-          className="rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+          className="rounded-2xl bg-brand py-3.5 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
         >
           Sprawdź odpowiedź
         </button>
@@ -88,17 +88,16 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
             <MathText text={question.explanation} />
           </p>
           {!isCorrect && question.trap && <TrapCard text={question.trap} compact />}
-          <div className="flex flex-wrap gap-2">
-            {!isCorrect && (
-              <button onClick={onExplain} className="flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-sm font-bold text-rose-600 dark:text-rose-300">
-                <Icon name="sparkles" className="h-4 w-4" />
-                Wyjaśnij mi to zadanie
-              </button>
-            )}
-            <button onClick={() => onChange({ checked: false })} className="rounded-xl bg-card px-3 py-2 text-sm font-bold text-muted hover:text-ink">
-              Spróbuj ponownie
+          {/* bez „Spróbuj ponownie”: poprawna odpowiedź jest już podświetlona, druga próba tylko zaliczałaby zadanie */}
+          {!isCorrect && (
+            <button
+              onClick={onExplain}
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-card px-3 py-2 text-sm font-bold text-rose-600 dark:text-rose-300"
+            >
+              <Icon name="sparkles" className="h-4 w-4" />
+              Wyjaśnij mi to zadanie
             </button>
-          </div>
+          )}
         </div>
       )}
 

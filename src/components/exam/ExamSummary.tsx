@@ -55,7 +55,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
           <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-brand/30 blur-3xl" />
           <p className="relative text-xs font-extrabold uppercase tracking-widest text-white/60">{exam.title} · wynik</p>
           <div className="relative mt-2 flex flex-wrap items-end gap-x-4 gap-y-1">
-            <p className="bg-linear-to-r from-white via-amber-100 to-amber-300 bg-clip-text font-display text-6xl font-extrabold tracking-tight text-transparent tabular-nums">
+            <p className="font-display text-6xl font-extrabold tracking-tight text-white tabular-nums">
               <CountUp value={attempt.percent} suffix="%" />
             </p>
             <p className="pb-2 text-lg font-bold text-white/80">
@@ -67,7 +67,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
             {passed ? `Zdane – próg to ${PASS_PERCENT}%` : `Do progu ${PASS_PERCENT}% brakuje ${Math.ceil((PASS_PERCENT / 100) * attempt.maxPoints) - attempt.points} pkt`}
           </p>
           <div className="relative mt-5 h-2.5 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full rounded-full bg-linear-to-r from-brand to-amber-300 transition-all duration-700" style={{ width: `${attempt.percent}%` }} />
+            <div className="h-full rounded-full bg-brand transition-all duration-700" style={{ width: `${attempt.percent}%` }} />
             <div className="absolute inset-y-0 w-0.5 bg-white/60" style={{ left: `${PASS_PERCENT}%` }} aria-hidden />
           </div>
           <dl className="relative mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -78,7 +78,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
               { label: "Pominięte", value: count("skipped") },
             ].map((item) => (
               <div key={item.label} className="rounded-2xl bg-white/10 px-3 py-2">
-                <dt className="text-[11px] font-bold uppercase tracking-widest text-white/60">{item.label}</dt>
+                <dt className="text-xs font-bold uppercase tracking-widest text-white/60">{item.label}</dt>
                 <dd className="text-lg font-extrabold tabular-nums">{item.value}</dd>
               </div>
             ))}
@@ -258,7 +258,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={onRetry}
-            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover btn-shine active:bg-brand-dark"
+            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
           >
             <Icon name="refresh" className="h-4 w-4" /> Rozwiąż ponownie
           </button>

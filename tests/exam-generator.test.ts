@@ -7,7 +7,7 @@ import { examPool } from "@/data/task-meta";
 import { topics } from "@/data/topics";
 import { currentEstimate } from "@/lib/estimate";
 import { MATURA_POINTS, topicExamPoints } from "@/lib/exam-weights";
-import { DIFFICULTY_TOLERANCE, examCode, generateExam, parseExamCode, pickExam, referenceExpected } from "@/lib/exam-generator";
+import { CURRENT_EXTENDED_BLUEPRINTS, DIFFICULTY_TOLERANCE, examCode, generateExam, parseExamCode, pickExam, referenceExpected } from "@/lib/exam-generator";
 import type { Progress } from "@/types/progress";
 
 const SEEDS = 200;
@@ -50,7 +50,26 @@ describe("arkusze z generatora", () => {
     expect(generateExam(blueprint, 123457).tasks.map((t) => t.id)).not.toEqual(a.tasks.map((t) => t.id));
   });
 
-  it.each(["", "abc", "99abcde", "26abc", "26abcd!", "2600000000"])("odrzuca błędny kod „%s”", (code) => {
+  it("matura rozszerzona: arkusz 50 pkt z samych zadań otwartych, kod z „r” odróżnia go od podstawy", () => {
+    const blueprint = CURRENT_EXTENDED_BLUEPRINTS[0];
+    const pool = new Map(examPool("rozszerzony").map((p) => [p.task.id, p]));
+    for (let seed = 0; seed < 50; seed++) {
+      const exam = generateExam(blueprint, seed * 13 + 5);
+      expect(exam.points, exam.code).toBe(blueprint.totalPoints);
+      expect(exam.tasks.every((t) => t.kind === "open"), exam.code).toBe(true);
+      const families = exam.tasks.map((t) => pool.get(t.id)!.meta.family);
+      expect(new Set(families).size, exam.code).toBe(families.length);
+    }
+    const code = examCode(blueprint, 777);
+    expect(code).toMatch(/^r\d{2}/);
+    expect(parseExamCode(code.toUpperCase())).toEqual({ blueprint, seed: 777 });
+    expect(parseExamCode(code.slice(1))?.blueprint).not.toBe(blueprint);
+    const sheet = getExam(`los-${code}`)!;
+    expect(sheet.level).toBe("rozszerzony");
+    expect(examHref(sheet)).toBe(`/arkusz/losowy/?kod=${code}`);
+  });
+
+  it.each(["", "abc", "99abcde", "26abc", "26abcd!", "2600000000", "x26abcde", "r99abcde"])("odrzuca błędny kod „%s”", (code) => {
     expect(parseExamCode(code)).toBeNull();
     expect(randomExam(code)).toBeNull();
   });

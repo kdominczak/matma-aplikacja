@@ -15,13 +15,12 @@ import { DIFFICULTIES, practiceTasks, topics } from "@/data/topics";
 import { useAccount } from "@/lib/account";
 import { AI_ENABLED } from "@/lib/ai-config";
 import { ACHIEVEMENTS } from "@/lib/achievements";
-import { AVATAR_COLORS, prepareAvatar, saveAppSettings, useAppSettings, type AvatarColor } from "@/lib/app-settings";
+import { prepareAvatar, saveAppSettings, useAppSettings } from "@/lib/app-settings";
 import { answersToEstimate, currentEstimate } from "@/lib/estimate";
 import { LEVEL_POINTS } from "@/lib/exam-weights";
 import { LEVEL_LONG } from "@/lib/level";
 import LevelSwitch, { useActiveLevel } from "@/components/progress/LevelSwitch";
 import CountUp from "@/components/ui/CountUp";
-import { hapticTap } from "@/lib/haptics";
 import { topicMastery } from "@/lib/mastery";
 import { longestPlanStreak } from "@/lib/planner";
 import { plural } from "@/lib/plural";
@@ -140,9 +139,10 @@ function QuickLinks({ progress }: { progress: Progress }) {
     { href: "/ranking", icon: "trophy", label: "Ranking", hint: "Top tygodnia" },
     { href: "/odznaki", icon: "medal", label: "Odznaki", hint: `${Object.keys(progress.achievements).length}/${ACHIEVEMENTS.length}` },
     { href: "/bledy", icon: "archive", label: "Błędy", hint: mistakes > 0 ? `${mistakes} do poprawy` : "Pusto" },
+    { href: "/wzory", icon: "book", label: "Wzory", hint: "Wszystkie działy" },
   ];
   return (
-    <nav aria-label="Skróty" className="grid grid-cols-3 gap-3">
+    <nav aria-label="Skróty" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {links.map((link) => (
         <Link
           key={link.href}
@@ -177,16 +177,6 @@ function Section({ title, action, children }: { title: string; action?: { label:
 }
 
 // ── Karta profilu: zdjęcie, kolor, imię/nick, miejsce w rankingu ──
-
-/** Nazwy kolorów awatara dla czytnika ekranu. */
-const AVATAR_COLOR_NAMES: Record<AvatarColor, string> = {
-  brand: "Szampański",
-  sunset: "Pomarańczowy",
-  mint: "Miętowy",
-  ocean: "Niebieski",
-  candy: "Różowy",
-  gold: "Złoty",
-};
 
 function ProfileCard({ progress }: { progress: Progress }) {
   const settings = useAppSettings();
@@ -260,29 +250,6 @@ function ProfileCard({ progress }: { progress: Progress }) {
           )}
         </div>
       </div>
-
-      {!hasPhoto && settings && (
-        <div className="relative mt-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-white/60">Kolor awatara</p>
-          <div className="mt-2 flex flex-wrap gap-3" role="radiogroup" aria-label="Kolor awatara">
-            {(Object.keys(AVATAR_COLORS) as AvatarColor[]).map((color) => (
-              <button
-                key={color}
-                role="radio"
-                aria-checked={settings.avatarColor === color}
-                aria-label={AVATAR_COLOR_NAMES[color]}
-                onClick={() => {
-                  hapticTap();
-                  void saveAppSettings({ avatarColor: color });
-                }}
-                className={`h-10 w-10 shrink-0 rounded-full bg-linear-to-br transition-transform ${AVATAR_COLORS[color]} ${
-                  settings.avatarColor === color ? "scale-110 ring-2 ring-white ring-offset-2 ring-offset-navy" : "hover:scale-105"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       <HeroStats progress={progress} />
       <RankingStrip />
@@ -408,11 +375,11 @@ function RankingStrip() {
   return (
     <Link href="/ranking" className="relative mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-white/10 p-3 transition-colors hover:bg-white/15">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Ranking · ten tydzień</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-white/60">Ranking · ten tydzień</p>
         <p className="text-lg font-extrabold">{summary ? `#${summary.rankWeek} · ${summary.solvedWeek} zadań` : "…"}</p>
       </div>
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">Wszech czasów</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-white/60">Wszech czasów</p>
         <p className="text-lg font-extrabold">{summary ? `#${summary.rankAll} · ${summary.solvedAll} zadań` : "…"}</p>
       </div>
     </Link>
@@ -427,7 +394,7 @@ function HeroStats({ progress }: { progress: Progress }) {
   const items: { icon: IconName; value: string; label: string; tone: string }[] = [
     { icon: "flame", value: String(days), label: plural(days, "dzień serii", "dni serii", "dni serii"), tone: "text-orange-300" },
     { icon: "checkCircle", value: String(progress.stats.correct), label: "rozwiązane", tone: "text-emerald-300" },
-    { icon: "target", value: answersToEstimate(progress) > 0 ? "–" : `${currentEstimate(progress)}%`, label: "szac. wynik", tone: "text-sky-300" },
+    { icon: "target", value: answersToEstimate(progress) > 0 ? "–" : `${currentEstimate(progress)}%`, label: "szacowany wynik", tone: "text-sky-300" },
   ];
   return (
     <dl className="relative mt-5 grid grid-cols-3 gap-2">
@@ -437,7 +404,8 @@ function HeroStats({ progress }: { progress: Progress }) {
           <dd>
             <Icon name={item.icon} className={`mx-auto h-5 w-5 ${item.tone}`} />
             <span className="mt-1 block text-2xl font-extrabold tracking-tight tabular-nums">{item.value}</span>
-            <span className="block truncate text-[11px] font-bold uppercase tracking-wide text-white/60">{item.label}</span>
+            {/* bez wersalików i obcinania – „ROZWIĄZA…” na wąskim telefonie było nieczytelne */}
+            <span className="mt-0.5 block text-xs leading-tight font-semibold text-white/65">{item.label}</span>
           </dd>
         </div>
       ))}
@@ -478,7 +446,7 @@ function AccuracyCard({ progress }: { progress: Progress }) {
         </svg>
         <span className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-extrabold tracking-tight text-ink tabular-nums">{answered > 0 ? `${accuracy}%` : "–"}</span>
-          <span className="text-[11px] font-bold text-faint">skuteczność</span>
+          <span className="text-xs font-bold text-faint">skuteczność</span>
         </span>
       </div>
       <div className="min-w-0">
@@ -534,7 +502,7 @@ function Tile({ icon, tone, value, label, note, href }: { icon: IconName; tone: 
       <span>
         <span className="block text-3xl font-extrabold tracking-tight text-ink tabular-nums">{value}</span>
         <span className="line-clamp-2 block text-sm leading-snug font-bold text-body">{label}</span>
-        <span className="block truncate text-xs text-faint">{note}</span>
+        <span className="block text-xs leading-snug text-faint">{note}</span>
       </span>
     </Link>
   );

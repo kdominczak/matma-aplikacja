@@ -52,7 +52,7 @@ export default function PracticeHub() {
         action={
           <Link
             href="/wzory"
-            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-2xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand transition-colors hover:border-brand/40"
+            className="press flex min-h-11 shrink-0 items-center gap-1.5 rounded-2xl border-2 border-brand/50 bg-brand-soft px-3.5 py-2 text-sm font-extrabold text-brand shadow-card transition-colors hover:border-brand"
           >
             <Icon name="book" className="h-4 w-4" />
             Wzory
@@ -139,7 +139,7 @@ function TopicTasksCard({ topic, progress }: { topic: Topic; progress: Progress 
       <div className="flex items-center gap-3">
         <CategoryTile topic={topic} />
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-faint">
+          <p className="text-xs font-bold uppercase tracking-wide text-faint">
             {topic.lesson} · {topic.category}
           </p>
           <p className="leading-snug font-extrabold text-ink">{topic.title}</p>

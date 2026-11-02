@@ -1,6 +1,6 @@
-import { placementQuestions, practiceTasks, topics, type PracticeTask } from "@/data/topics";
+import { extendedTopics, placementQuestions, practiceTasks, topics, type PracticeTask } from "@/data/topics";
 import type { BlueprintSlot, Section, TaskFormat } from "@/types/blueprint";
-import type { Difficulty, Topic } from "@/types/topic";
+import type { Difficulty, Level, Topic } from "@/types/topic";
 
 // Metadane zadań do składania arkuszy według szablonu (src/data/blueprints.ts).
 // Większość wynika z danych zadania (dział → dział podstawy, punkty, poziom); wartości szacunkowe
@@ -64,17 +64,26 @@ export interface PoolTask {
   meta: TaskMeta;
 }
 
-let pool: PoolTask[] | null = null;
+const pools = new Map<Level, PoolTask[]>();
 
-/** Wszystkie zadania, z których można składać arkusze (bez testu na start – to diagnoza). */
-export function examPool(): PoolTask[] {
-  if (pool) return pool;
+/**
+ * Zadania, z których można składać arkusze (bez testu na start – to diagnoza).
+ * Matura rozszerzona: zadania z działów rozszerzenia i zadania otwarte z podstawy – na prawdziwym arkuszu
+ * rozszerzonym część pozycji sprawdza wymagania z podstawy (np. VI.7), a zadań zamkniętych nie ma wcale.
+ */
+export function examPool(level: Level = "podstawowy"): PoolTask[] {
+  const cached = pools.get(level);
+  if (cached) return cached;
   const placement = new Set(placementQuestions().map((r) => r.question.id));
-  pool = topics.flatMap((topic) =>
-    practiceTasks(topic)
-      .filter((task) => !placement.has(task.id))
-      .map((task) => ({ task, topic, meta: taskMeta(task, topic) })),
-  );
+  const from = (list: Topic[], keep: (task: PracticeTask) => boolean) =>
+    list.flatMap((topic) =>
+      practiceTasks(topic)
+        .filter((task) => !placement.has(task.id) && keep(task))
+        .map((task) => ({ task, topic, meta: taskMeta(task, topic) })),
+    );
+  const pool =
+    level === "podstawowy" ? from(topics, () => true) : [...from(extendedTopics, () => true), ...from(topics, (task) => task.kind === "open")];
+  pools.set(level, pool);
   return pool;
 }
 

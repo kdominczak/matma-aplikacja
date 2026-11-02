@@ -411,7 +411,7 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-2xl bg-subtle py-2">
       <p className="text-lg font-extrabold text-ink tabular-nums">{value}</p>
-      <p className="text-[11px] font-bold uppercase text-faint">{label}</p>
+      <p className="text-xs font-bold uppercase text-faint">{label}</p>
     </div>
   );
 }

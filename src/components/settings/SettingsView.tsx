@@ -32,20 +32,38 @@ const SECTIONS = [
   { id: "wyglad", label: "Wygląd" },
   { id: "ustawienia-ai", label: "Korepetytor AI" },
   { id: "dane", label: "Prywatność" },
-];
+] as const;
+
+type SectionId = (typeof SECTIONS)[number]["id"];
+
+const VISIBLE_SECTIONS = SECTIONS.filter((s) => AI_ENABLED || s.id !== "ustawienia-ai");
 
 export default function SettingsView() {
   const progress = useProgress();
   const settings = useAppSettings();
+  // Widać tylko wybraną sekcję (na telefonie przewijanie całej listy było niewygodne). Linki /ustawienia#cel
+  // otwierają od razu tę sekcję.
+  const [tab, setTab] = useState<SectionId>("konto");
 
-  // Linki typu /ustawienia#cel – treść pojawia się po wczytaniu, więc przewijamy dopiero wtedy.
-  const loaded = progress !== null && settings !== null;
   useEffect(() => {
-    if (!loaded || !window.location.hash) return;
-    document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "start" });
-  }, [loaded]);
+    const fromHash = () => {
+      const hash = window.location.hash.slice(1);
+      const section = VISIBLE_SECTIONS.find((s) => s.id === hash || (hash === "strefa" && s.id === "dane"));
+      if (section) setTab(section.id);
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, []);
 
   if (!progress || !settings) return <PageSkeleton cards={4} />;
+
+  function choose(id: SectionId) {
+    hapticTap();
+    setTab(id);
+    // adres bez przewijania – powrót „wstecz” nie skacze po stronie
+    window.history.replaceState(null, "", `#${id}`);
+  }
 
   return (
     <Page width="reading">
@@ -53,62 +71,77 @@ export default function SettingsView() {
 
       <AccountHero />
 
-      <nav aria-label="Sekcje ustawień" className="-mx-4 -mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-        {SECTIONS.map((s) => (
-          <a
+      {/* zawijane, nie przewijane: na telefonie przewijany pasek chował „Prywatność” za krawędzią ekranu */}
+      <nav aria-label="Sekcje ustawień" role="tablist" className="-mt-2 flex flex-wrap gap-2">
+        {VISIBLE_SECTIONS.map((s) => (
+          <button
             key={s.id}
-            href={`#${s.id}`}
-            className="shrink-0 rounded-full border border-line bg-card px-3.5 py-2 text-sm font-bold text-muted transition-colors hover:border-brand/40 hover:text-ink active:scale-[0.97]"
+            role="tab"
+            aria-selected={tab === s.id}
+            onClick={() => choose(s.id)}
+            className={`press shrink-0 rounded-full border px-3.5 py-2 text-sm font-bold transition-colors ${
+              tab === s.id ? "border-brand bg-brand text-on-brand shadow-float" : "border-line bg-card text-muted hover:border-brand/40 hover:text-ink"
+            }`}
           >
             {s.label}
-          </a>
+          </button>
         ))}
       </nav>
 
-      <SettingsGroup id="konto" title="Konto i kopia zapasowa">
-        <SettingsBlock>
-          <AccountCard embedded />
-        </SettingsBlock>
-        <RankingRows />
-      </SettingsGroup>
+      {tab === "konto" && (
+        <SettingsGroup id="konto" title="Konto i kopia zapasowa">
+          <SettingsBlock>
+            <AccountCard embedded />
+          </SettingsBlock>
+          <RankingRows />
+        </SettingsGroup>
+      )}
 
-      <SettingsGroup id="cel" title="Nauka" hint="Cel ustala, które działy są w planie na dziś i na stronie głównej. Przypomnienie pomaga nie przerwać serii.">
-        <SettingsBlock>
-          <TargetPicker progress={progress} />
-        </SettingsBlock>
-        <SettingsBlock>
-          <ReminderSetting settings={settings} />
-        </SettingsBlock>
-        <PlacementRow progress={progress} />
-      </SettingsGroup>
+      {tab === "cel" && (
+        <SettingsGroup id="cel" title="Nauka" hint="Cel ustala, które działy są w planie na dziś i na stronie głównej. Przypomnienie pomaga nie przerwać serii.">
+          <SettingsBlock>
+            <TargetPicker progress={progress} />
+          </SettingsBlock>
+          <SettingsBlock>
+            <ReminderSetting settings={settings} />
+          </SettingsBlock>
+          <PlacementRow progress={progress} />
+        </SettingsGroup>
+      )}
 
-      <SettingsGroup id="wyglad" title="Wygląd i reakcje">
-        <SettingsBlock>
-          <ThemeSwitcher preview />
-        </SettingsBlock>
-        <SettingsBlock>
-          <div className="flex flex-col divide-y divide-line">
-            <Switch label="Dźwięki" description="Cichy klik przy wyborze odpowiedzi" checked={settings.sounds} onChange={(sounds) => void saveAppSettings({ sounds })} />
-            <Switch label="Wibracje" description="Krótka wibracja przy dobrej i złej odpowiedzi" checked={settings.haptics} onChange={(haptics) => void saveAppSettings({ haptics })} />
-            <Switch label="Konfetti" description="Animacja po zaliczonym teście i planie na dziś" checked={settings.confetti} onChange={(confetti) => void saveAppSettings({ confetti })} />
-          </div>
-        </SettingsBlock>
-      </SettingsGroup>
+      {tab === "wyglad" && (
+        <SettingsGroup id="wyglad" title="Wygląd i reakcje">
+          <SettingsBlock>
+            <ThemeSwitcher preview />
+          </SettingsBlock>
+          <SettingsBlock>
+            <div className="flex flex-col divide-y divide-line">
+              <Switch label="Dźwięki" description="Cichy klik przy wyborze odpowiedzi" checked={settings.sounds} onChange={(sounds) => void saveAppSettings({ sounds })} />
+              <Switch label="Wibracje" description="Krótka wibracja przy dobrej i złej odpowiedzi" checked={settings.haptics} onChange={(haptics) => void saveAppSettings({ haptics })} />
+              <Switch label="Konfetti" description="Animacja po zaliczonym teście i planie na dziś" checked={settings.confetti} onChange={(confetti) => void saveAppSettings({ confetti })} />
+            </div>
+          </SettingsBlock>
+        </SettingsGroup>
+      )}
 
-      {AI_ENABLED && (
+      {AI_ENABLED && tab === "ustawienia-ai" && (
         <SettingsGroup id="ustawienia-ai" title="Korepetytor AI i Premium" hint={`Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości do AI dziennie, z Premium – do ${AI_PREMIUM_DAILY_LIMIT}.`}>
           <SettingsRow icon="sparkles" title="Premium i kody poleceń" description={`${REFERRAL_DAYS} dni Premium dla Ciebie i znajomego za polecenie`} href="/premium" />
         </SettingsGroup>
       )}
 
-      <SettingsGroup id="dane" title="Prywatność i dane">
-        <SettingsRow icon="file" tone="sky" title="Regulamin" description="Zasady aplikacji i Premium" href="/regulamin" />
-        <SettingsRow icon="lock" tone="sky" title="Polityka prywatności" description="Jakie dane zbieramy i po co" href="/prywatnosc" />
-        <SettingsRow icon="trash" tone="slate" title="Jak usunąć konto" description="W aplikacji albo e-mailem, bez instalowania" href="/usun-konto" />
-        <SettingsRow icon="file" tone="slate" title="Arkusze i karta wzorów CKE" description="Oficjalne źródła na cke.gov.pl" href={CKE_ARCHIVE_URL} external />
-      </SettingsGroup>
+      {tab === "dane" && (
+        <>
+          <SettingsGroup id="dane" title="Prywatność i dane">
+            <SettingsRow icon="file" tone="sky" title="Regulamin" description="Zasady aplikacji i Premium" href="/regulamin" />
+            <SettingsRow icon="lock" tone="sky" title="Polityka prywatności" description="Jakie dane zbieramy i po co" href="/prywatnosc" />
+            <SettingsRow icon="trash" tone="slate" title="Jak usunąć konto" description="W aplikacji albo e-mailem, bez instalowania" href="/usun-konto" />
+            <SettingsRow icon="file" tone="slate" title="Arkusze i karta wzorów CKE" description="Oficjalne źródła na cke.gov.pl" href={CKE_ARCHIVE_URL} external />
+          </SettingsGroup>
 
-      <DangerZone progress={progress} />
+          <DangerZone progress={progress} />
+        </>
+      )}
 
       <footer className="pb-4 text-center text-xs text-faint">
         Matma – codzienna nauka do matury z matematyki. Aplikacja nie jest powiązana z Centralną Komisją Egzaminacyjną.
@@ -382,7 +415,7 @@ function AccountId({ id }: { id: string }) {
   return (
     <div className="mt-3 flex items-center gap-2 rounded-2xl bg-card px-3 py-2">
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-faint">ID konta (do zgłoszeń mailowych)</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-faint">ID konta (do zgłoszeń mailowych)</p>
         <p className="truncate font-mono text-xs text-body select-all">{id}</p>
       </div>
       <button onClick={() => void copy()} className="min-h-11 shrink-0 px-2 text-sm font-bold text-brand">

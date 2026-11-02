@@ -66,8 +66,10 @@ export default function PrivacyPage() {
             (które zadanie, wybrana litera, czas) i seria dni. Historia jest potrzebna, żeby serwer sam sprawdzał odpowiedzi i ranking był uczciwy.
           </p>
           <p>
-            <strong className="text-ink">Konto z e-mailem (jeśli założysz):</strong> adres e-mail do logowania kodem, kopia postępu i historia arkuszy –
-            żeby nic nie przepadło po zmianie telefonu.
+            <strong className="text-ink">Konto z e-mailem (jeśli założysz):</strong> adres e-mail, hasło (przechowywane wyłącznie jako skrót –
+            nikt, także my, nie zna jego treści), kopia postępu i historia arkuszy – żeby nic nie przepadło po zmianie telefonu. Przy logowaniu
+            przez Google dostajemy od Google adres e-mail, imię i nazwisko z konta Google oraz jego identyfikator. Zapisują się przy koncie, ale
+            do logowania używamy tylko adresu e-mail i identyfikatora.
           </p>
           <p>
             Podstawą przetwarzania jest świadczenie usługi, o którą prosisz (art. 6 ust. 1 lit. b RODO). Jeśli masz mniej niż 16 lat, przed założeniem
@@ -90,6 +92,10 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong className="text-ink">Google Play</strong> – przyjmuje płatność za Premium (według własnej polityki prywatności Google).
+            </li>
+            <li>
+              <strong className="text-ink">Google (logowanie, jeśli wybierzesz „Kontynuuj z Google”)</strong> – potwierdza Twoją tożsamość i przekazuje
+              nam e-mail oraz podstawowe dane konta Google (według polityki prywatności Google). Nie dostajemy dostępu do Twojej poczty ani plików.
             </li>
             <li>
               <strong className="text-ink">RevenueCat</strong> – potwierdza zakupy ze sklepu i ich odnowienia. Dostaje identyfikator Twojego konta

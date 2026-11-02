@@ -58,7 +58,7 @@ export default function HeroPanel({ progress, plan, level }: { progress: Progres
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-white/50">{today}</p>
-          <h1 className="mt-1 bg-linear-to-r from-white via-amber-100 to-amber-300 bg-clip-text text-3xl leading-tight font-extrabold tracking-tight text-transparent sm:text-4xl">
+          <h1 className="mt-1 text-3xl leading-tight font-extrabold tracking-tight text-white sm:text-4xl">
             {first ? `Cześć, ${first}!` : "Cześć!"}
           </h1>
           <p className="mt-1.5 max-w-md text-white/65">{line}</p>
@@ -101,7 +101,7 @@ export default function HeroPanel({ progress, plan, level }: { progress: Progres
           )}
           {/* pasek do celu: złoty postęp, kreska = cel */}
           <div className="relative mt-4 h-2 rounded-full bg-white/10">
-            <div className="bar-grow h-full rounded-full bg-linear-to-r from-amber-200 to-brand" style={{ width: `${Math.min(percent, 100)}%` }} />
+            <div className="bar-grow h-full rounded-full bg-brand" style={{ width: `${Math.min(percent, 100)}%` }} />
             <span className="absolute -top-1 h-4 w-0.5 rounded-full bg-white" style={{ left: `${(goal / max) * 100}%` }} aria-hidden />
           </div>
         </Link>

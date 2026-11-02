@@ -147,7 +147,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
             </div>
             <button
               onClick={() => setPanel("formulas")}
-              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm font-bold text-brand shadow-card transition-colors hover:border-brand/40"
+              className="press flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-brand/50 bg-brand-soft px-3.5 py-2 text-sm font-extrabold text-brand shadow-card transition-colors hover:border-brand"
             >
               <Icon name="book" className="h-4 w-4" />
               Wzory
@@ -180,7 +180,7 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
                   } ${t.id === task.id ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}`}
                 >
                   {i + 1}
-                  {t.kind === "open" && <span className="ml-0.5 text-[11px] opacity-80">O</span>}
+                  {t.kind === "open" && <span className="ml-0.5 text-xs opacity-80">O</span>}
                 </button>
               ))}
             </nav>
@@ -192,7 +192,8 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
         key={task.id}
         className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 pb-10 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8"
       >
-        <div className="flex flex-col gap-4">
+        {/* telefon: kolumna rozpada się na elementy siatki – odpowiedź zaraz pod treścią, brudnopis na końcu */}
+        <div className="flex flex-col gap-4 max-lg:contents">
           <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold uppercase tracking-wide">
             <span className="text-faint">Zadanie {index + 1}</span>
             <span
@@ -246,17 +247,19 @@ export default function PracticeSession({ topicId }: { topicId: string }) {
             )}
           </section>
 
-          <TaskScratch
-            prompt={prompt}
-            items={notes}
-            onChange={setNotes}
-            template={template}
-            onTemplateChange={setTemplate}
-            formulaGroups={groups}
-          />
+          <div className="flex flex-col gap-4 max-lg:order-2">
+            <TaskScratch
+              prompt={prompt}
+              items={notes}
+              onChange={setNotes}
+              template={template}
+              onTemplateChange={setTemplate}
+              formulaGroups={groups}
+            />
+          </div>
         </div>
 
-        <div className="lg:pt-9">
+        <div className="max-lg:order-1 lg:pt-9">
           {task.kind === "closed" ? (
             <ClosedAnswer
               question={task.question}

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { Capacitor } from "@capacitor/core";
 import { Preferences } from "@capacitor/preferences";
 
 // Klucz „anon” Supabase jest publiczny z założenia (trafia do aplikacji) – dane chroni RLS w bazie,
@@ -37,7 +38,9 @@ export function supabase(): Promise<SupabaseClient | null> {
         storage: preferencesStorage,
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: false, // static export, bez przekierowań OAuth
+        // w przeglądarce logowanie Google wraca przekierowaniem z sesją w adresie; w aplikacji Google loguje
+        // natywnie (token ID), więc adresu nie czytamy
+        detectSessionInUrl: !Capacitor.isNativePlatform(),
       },
     }),
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import { TypingDots } from "@/components/quiz/ExplainSheet";
 import AiLimitCard from "@/components/premium/AiLimitCard";
+import ImageViewer from "@/components/ui/ImageViewer";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import RichText from "@/components/ui/RichText";
@@ -506,10 +507,23 @@ function RemoveButton({ label, onClick }: { label: string; onClick: () => void }
 function ImageChip({ image, onRemove }: { image: ImageAttachment; onRemove: () => void }) {
   return (
     <span className="relative">
-      {/* eslint-disable-next-line @next/next/no-img-element -- podgląd lokalnego data URL */}
-      <img src={image.dataUrl} alt={image.name} className="h-14 w-14 rounded-2xl border border-line object-cover" />
+      <ZoomableImage src={image.dataUrl} alt={image.name} className="h-14 w-14 rounded-2xl border border-line object-cover" />
       <RemoveButton label={`Usuń ${image.name}`} onClick={onRemove} />
     </span>
+  );
+}
+
+/** Miniatura zdjęcia – po stuknięciu otwiera się na cały ekran. */
+function ZoomableImage({ src, alt, className }: { src: string; alt: string; className: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} aria-label={`Powiększ: ${alt}`} className="press block shrink-0">
+        {/* eslint-disable-next-line @next/next/no-img-element -- lokalny data URL */}
+        <img src={src} alt={alt} className={className} />
+      </button>
+      {open && <ImageViewer src={src} alt={alt} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
@@ -594,8 +608,7 @@ function SentAttachments({ message }: { message: ChatMessage }) {
         </span>
       ))}
       {message.images?.map((url, i) => (
-        // eslint-disable-next-line @next/next/no-img-element -- lokalny data URL
-        <img key={i} src={url} alt={`Załącznik ${i + 1}`} className="h-28 w-28 rounded-2xl border border-line object-cover shadow-card" />
+        <ZoomableImage key={i} src={url} alt={`Załącznik ${i + 1}`} className="h-28 w-28 rounded-2xl border border-line object-cover shadow-card" />
       ))}
     </div>
   );

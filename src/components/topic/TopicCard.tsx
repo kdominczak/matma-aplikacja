@@ -19,7 +19,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
     <>
       <CategoryTile topic={topic} muted={!ready && !tasksOnly} />
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-faint">
+        <p className="text-xs font-bold uppercase tracking-wide text-faint">
           {topic.lesson} · Priorytet {topic.priority}
         </p>
         <p className={`leading-snug font-extrabold ${ready ? "text-ink" : "text-muted"}`}>{topic.title}</p>
@@ -36,7 +36,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
           </div>
         ) : (
           <span
-            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap ${
+            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-bold whitespace-nowrap ${
               tasksOnly ? "bg-brand-soft text-brand" : "bg-subtle text-muted"
             }`}
           >

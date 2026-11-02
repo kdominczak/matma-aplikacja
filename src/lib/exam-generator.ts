@@ -1,8 +1,10 @@
 import { CURRENT_BLUEPRINTS, SECTION_NAMES } from "@/data/blueprints";
+import { EXTENDED_BLUEPRINTS } from "@/data/blueprints-extended";
 import { examPool, FORMAT_FALLBACK, slotSection, type PoolTask } from "@/data/task-meta";
-import type { PracticeTask } from "@/data/topics";
+import { topicLevel, type PracticeTask } from "@/data/topics";
 import { seededRandom, shuffled } from "@/lib/random";
 import type { BlueprintSlot, ExamBlueprint, Relaxation, Section, TaskFormat } from "@/types/blueprint";
+import type { Level } from "@/types/topic";
 
 // Generator arkuszy w układzie prawdziwej matury: każda pozycja szablonu (src/data/blueprints.ts) dostaje
 // zadanie z puli o tym samym dziale, typie i punktacji. Gdy pula nie ma pasującego zadania, generator schodzi
@@ -56,19 +58,34 @@ const FORMAT_NAMES: Record<TaskFormat, string> = {
 
 const isOpen = (format: TaskFormat) => format === "short" || format === "extended";
 
-// ── Kod arkusza: 2 cyfry roku układu + ziarno w systemie 36 (np. „26k3f9a”) ──
+/** Układy matury rozszerzonej, które obowiązują na najbliższej maturze. */
+export const CURRENT_EXTENDED_BLUEPRINTS = EXTENDED_BLUEPRINTS.filter((b) => b.current);
+
+/** Poziom matury, której układ odwzorowuje szablon. */
+export function blueprintLevel(blueprint: ExamBlueprint): Level {
+  return EXTENDED_BLUEPRINTS.includes(blueprint) ? "rozszerzony" : "podstawowy";
+}
+
+/** Najnowszy układ matury na danym poziomie – według niego losujemy arkusze. */
+export function currentBlueprint(level: Level): ExamBlueprint {
+  return (level === "rozszerzony" ? CURRENT_EXTENDED_BLUEPRINTS : CURRENT_BLUEPRINTS)[0];
+}
+
+// ── Kod arkusza: „r” dla rozszerzenia + 2 cyfry roku układu + ziarno w systemie 36 (np. „26k3f9a”, „r26k3f9a”) ──
 
 const SEED_SPACE = 36 ** 5;
 
 export function examCode(blueprint: ExamBlueprint, seed: number): string {
-  return `${String(blueprint.year).slice(2)}${seed.toString(36).padStart(5, "0")}`;
+  const prefix = blueprintLevel(blueprint) === "rozszerzony" ? "r" : "";
+  return `${prefix}${String(blueprint.year).slice(2)}${seed.toString(36).padStart(5, "0")}`;
 }
 
 export function parseExamCode(code: string): { blueprint: ExamBlueprint; seed: number } | null {
-  const match = code.trim().toLowerCase().match(/^(\d{2})([0-9a-z]{5})$/);
+  const match = code.trim().toLowerCase().match(/^(r?)(\d{2})([0-9a-z]{5})$/);
   if (!match) return null;
-  const blueprint = CURRENT_BLUEPRINTS.find((b) => String(b.year).slice(2) === match[1]);
-  const seed = parseInt(match[2], 36);
+  const blueprints = match[1] ? CURRENT_EXTENDED_BLUEPRINTS : CURRENT_BLUEPRINTS;
+  const blueprint = blueprints.find((b) => String(b.year).slice(2) === match[2]);
+  const seed = parseInt(match[3], 36);
   return blueprint && Number.isFinite(seed) ? { blueprint, seed } : null;
 }
 
@@ -78,13 +95,18 @@ interface Picker {
   used: Set<string>;
   families: Set<string>;
   random: () => number;
+  preferExtended?: boolean;
 }
 
 function available(pool: PoolTask[], picker: Picker, filter: (p: PoolTask) => boolean): PoolTask[] {
-  return shuffled(
+  const list = shuffled(
     pool.filter((p) => !picker.used.has(p.task.id) && !picker.families.has(p.meta.family) && filter(p)),
     picker.random,
   );
+  // pozycja z wymaganiem z zakresu rozszerzonego („R”) – najpierw zadania z działów rozszerzenia
+  if (!picker.preferExtended) return list;
+  const extended = (p: PoolTask) => topicLevel(p.topic) === "rozszerzony";
+  return [...list.filter(extended), ...list.filter((p) => !extended(p))];
 }
 
 function take(item: PoolTask, picker: Picker) {
@@ -98,6 +120,7 @@ function fillSlot(slot: BlueprintSlot, pool: PoolTask[], picker: Picker): { item
   const formats = FORMAT_FALLBACK[slot.format];
   const where = `Zad. ${slot.number} (${SECTION_NAMES[section]}, ${slot.points} pkt)`;
   const sameKind = (p: PoolTask) => isOpen(p.meta.format) === isOpen(slot.format);
+  picker.preferExtended = slot.requirements.some((r) => /\.R\d/.test(r));
 
   // 0–1: ten sam dział i punkty; najpierw dokładny typ, potem zastępczy
   for (const format of formats) {
@@ -153,7 +176,7 @@ function fillSlot(slot: BlueprintSlot, pool: PoolTask[], picker: Picker): { item
 }
 
 /** Arkusz dla danego szablonu i ziarna – zawsze ten sam dla tych samych danych. */
-export function generateExam(blueprint: ExamBlueprint, seed: number, pool: PoolTask[] = examPool()): GeneratedExam {
+export function generateExam(blueprint: ExamBlueprint, seed: number, pool: PoolTask[] = examPool(blueprintLevel(blueprint))): GeneratedExam {
   const picker: Picker = { used: new Set(), families: new Set(), random: seededRandom(`${blueprint.id}/${seed}`) };
   const tasks: PracticeTask[] = [];
   const slotNumbers: string[] = [];

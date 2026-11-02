@@ -45,7 +45,7 @@ export default function ExamNavGrid({ tasks, answers, flagged, current, onSelect
             } ${isCurrent ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}`}
           >
             {i + 1}
-            {task.kind === "open" && <span className="ml-0.5 text-[11px] opacity-75">O</span>}
+            {task.kind === "open" && <span className="ml-0.5 text-xs opacity-75">O</span>}
             {isFlagged && <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-surface bg-amber-400" aria-hidden />}
           </button>
         );
@@ -67,7 +67,7 @@ export function NavLegend() {
         <span className="h-3 w-3 rounded-full bg-amber-400" aria-hidden /> Wrócę do tego
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="text-[11px] font-extrabold">O</span> Zadanie otwarte
+        <span className="text-xs font-extrabold">O</span> Zadanie otwarte
       </li>
     </ul>
   );

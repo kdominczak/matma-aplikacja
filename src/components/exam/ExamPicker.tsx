@@ -9,9 +9,10 @@ import { EXAMS, examHref, examKindLabel, examMaxPoints, examSource } from "@/dat
 import { examStats, formatDuration, loadSession, useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import type { ExamSession } from "@/types/exam";
+import type { Level } from "@/types/topic";
 
 /** „Rozwiąż arkusz w aplikacji”: arkusze do symulacji z ostatnim wynikiem i arkuszem w toku. */
-export default function ExamPicker() {
+export default function ExamPicker({ level }: { level: Level }) {
   const attempts = useExamAttempts();
   const [sessions, setSessions] = useState<Record<string, ExamSession>>({});
   const stats = attempts ? examStats(attempts) : null;
@@ -27,8 +28,11 @@ export default function ExamPicker() {
     };
   }, []);
 
+  // Stałe arkusze próbne nr 1–3 zastąpił arkusz losowy (ten sam układ matury, nowe zadania za każdym razem) –
+  // zostają w danych dla historii prób, na liście tylko ten, który uczeń ma w toku.
+  const exams = EXAMS.filter((exam) => exam.level === level && (exam.kind !== "probny" || sessions[exam.id]));
   // roczniki CKE (formuła 2023), których jeszcze nie ma w aplikacji – na razie tylko jako PDF niżej
-  const pendingYears = EXAM_YEARS.filter((y) => y.formula === "2023" && !EXAMS.some((e) => e.year === y.year)).map((y) => y.year);
+  const pendingYears = EXAM_YEARS.filter((y) => y.formula === "2023" && !EXAMS.some((e) => e.level === level && e.year === y.year)).map((y) => y.year);
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="exam-picker-title">
@@ -48,7 +52,7 @@ export default function ExamPicker() {
             { label: "Czas nad arkuszami", value: formatDuration(stats.totalSec) },
           ].map((item) => (
             <div key={item.label} className="rounded-2xl border border-line glass-card px-3 py-2 shadow-card">
-              <dt className="text-[11px] font-bold uppercase tracking-wide text-faint">{item.label}</dt>
+              <dt className="text-xs font-bold uppercase tracking-wide text-faint">{item.label}</dt>
               <dd className="text-lg font-extrabold text-ink tabular-nums">{item.value}</dd>
             </div>
           ))}
@@ -56,8 +60,8 @@ export default function ExamPicker() {
       )}
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <RandomExamCard />
-        {EXAMS.map((exam) => {
+        <RandomExamCard level={level} />
+        {exams.map((exam) => {
           const session = sessions[exam.id];
           const last = attempts?.find((a) => a.examId === exam.id);
           const answered = session ? Object.keys(session.answers).length : 0;
@@ -74,7 +78,7 @@ export default function ExamPicker() {
                   <p className="mt-0.5 text-lg font-extrabold text-ink">{exam.title}</p>
                 </div>
                 {session ? (
-                  <span className="shrink-0 rounded-full bg-amber-400/20 px-2.5 py-1 text-[11px] font-extrabold uppercase text-amber-700 dark:text-amber-300">
+                  <span className="shrink-0 rounded-full bg-amber-400/20 px-2.5 py-1 text-xs font-extrabold uppercase text-amber-700 dark:text-amber-300">
                     W toku
                   </span>
                 ) : last ? (

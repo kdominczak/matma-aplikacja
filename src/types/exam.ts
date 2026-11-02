@@ -1,6 +1,7 @@
 import type { PracticeTask } from "@/data/topics";
 import type { Relaxation } from "@/types/blueprint";
 import type { OptionKey } from "@/types/quiz";
+import type { Level } from "@/types/topic";
 
 /**
  * Arkusz do rozwiązania w aplikacji (tryb symulacji egzaminu).
@@ -18,8 +19,8 @@ export interface ExamSheet {
   year?: number;
   /** Sesja egzaminu CKE (tylko `kind: "cke"`) – do oznaczenia źródła: „Zadanie z arkusza CKE, matura maj 2024”. */
   session?: "maj" | "czerwiec" | "sierpień";
-  level: "podstawowy";
-  /** Czas na egzamin w minutach (matura podstawowa: 180). */
+  level: Level;
+  /** Czas na egzamin w minutach (matura podstawowa i rozszerzona: 180). */
   durationMin: number;
   tasks: PracticeTask[];
   /** Oficjalne pliki CKE – do porównania z oryginałem (tylko `kind: "cke"`). */

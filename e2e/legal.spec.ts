@@ -17,6 +17,7 @@ const CKE = /nie jest powiązana z Centralną Komisją Egzaminacyjną/;
 
 test("regulamin: paragrafy, limity z aplikacji, prawo odstąpienia; link z ustawień", async ({ page }) => {
   await page.goto("/ustawienia/");
+  await page.getByRole("tab", { name: "Prywatność" }).click();
   await expect(page.getByRole("link", { name: /Regulamin/ })).toHaveAttribute("href", /\/regulamin/);
   await page.goto("/regulamin/");
   await expect(page.getByRole("heading", { name: /§ 8\. Prawo odstąpienia/ })).toBeVisible();
@@ -38,9 +39,7 @@ test("informacja o CKE: ekran główny, Premium, start arkusza i źródło zada�
   await page.goto("/premium/");
   await expect(page.getByText(CKE)).toBeVisible();
   await expect(page.getByRole("link", { name: "Regulamin" })).toBeVisible();
-  await page.goto("/arkusze/");
-  await expect(page.getByText(/Zadania autorskie aplikacji Matma/).first()).toBeVisible();
-  await page.getByRole("link", { name: /Arkusz próbny/ }).first().click();
+  await page.goto("/arkusz/probny-1/");
   await expect(page.getByRole("button", { name: /Rozpocznij arkusz/ })).toBeVisible();
   await expect(page.getByText(CKE)).toBeVisible();
   await expect(page.getByText(/nie pochodzą z arkuszy CKE/)).toBeVisible();

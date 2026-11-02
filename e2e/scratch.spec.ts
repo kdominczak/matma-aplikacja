@@ -10,7 +10,10 @@ async function openScratch(page: Page) {
   const zoomOut = page.getByRole("button", { name: "Oddal kartkę" });
   if (!(await zoomOut.isVisible())) await page.getByRole("button", { name: /Brudnopis/ }).first().click();
   await expect(zoomOut).toBeVisible();
-  return page.getByLabel("Pole do rysowania");
+  // na telefonie brudnopis jest pod odpowiedzią – przewijamy do kartki, jak uczeń
+  const board = page.getByLabel("Pole do rysowania");
+  await board.scrollIntoViewIfNeeded();
+  return board;
 }
 
 async function drawLine(page: Page, from: [number, number], to: [number, number]) {

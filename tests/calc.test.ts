@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluate, formatNumber, matchesAnswer } from "@/lib/calc";
+import { evaluate, formatNumber, matchesAnswer, readAnswer } from "@/lib/calc";
 
 describe("kalkulator (parser bez eval)", () => {
   it.each([
@@ -34,5 +34,18 @@ describe("sprawdzanie odpowiedzi w zadaniach otwartych", () => {
   it("odrzuca inną wartość", () => {
     expect(matchesAnswer("240", ["242"])).toBe(false);
     expect(matchesAnswer("", ["242"])).toBe(false);
+  });
+});
+
+describe("podgląd wyniku (readAnswer)", () => {
+  it("odczytuje liczby, ułamki i kilka rozwiązań", () => {
+    expect(readAnswer("-3/2")).toEqual([-1.5]);
+    expect(readAnswer("x = 2√3 cm")?.[0]).toBeCloseTo(2 * Math.sqrt(3));
+    expect(readAnswer("-2; 3")).toEqual([-2, 3]);
+  });
+
+  it("nie odczytuje zapisu, którego nie da się policzyć", () => {
+    expect(readAnswer("log3 3-3/2")).toBeNull();
+    expect(readAnswer("")).toBeNull();
   });
 });

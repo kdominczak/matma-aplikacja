@@ -760,7 +760,8 @@ export default function ScratchBoard(props: Props) {
     <div
       className={
         full
-          ? `fixed inset-x-0 bottom-0 z-50 flex animate-fade-in flex-col bg-card shadow-2xl ${sheet < 1 ? "rounded-t-3xl border-t border-line" : "pt-[env(safe-area-inset-top)]"}`
+          ? // telefon w poziomie: zawsze cały ekran (!h-dvh wygrywa z wysokością szuflady w style)
+            `fixed inset-x-0 bottom-0 z-50 flex animate-fade-in flex-col bg-card shadow-2xl short:h-dvh! short:rounded-none short:pt-[env(safe-area-inset-top)] ${sheet < 1 ? "rounded-t-3xl border-t border-line" : "pt-[env(safe-area-inset-top)]"}`
           : "flex flex-col overflow-hidden rounded-3xl border border-line bg-card shadow-card"
       }
       style={full ? { height: `${sheet * 100}dvh` } : undefined}
@@ -786,12 +787,12 @@ export default function ScratchBoard(props: Props) {
             if (e.key === "Home") setSheetTo(1);
             if (e.key === "End") setSheetTo(SHEET_MIN);
           }}
-          className="group flex h-7 shrink-0 cursor-row-resize touch-none items-center justify-center focus-visible:outline-none"
+          className="group flex h-7 shrink-0 cursor-row-resize touch-none items-center justify-center focus-visible:outline-none short:hidden"
         >
           <span className="h-1.5 w-12 rounded-full bg-line transition-colors group-hover:bg-faint group-focus-visible:bg-brand group-active:bg-brand" />
         </div>
       )}
-      <header className={`flex items-center justify-between gap-2 border-b border-line ${full ? "px-4 py-3 lg:px-8" : "px-3 py-2"}`}>
+      <header className={`flex items-center justify-between gap-2 border-b border-line ${full ? "px-4 py-3 short:py-1 lg:px-8" : "px-3 py-2"}`}>
         <div className="flex min-w-0 items-center gap-2">
           <span className={`flex shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-500 ${full ? "h-9 w-9" : "h-7 w-7"}`}>
             <Icon name="pencil" className="h-4 w-4" />
@@ -828,7 +829,7 @@ export default function ScratchBoard(props: Props) {
       </header>
 
       {full && props.prompt && sheet >= 0.85 && (
-        <div className="border-b border-line bg-surface px-4 py-3 text-sm font-semibold text-body lg:px-8">
+        <div className="border-b border-line bg-surface px-4 py-3 text-sm font-semibold text-body short:max-h-16 short:overflow-y-auto short:py-1.5 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <MathText text={props.prompt} />
           </div>
@@ -837,7 +838,7 @@ export default function ScratchBoard(props: Props) {
 
       {formulasOpen && formulas.length > 0 && (
         <div className="border-b border-line bg-surface">
-          <p className="px-3 pt-2 text-[11px] font-bold text-faint">Przeciągnij wzór na kartkę albo stuknij, żeby go wstawić</p>
+          <p className="px-3 pt-2 text-xs font-bold text-faint">Przeciągnij wzór na kartkę albo stuknij, żeby go wstawić</p>
           <div className="flex gap-2 overflow-x-auto px-3 py-2">
             {formulas.map((f) => (
               <button
@@ -850,7 +851,7 @@ export default function ScratchBoard(props: Props) {
                 // pan-x: przewijanie paska w poziomie zostaje przeglądarce, ruch w dół (na kartkę) to przeciąganie
                 className="shrink-0 cursor-grab touch-pan-x rounded-xl border border-line bg-card px-3 py-1.5 text-left select-none active:cursor-grabbing"
               >
-                <span className="block text-[11px] font-bold uppercase tracking-wide text-faint">{f.label}</span>
+                <span className="block text-xs font-bold uppercase tracking-wide text-faint">{f.label}</span>
                 <span className="pointer-events-none block text-sm whitespace-nowrap text-ink">
                   <MathText text={`$${f.tex}$`} />
                 </span>
@@ -966,7 +967,7 @@ export default function ScratchBoard(props: Props) {
 
         {/* przy otwartym kalkulatorze na telefonie podpowiedź i tak byłaby zasłonięta */}
         {hint && !draft && (
-          <p className={`pointer-events-none absolute top-2 ${calcOpen ? "max-lg:hidden" : ""} left-1/2 max-w-[90%] -translate-x-1/2 truncate rounded-full bg-navy/90 px-3 py-1 text-[11px] font-bold text-white shadow-card`}>
+          <p className={`pointer-events-none absolute top-2 ${calcOpen ? "max-lg:hidden" : ""} left-1/2 max-w-[90%] -translate-x-1/2 truncate rounded-full bg-navy/90 px-3 py-1 text-xs font-bold text-white shadow-card`}>
             {hint}
           </p>
         )}
@@ -1001,11 +1002,13 @@ export default function ScratchBoard(props: Props) {
         )}
       </div>
 
-      <footer className={`border-t border-line bg-card ${full ? "px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-8" : "px-2 py-2"}`}>
-        <div className={`mx-auto flex flex-col gap-2 ${full ? "max-w-5xl lg:flex-row lg:items-center lg:justify-between" : ""}`}>
-          {/* jeden zawijany rząd: narzędzia od lewej, cofnij/ponów/wyczyść dosunięte do prawej */}
-          <div className="flex flex-wrap items-center gap-0.5">
-            <div className="contents">
+      <footer
+        className={`border-t border-line bg-card ${full ? "px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] short:pt-1 short:pb-[max(0.25rem,env(safe-area-inset-bottom))] lg:px-8" : "px-2 py-2"}`}
+      >
+        <div className={`mx-auto flex flex-col gap-2 ${full ? "max-w-5xl short:flex-row short:items-center short:gap-1 lg:flex-row lg:items-center lg:justify-between" : ""}`}>
+          {/* jeden rząd: narzędzia przewijane w poziomie (na telefonie zawijane zajmowały 3 rzędy), cofnij/ponów/wyczyść stale po prawej */}
+          <div className={`flex min-w-0 items-center gap-0.5 ${full ? "short:flex-1" : ""}`}>
+            <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto pr-4 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] [&::-webkit-scrollbar]:hidden">
               {(Object.keys(PALETTE) as PenColor[]).map((c) => (
                 <button
                   key={c}
@@ -1036,13 +1039,13 @@ export default function ScratchBoard(props: Props) {
               )}
               <ToolButton icon="calculator" label="Kalkulator" selected={calcOpen} onClick={() => setCalcOpen(!calcOpen)} />
             </div>
-            <div className={`ml-auto flex shrink-0 items-center gap-0.5 text-muted ${full ? "lg:hidden" : ""}`}>
+            <div className={`flex shrink-0 items-center gap-0.5 text-muted ${full ? "lg:hidden" : ""}`}>
               <HistoryButtons history={history} empty={items.length === 0} onClear={() => history.commit([])} className={toolButton} />
             </div>
           </div>
 
           {/* Opcje wybranego narzędzia */}
-          <div className={`flex min-h-11 min-w-0 items-center gap-2 ${full ? "lg:flex-1 lg:justify-center" : ""}`}>
+          <div className={`flex min-h-11 min-w-0 items-center gap-2 ${full ? "short:max-w-[45%] short:shrink-0 lg:flex-1 lg:justify-center" : ""}`}>
             {(tool === "pen" || tool === "eraser") && (
               <label className="flex w-full max-w-xs items-center gap-2 px-1">
                 <span className="text-xs font-bold text-muted">Grubość</span>

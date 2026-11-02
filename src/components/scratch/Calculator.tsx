@@ -77,7 +77,7 @@ export default function Calculator({ onInsert, onClose }: Props) {
       </div>
 
       <div className="rounded-2xl bg-surface px-3 py-2 text-right">
-        <p className="h-4 truncate text-[11px] text-faint">{lastResult ?? ""}</p>
+        <p className="h-4 truncate text-xs text-faint">{lastResult ?? ""}</p>
         <input
           value={expr}
           onChange={(e) => setExpr(e.target.value)}

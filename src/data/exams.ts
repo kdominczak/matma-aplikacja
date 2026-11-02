@@ -1,7 +1,7 @@
 import { CURRENT_BLUEPRINTS } from "@/data/blueprints";
 import { MOCK_EXAMS, type FrozenExam } from "@/data/mock-exams";
 import { practiceTaskById } from "@/data/topics";
-import { DIFFICULTY_TOLERANCE, generateExam, parseExamCode, referenceExpected, type GeneratedExam } from "@/lib/exam-generator";
+import { blueprintLevel, DIFFICULTY_TOLERANCE, generateExam, parseExamCode, referenceExpected, type GeneratedExam } from "@/lib/exam-generator";
 import { LEGAL } from "@/data/legal";
 import type { ExamSheet } from "@/types/exam";
 
@@ -11,7 +11,8 @@ import type { ExamSheet } from "@/types/exam";
 //    w src/data/mock-exams.ts (lista id zadań). Generator zależy od puli zadań, więc bez zamrożenia każde nowe
 //    zadanie w aplikacji zmieniałoby treść arkusza – także rozpoczętego. Nowe arkusze: `npm run exams:freeze`.
 // 2. Arkusze losowe – z generatora, odtwarzane z kodu (id „los-<kod>”); nie są zapisane na stałe,
-//    więc każdy kod daje inny arkusz, a ten sam kod – zawsze ten sam.
+//    więc każdy kod daje inny arkusz, a ten sam kod – zawsze ten sam. Na obu poziomach: kod matury
+//    rozszerzonej zaczyna się od „r” (np. „r26k3f9a”).
 // 3. Oficjalne arkusze CKE – trafią do CKE_EXAMS po przepisaniu treści i klucza z PDF-ów CKE
 //    (src/data/cke-sheets.ts). Nie generujemy ich „z pamięci”: uczeń musi dostać dokładnie te zadania
 //    i ten klucz, które były na maturze. Id zadań muszą trafić do question_keys (npm run db:keys).
@@ -22,7 +23,7 @@ const RANDOM_PREFIX = "los-";
 function sheet(exam: GeneratedExam, base: Pick<ExamSheet, "id" | "kind" | "title" | "subtitle">): ExamSheet {
   return {
     ...base,
-    level: "podstawowy",
+    level: blueprintLevel(exam.blueprint),
     durationMin: exam.blueprint.durationMin,
     tasks: exam.tasks,
     code: exam.code,
@@ -88,8 +89,8 @@ export function randomExam(code: string): ExamSheet | null {
   return sheet(exam, {
     id: `${RANDOM_PREFIX}${exam.code}`,
     kind: "losowy",
-    title: "Arkusz losowy",
-    subtitle: `Kod ${exam.code.toUpperCase()} · w układzie matury ${parsed.blueprint.year}`,
+    title: blueprintLevel(parsed.blueprint) === "rozszerzony" ? "Arkusz losowy – rozszerzenie" : "Arkusz losowy",
+    subtitle: `Kod ${exam.code.toUpperCase()} · w układzie matury ${blueprintLevel(parsed.blueprint) === "rozszerzony" ? "rozszerzonej " : ""}${parsed.blueprint.year}`,
   });
 }
 
