@@ -38,13 +38,6 @@ function averagePoints(blueprints: ExamBlueprint[], split: boolean): Map<string,
   return totals;
 }
 
-/** Średnia liczba punktów działu podstawy w obowiązujących arkuszach podstawowych. */
-export const SECTION_POINTS: Record<Section, number> = (() => {
-  const out = {} as Record<Section, number>;
-  for (const [key, value] of averagePoints(CURRENT_BLUEPRINTS, false)) out[key.split("/")[0] as Section] = value;
-  return out;
-})();
-
 const relativeWeight = (topic: Topic) => topic.points * topic.examShare;
 
 /** Dzieli punkty (sekcja, zakres) między działy aplikacji z tej sekcji i zakresu (z zastępstwem, gdy zakres jest pusty). */

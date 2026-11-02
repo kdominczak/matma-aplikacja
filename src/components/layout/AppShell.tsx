@@ -9,10 +9,9 @@ import GlowBackground from "@/components/layout/GlowBackground";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import { ThemeSwitcher, ThemeToggle } from "@/components/ui/ThemeToggle";
 import { forgetLegacyAiKey } from "@/lib/ai-config";
-import { AVATAR_COLORS, useAppSettings } from "@/lib/app-settings";
+import { useAppSettings } from "@/lib/app-settings";
 import { startPurchases } from "@/lib/purchases";
-import { streak, syncLearning, useProgress } from "@/lib/progress";
-import { avatarUrl, useRanking } from "@/lib/ranking";
+import { streak, useProgress } from "@/lib/progress";
 import { onReminderTap, syncReminders } from "@/lib/reminders";
 
 interface NavItem {
@@ -30,9 +29,8 @@ const NAV: NavItem[] = [
   { href: "/wzory", label: "Wzory", icon: "book", primary: false, description: "Wszystkie wzory z działów" },
   { href: "/arkusze", label: "Arkusze", icon: "file", primary: true, description: "Próbne matury, losowe arkusze i archiwum CKE" },
   { href: "/korepetytor", label: "Korepetytor", icon: "sparkles", primary: true, description: "Wklej zadanie i rozwiąż je z AI" },
-  { href: "/ranking", label: "Ranking", icon: "trophy", primary: false, description: "Top maturzystów tygodnia" },
   { href: "/profil", label: "Profil", icon: "user", primary: true, description: "Zdjęcie, statystyki i postępy" },
-  { href: "/odznaki", label: "Odznaki", icon: "medal", primary: false, description: "Twoja kolekcja osiągnięć" },
+  { href: "/opanowane", label: "Opanowane działy", icon: "checkCircle", primary: false, description: "Które działy masz już opanowane" },
   { href: "/ustawienia", label: "Ustawienia", icon: "settings", primary: false, description: "Cel, motyw, korepetytor AI, dane" },
 ];
 
@@ -43,10 +41,10 @@ function useActiveHref() {
   return NAV.find((item) => item.href !== "/" && pathname.startsWith(item.href))?.href ?? "/";
 }
 
-/** Zakładka dolnego paska (telefon): Wzory są częścią „Zadań”, ranking i odznaki – „Profilu”. */
+/** Zakładka dolnego paska (telefon): Wzory są częścią „Zadań”, opanowane działy i ustawienia – „Profilu”. */
 function bottomTab(active: string): string {
   if (active === "/wzory") return "/zadania";
-  if (active === "/ranking" || active === "/odznaki" || active === "/ustawienia") return "/profil";
+  if (active === "/opanowane" || active === "/ustawienia") return "/profil";
   return active;
 }
 
@@ -61,22 +59,17 @@ export function Logo() {
   );
 }
 
-/** Nazwa ucznia: nick z rankingu, imię z profilu albo „Twój profil”. */
+/** Nazwa ucznia: imię z profilu albo „Twój profil”. */
 export function useDisplayName(): string {
-  const ranking = useRanking();
   const settings = useAppSettings();
-  if (ranking.status === "member") return ranking.profile.nick;
   return settings?.name.trim() || "Twój profil";
 }
 
-/** Awatar: własne zdjęcie (z urządzenia albo z rankingu), inaczej inicjał na wybranym kolorze. */
+/** Awatar: zdjęcie z urządzenia, inaczej inicjał na złotym tle. */
 export function ProfileAvatar({ size = "h-10 w-10 text-base" }: { size?: string }) {
-  const ranking = useRanking();
   const settings = useAppSettings();
   const name = useDisplayName();
-  const remote = ranking.status === "member" ? avatarUrl(ranking.profile.id, ranking.profile.avatar_version) : null;
-  const photo = settings?.avatar ?? remote;
-  const color = AVATAR_COLORS[settings?.avatarColor ?? "brand"];
+  const photo = settings?.avatar;
 
   if (photo) {
     return (
@@ -87,7 +80,7 @@ export function ProfileAvatar({ size = "h-10 w-10 text-base" }: { size?: string 
   return (
     <span
       aria-hidden
-      className={`flex shrink-0 items-center justify-center rounded-full bg-linear-to-br font-extrabold text-white shadow-float ${color} ${size}`}
+      className={`flex shrink-0 items-center justify-center rounded-full bg-brand font-extrabold text-on-brand shadow-float ${size}`}
     >
       {name === "Twój profil" ? <Icon name="user" className="h-1/2 w-1/2" /> : name.slice(0, 1).toUpperCase()}
     </span>
@@ -159,13 +152,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const tab = bottomTab(active);
   useReminders();
   const pathname = usePathname().replace(/(.)\/$/, "$1");
-
-  // Uczeń z kontem (ranking): wyrównujemy Pudełko porażek i historię odpowiedzi z Supabase
-  const ranking = useRanking();
-  const memberId = ranking.status === "member" ? ranking.profile.id : null;
-  useEffect(() => {
-    if (memberId) void syncLearning();
-  }, [memberId]);
 
   useEffect(() => {
     void forgetLegacyAiKey().catch(() => {});

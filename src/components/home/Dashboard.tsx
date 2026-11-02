@@ -26,7 +26,7 @@ import type { Progress } from "@/types/progress";
 /**
  * Strona główna – tylko to, co prowadzi do nauki dziś: panel startowy (dni do matury, szacowany wynik, cel, poziom)
  * → plan na dziś → „wróć do…” → wejście do lekcji, a obok seria. Przy obu maturach wszystko liczy się dla poziomu
- * z przełącznika. Ścieżka działów jest w zakładce Zadania, czas nauki, odznaki i Pudełko porażek – w Profilu.
+ * z przełącznika. Ścieżka działów jest w zakładce Zadania, czas nauki, opanowane działy i Pudełko porażek – w Profilu.
  */
 export default function Dashboard() {
   const progress = useProgress();

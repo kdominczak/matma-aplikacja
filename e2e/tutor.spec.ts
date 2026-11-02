@@ -1,19 +1,38 @@
-// Korepetytor: start od zadania ucznia (zdjęcie / wklejenie / Twoje zadania), tryby pomocy, pole rośnie z tekstem.
-// Zrzuty do screenshots/korepetytor-*.png.
-import { expect, test } from "@playwright/test";
-import { activeProgress, storageInit } from "./fixtures";
+// Korepetytor: bez konta – logowanie na miejscu; z kontem – start od zadania ucznia (zdjęcie / wklejenie / Twoje
+// zadania), tryby pomocy, pole rośnie z tekstem. Zrzuty do screenshots/korepetytor-*.png.
+import { expect, test, type Page } from "@playwright/test";
+import { activeProgress, signedInSession, storageInit } from "./fixtures";
 
 test.use({ viewport: { width: 375, height: 812 } });
 
-test("ekran startowy, tryby pomocy i długie zadanie bez ucinania", async ({ page }) => {
+async function open(page: Page, signedIn: boolean) {
   await page.route(/supabase\.co|groq\.com/, (route) => route.abort());
   const init = storageInit(activeProgress(), "dark");
-  await page.addInitScript((data) => {
-    localStorage.setItem("CapacitorStorage.progress.v2", data.progress!);
-    localStorage.setItem("CapacitorStorage.settings.v1", data.settings);
-    localStorage.setItem("theme", data.theme);
-  }, init);
+  const session = signedIn ? signedInSession() : null;
+  await page.addInitScript(
+    ({ data, session }) => {
+      localStorage.setItem("CapacitorStorage.progress.v2", data.progress!);
+      localStorage.setItem("CapacitorStorage.settings.v1", data.settings);
+      localStorage.setItem("theme", data.theme);
+      if (session) localStorage.setItem(session.key, session.value);
+    },
+    { data: init, session },
+  );
   await page.goto("/korepetytor/");
+}
+
+test("bez konta: zamiast pola wiadomości logowanie (AI działa na koncie)", async ({ page }) => {
+  test.skip(!signedInSession(), "build bez Supabase – korepetytor wyłączony");
+  await open(page, false);
+  await expect(page.getByRole("region", { name: /Zaloguj się, żeby pisać do korepetytora/ })).toBeVisible();
+  await expect(page.getByLabel("Wiadomość do korepetytora")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Wyślij kod na e-mail|Zaloguj się/ }).first()).toBeVisible();
+  await page.screenshot({ path: "screenshots/korepetytor-bez-konta.png", fullPage: true });
+});
+
+test("z kontem: ekran startowy, tryby pomocy i długie zadanie bez ucinania", async ({ page }) => {
+  test.skip(!signedInSession(), "build bez Supabase – korepetytor wyłączony");
+  await open(page, true);
 
   await expect(page.getByRole("button", { name: /Zrób zdjęcie zadania/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /Z galerii albo PDF/ })).toBeVisible();

@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { allQuestionRefs } from "@/data/topics";
-import { isNickAllowed, normalizeNick } from "@/lib/moderation";
 import { createTestDb, MIGRATIONS, userId, type TestDb } from "./harness";
 
 const refs = allQuestionRefs();
@@ -181,14 +180,6 @@ describe("moderacja nicków", () => {
     await t.as("authenticated", id, `insert into public.profiles (id, nick) values ($1, 'Knight_2007')`, [id]);
     for (const nick of ["Analityk", "Principal", "Szmaragd", "Nazim", "Zośka"]) {
       expect(await t.errorCode("authenticated", id, `update public.profiles set nick = $2 where id = $1`, [id, nick]), nick).toBeNull();
-    }
-  });
-
-  it("serwer i aplikacja podejmują tę samą decyzję dla każdego nicka", async () => {
-    const nicks = ["kurwa", "K.U.R.W.A", "Ch_u_j", "kurw4", "Pierdolec", "Zjeb123", "Admin", "Principal", "Municipal", "Knight", "Szmaragd", "Żółć_1337", "Euklides", "dick_cipa"];
-    for (const nick of nicks) {
-      const [row] = await t.admin<{ allowed: boolean; normalized: string }>(`select public.nick_allowed($1) as allowed, public.normalize_nick($1) as normalized`, [nick]);
-      expect(row, nick).toEqual({ allowed: isNickAllowed(nick), normalized: normalizeNick(nick) });
     }
   });
 

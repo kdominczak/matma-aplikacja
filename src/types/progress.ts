@@ -40,14 +40,15 @@ export type PlacementState =
 export interface Stats {
   answered: number;
   correct: number;
-  perfectTests: number;
-  dailyChallenges: number;
-  nightSessions: number;
-  earlySessions: number;
   /** Zadania wyjęte z „Pudełka porażek” poprawną odpowiedzią. */
   mistakesBeaten: number;
-  /** Zadania utrwalone powtórkami (przeszły wszystkie odstępy – patrz `reviews`). */
-  reviewsMastered: number;
+  // Dawne liczniki odznak (testy na 100%, wyzwania, sesje nocne/poranne, utrwalone powtórki) – tylko w starych
+  // zapisach i kopiach w chmurze; aplikacja ich już nie liczy ani nie pokazuje.
+  perfectTests?: number;
+  dailyChallenges?: number;
+  nightSessions?: number;
+  earlySessions?: number;
+  reviewsMastered?: number;
 }
 
 /**
@@ -81,7 +82,7 @@ export interface Progress {
   /** Cel na maturze rozszerzonej w % (jak `target`, skala 50 pkt). Brak = 30%. */
   targetExtended?: number;
   stats: Stats;
-  /** Zdobyte odznaki: id → dzień zdobycia. */
+  /** Dawne odznaki (id → dzień zdobycia) – tylko w starych zapisach; zastąpiły je „Opanowane działy” (topic-progress.ts). */
   achievements: Record<string, string>;
   /** Pudełko porażek: id pytania → ostatnia pomyłka. Poprawna odpowiedź usuwa wpis. */
   mistakes: Record<string, Mistake>;

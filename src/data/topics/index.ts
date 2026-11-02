@@ -1,4 +1,4 @@
-import type { Difficulty, FormulaGroup, Level, Target, Topic } from "@/types/topic";
+import type { Difficulty, FormulaGroup, Level, Topic } from "@/types/topic";
 import type { OpenQuestion, QuizQuestion } from "@/types/quiz";
 import { PLACEMENT } from "@/data/placement";
 import { generatedTasks } from "@/data/templates";
@@ -114,12 +114,6 @@ export function topicsOfLevel(level: Level): Topic[] {
   return level === "rozszerzony" ? [...extendedTopics, ...topics] : topics;
 }
 
-export const TARGETS: { value: Target; label: string; subtitle: string }[] = [
-  { value: 30, label: "Na 30%", subtitle: "Fundamenty – zdana matura" },
-  { value: 60, label: "Na 60%", subtitle: "Solidny wynik" },
-  { value: 85, label: "Na 85%", subtitle: "Wynik na studia" },
-];
-
 export const DIFFICULTIES: {
   id: Difficulty;
   label: string;
@@ -136,11 +130,6 @@ export function getDifficulty(id: Difficulty) {
 
 export function getTopic(id: string): Topic | undefined {
   return allTopics.find((t) => t.id === id);
-}
-
-/** Działy potrzebne do danego celu (kumulatywnie: cel 60% obejmuje też działy na 30%). */
-export function topicsForTarget(target: Target): Topic[] {
-  return topics.filter((t) => t.target <= target);
 }
 
 export function formulaGroup(topic: Topic): FormulaGroup {

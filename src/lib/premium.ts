@@ -5,8 +5,9 @@ import { supabase, SUPABASE_ANON_KEY, SUPABASE_ENABLED, SUPABASE_URL } from "@/l
 
 // Premium, dzienny limit AI i kody poleceń. O wszystkim decyduje serwer (migracja 20261102120000_premium_referrals):
 // aplikacja czyta stan z account_status() i woła funkcje, sama niczego nie nalicza – stanu lokalnego
-// nie da się więc „podkręcić”. Konto (anonimowe) zakładamy dopiero przy pierwszej akcji, która go wymaga
-// (wiadomość do AI, własny kod, wpisanie kodu) – samo otwarcie ekranu nie tworzy konta.
+// nie da się więc „podkręcić”. AI, ocena zdjęć i kody poleceń wymagają konta z e-mailem albo Google (serwer
+// odmawia kontom anonimowym – migracja 20261109120000); bez niego rzucamy AccountRequiredError, a ekran
+// pokazuje logowanie (AccountGate).
 
 import { AI_FREE_DAILY_LIMIT, GRADING_DAILY_LIMIT } from "@/lib/limits";
 
@@ -44,17 +45,21 @@ function setState(change: Partial<PremiumState>) {
   listeners.forEach((l) => l());
 }
 
-/** Klient z sesją; `create` – załóż konto anonimowe, jeśli go nie ma. */
-async function client(create: boolean): Promise<{ db: SupabaseClient; token: string } | null> {
+/** Klient z sesją konta z e-mailem albo Google; null – brak takiego konta (także stara sesja anonimowa). */
+async function client(): Promise<{ db: SupabaseClient; token: string } | null> {
   const db = await supabase();
   if (!db) return null;
-  let { data } = await db.auth.getSession();
-  if (!data.session && create) {
-    const signIn = await db.auth.signInAnonymously();
-    if (signIn.error || !signIn.data.session) throw new Error("Nie udało się połączyć z serwerem. Sprawdź internet i spróbuj ponownie.");
-    data = { session: signIn.data.session };
-  }
-  return data.session ? { db, token: data.session.access_token } : null;
+  const { data } = await db.auth.getSession();
+  if (!data.session || data.session.user.is_anonymous) return null;
+  return { db, token: data.session.access_token };
+}
+
+/** Klient z kontem albo AccountRequiredError (Supabase skonfigurowany, ale uczeń nie jest zalogowany). */
+async function requireClient(): Promise<{ db: SupabaseClient; token: string }> {
+  if (!SUPABASE_ENABLED) throw new Error("Ta funkcja nie jest dostępna w tej wersji aplikacji.");
+  const session = await client();
+  if (!session) throw new AccountRequiredError();
+  return session;
 }
 
 interface StatusRow {
@@ -68,12 +73,12 @@ interface StatusRow {
   grading_limit?: number;
 }
 
-/** Wczytuje stan z serwera (bez zakładania konta). */
+/** Wczytuje stan z serwera (bez konta – status „no-account”). */
 export function refreshPremium(): Promise<void> {
   if (!SUPABASE_ENABLED) return Promise.resolve();
   loading = (async () => {
     try {
-      const session = await client(false);
+      const session = await client();
       if (!session) return setState({ ...INITIAL, status: "no-account" });
       const { data, error } = await session.db.rpc("account_status");
       if (error) throw error;
@@ -100,7 +105,7 @@ let watchingAccount = false;
 function subscribe(listener: () => void) {
   listeners.add(listener);
   loading ??= refreshPremium();
-  // inne konto (logowanie e-mailem na istniejące konto, wylogowanie, nowe konto anonimowe) = inny stan Premium
+  // inne konto (logowanie, wylogowanie) = inny stan Premium
   if (!watchingAccount) {
     watchingAccount = true;
     let last = currentUserId();
@@ -116,7 +121,7 @@ function subscribe(listener: () => void) {
 
 function currentUserId(): string | null {
   const account = accountState();
-  return account.status === "anonymous" || account.status === "email" ? account.userId : null;
+  return account.status === "email" ? account.userId : null;
 }
 
 export function usePremium(): PremiumState {
@@ -142,11 +147,10 @@ export function normalizeReferralCode(input: string): string {
 
 export const REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{6}$/;
 
-/** Własny kod polecenia (przy pierwszym razie zakłada konto i tworzy kod). */
+/** Własny kod polecenia (przy pierwszym razie tworzy kod). Wymaga konta. */
 export async function myReferralCode(): Promise<string> {
   if (state.referralCode) return state.referralCode;
-  const session = await client(true);
-  if (!session) throw new Error("Kody poleceń nie są dostępne w tej wersji aplikacji.");
+  const session = await requireClient();
   const { data, error } = await session.db.rpc("my_referral_code");
   if (error) throw new Error("Nie udało się pobrać kodu. Spróbuj ponownie za chwilę.");
   setState({ referralCode: data as string });
@@ -158,6 +162,7 @@ const REDEEM_ERRORS: Record<string, string> = {
   MA011: "To Twój własny kod – wyślij go znajomym, a dostaniecie po 2 dni Premium.",
   MA012: "Kod polecenia był już wpisany na tym koncie.",
   MA013: "Kod polecenia można wpisać tylko w pierwszym tygodniu korzystania z aplikacji.",
+  MA030: "Zaloguj się (e-mail albo Google), żeby wpisać kod polecenia.",
 };
 
 /** Wpisuje kod znajomego. Zwraca datę końca Premium albo komunikat błędu. */
@@ -165,8 +170,7 @@ export async function redeemReferralCode(input: string): Promise<{ until: Date }
   const code = normalizeReferralCode(input);
   if (!REFERRAL_CODE_PATTERN.test(code)) return { error: "Kod ma 6 znaków – litery i cyfry." };
   try {
-    const session = await client(true);
-    if (!session) return { error: "Kody poleceń nie są dostępne w tej wersji aplikacji." };
+    const session = await requireClient();
     const { data, error } = await session.db.rpc("redeem_referral", { p_code: code });
     if (error) return { error: REDEEM_ERRORS[error.code ?? ""] ?? "Nie udało się wpisać kodu. Spróbuj ponownie za chwilę." };
     const row = (Array.isArray(data) ? data[0] : data) as { premium_until: string };
@@ -181,10 +185,9 @@ export async function redeemReferralCode(input: string): Promise<{ until: Date }
 
 export const AI_FUNCTION_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai` : "";
 
-/** Nagłówki do funkcji `ai` (zakłada konto anonimowe przy pierwszej wiadomości); `refresh` – wymuś nowy token. */
+/** Nagłówki do funkcji `ai` (bez konta – AccountRequiredError); `refresh` – wymuś nowy token. */
 export async function aiRequestHeaders(refresh = false): Promise<Record<string, string>> {
-  const session = await client(true);
-  if (!session) throw new Error("Korepetytor AI nie jest dostępny w tej wersji aplikacji.");
+  const session = await requireClient();
   let token = session.token;
   if (refresh) token = (await session.db.auth.refreshSession()).data.session?.access_token ?? token;
   return { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY ?? "", "Content-Type": "application/json" };
@@ -195,6 +198,14 @@ export function noteAiRemaining(remaining: number, premium: boolean) {
   if (!Number.isFinite(remaining)) return;
   const limit = premium ? Math.max(state.aiLimit, remaining) : AI_FREE_DAILY_LIMIT;
   setState({ aiLimit: limit, aiUsed: Math.max(0, limit - remaining), status: state.status === "ready" ? "ready" : state.status });
+}
+
+/** AI, ocena zdjęć i kody poleceń wymagają konta z e-mailem albo Google (też 403 `account_required` z serwera). */
+export class AccountRequiredError extends Error {
+  constructor() {
+    super("Zaloguj się (e-mail albo Google) – korepetytor AI, ocena zdjęć i kody poleceń działają na koncie.");
+    this.name = "AccountRequiredError";
+  }
 }
 
 /** Dzienny limit wyczerpany – ekran korepetytora pokazuje wtedy zachętę do Premium i kodów poleceń. */

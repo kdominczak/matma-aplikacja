@@ -6,9 +6,9 @@ let t: TestDb;
 const A = userId(11);
 const B = userId(12);
 
-/** Konto bez profilu w rankingu (jak po signInAnonymously przy pierwszym użyciu AI). */
+/** Konto z e-mailem albo Google (AI i kody poleceń są tylko dla takich kont – migracja 20261109120000). */
 async function account(id: string, ageDays = 0) {
-  await t.admin(`insert into auth.users (id, created_at) values ($1, now() - make_interval(days => $2))`, [id, ageDays]);
+  await t.admin(`insert into auth.users (id, created_at, is_anonymous) values ($1, now() - make_interval(days => $2), false)`, [id, ageDays]);
 }
 
 const status = async (id: string) =>
@@ -224,5 +224,32 @@ describe("zakupy (webhook RevenueCat → set_purchase_premium)", () => {
     expect(await t.errorCode("authenticated", A, `select * from public.purchase_events`)).toBe("42501");
     expect(await t.errorCode("authenticated", A, `select public.premium_until_of($1)`, [A])).toBe("42501");
     expect(await t.errorCode("authenticated", A, `update public.entitlements set purchase_until = now() + interval '1 year'`)).toBe("42501");
+  });
+});
+
+describe("konto anonimowe (bez e-maila i Google)", () => {
+  const ANON = userId(19);
+
+  beforeEach(async () => {
+    await t.admin(`insert into auth.users (id) values ($1)`, [ANON]); // atrapa: is_anonymous domyślnie true
+  });
+
+  it("nie dostaje wiadomości do AI, oceny zdjęć ani kodów poleceń – i nie rusza licznika", async () => {
+    const code = await codeOf(A);
+    expect(await t.errorCode("authenticated", ANON, `select * from public.consume_ai_quota()`)).toBe("MA030");
+    expect(await t.errorCode("authenticated", ANON, `select * from public.consume_grading_quota('grade')`)).toBe("MA030");
+    expect(await t.errorCode("authenticated", ANON, `select public.my_referral_code()`)).toBe("MA030");
+    expect(await t.errorCode("authenticated", ANON, `select * from public.redeem_referral($1)`, [code])).toBe("MA030");
+    expect(await t.admin(`select * from public.ai_usage where user_id = $1`, [ANON])).toEqual([]);
+    expect(await t.admin(`select * from public.referrals where referee_id = $1`, [ANON])).toEqual([]);
+  });
+
+  it("po dopięciu e-maila (to samo konto) wszystko działa", async () => {
+    await t.admin(`update auth.users set is_anonymous = false, email = 'uczen@example.com' where id = $1`, [ANON]);
+    expect((await consume(ANON)).allowed).toBe(true);
+  });
+
+  it("uczeń nie wywoła sprawdzenia konta bezpośrednio", async () => {
+    expect(await t.errorCode("authenticated", ANON, `select public.require_full_account($1)`, [ANON])).toBe("42501");
   });
 });

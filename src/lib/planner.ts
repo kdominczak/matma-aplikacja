@@ -205,7 +205,7 @@ export function planStreak(progress: Progress, today = dayKey()): number {
   return count;
 }
 
-/** Najdłuższa seria dni z wykonanym planem (do odznaki). */
+/** Najdłuższa seria dni z wykonanym planem (kafel w Profilu). */
 export function longestPlanStreak(progress: Progress): number {
   const days = Object.keys(progress.planDays).filter((d) => progress.planDays[d] > 0).sort();
   let best = 0;

@@ -29,7 +29,7 @@ test("regulamin: paragrafy, limity z aplikacji, prawo odstąpienia; link z ustaw
 test("polityka prywatności: AI w USA bez danych konta, przekazywanie poza EOG", async ({ page }) => {
   await page.goto("/prywatnosc/");
   await expect(page.getByRole("heading", { name: /poza Europejski Obszar Gospodarczy/ })).toBeVisible();
-  await expect(page.getByText(/Nie przekazujemy identyfikatora konta, e-maila, nicku/)).toBeVisible();
+  await expect(page.getByText(/Nie przekazujemy identyfikatora konta, e-maila, imienia/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Regulamin" })).toBeVisible();
 });
 

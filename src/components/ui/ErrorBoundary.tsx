@@ -12,7 +12,7 @@ function Fallback({ error, retry }: { error: unknown; retry: () => void }) {
 }
 
 /**
- * Granica błędu dla fragmentu ekranu (np. brudnopis, ranking): awaria jednego elementu
+ * Granica błędu dla fragmentu ekranu (np. brudnopis, wykres): awaria jednego elementu
  * pokazuje kartę z „Spróbuj ponownie”, a nie wywraca całego widoku. `catchError` z Next.js
  * czyści błąd przy nawigacji i ponawia render w Transition.
  */

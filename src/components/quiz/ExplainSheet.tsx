@@ -11,7 +11,7 @@ import RichText from "@/components/ui/RichText";
 import { questionAsText, setTutorDraft, streamAi, toAiQuestion } from "@/lib/ai";
 import { AI_ENABLED } from "@/lib/ai-config";
 import { displayKey } from "@/lib/options";
-import { AiLimitError } from "@/lib/premium";
+import { AccountRequiredError, AiLimitError } from "@/lib/premium";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
 type Props = {
@@ -26,6 +26,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [limited, setLimited] = useState(false);
+  const [needsAccount, setNeedsAccount] = useState(false);
 
   useEffect(() => {
     if (!AI_ENABLED) return;
@@ -35,6 +36,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
         if (controller.signal.aborted) return;
         setError(e.message);
         setLimited(e instanceof AiLimitError);
+        setNeedsAccount(e instanceof AccountRequiredError);
       });
     return () => controller.abort();
   }, [question, chosen]);
@@ -76,8 +78,17 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
           </div>
         ) : (
           <>
-            {error && !limited && <p className="text-sm text-muted">{error} Poniżej wyjaśnienie z klucza odpowiedzi.</p>}
+            {error && !limited && !needsAccount && <p className="text-sm text-muted">{error} Poniżej wyjaśnienie z klucza odpowiedzi.</p>}
             {fallback}
+            {needsAccount && (
+              <Link
+                href="/ustawienia#konto"
+                className="flex items-center gap-2 rounded-2xl border border-brand/20 bg-brand-soft p-3 text-sm font-bold text-brand"
+              >
+                <Icon name="user" className="h-4 w-4 shrink-0" />
+                Zaloguj się (Google albo e-mail), a korepetytor AI wytłumaczy to zadanie krok po kroku – 5 wiadomości dziennie za darmo.
+              </Link>
+            )}
             {limited && (
               <Link
                 href="/premium"

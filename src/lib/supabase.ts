@@ -13,7 +13,7 @@ export const SUPABASE_URL = URL;
 /** Publiczny klucz „anon” – nagłówek `apikey` przy wywołaniu funkcji serwerowych (np. AI). */
 export const SUPABASE_ANON_KEY = ANON_KEY;
 
-/** Czy ranking jest skonfigurowany w tej wersji aplikacji. */
+/** Czy backend (konto, kopia postępu, AI, Premium) jest skonfigurowany w tej wersji aplikacji. */
 export const SUPABASE_ENABLED = Boolean(URL && ANON_KEY);
 
 // Sesję trzymamy w Preferences: na iOS localStorage w WebView bywa czyszczony,

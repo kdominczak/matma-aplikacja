@@ -93,10 +93,10 @@ describe("test na start", () => {
 });
 
 describe("plan na dziś i powtórki", () => {
-  it("pomyłka w sesji planuje powtórkę na jutro, wykonany plan się liczy i daje odznakę", async () => {
+  it("pomyłka w sesji planuje powtórkę na jutro, wykonany plan się liczy", async () => {
     await P.resetProgress();
     const [first, second] = PLACEMENT.slice(0, 2).map((i) => i.question);
-    const { progress, earned } = await P.savePlanResult({
+    const { progress } = await P.savePlanResult({
       correct: 1,
       total: 2,
       answered: 2,
@@ -109,7 +109,6 @@ describe("plan na dziś i powtórki", () => {
     expect(progress.reviews[second.id]).toEqual({ box: 0, due: day(-1) });
     expect(progress.reviews[first.id]).toBeUndefined();
     expect(progress.planDays[day(0)]).toBe(1);
-    expect(earned.map((a) => a.id)).toContain("pierwszy-plan");
   });
 });
 

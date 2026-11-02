@@ -2,7 +2,7 @@ import type { PracticeRecord, Progress, ReviewItem, TestRecord, TopicStat } from
 
 // Scalanie postępu z dwóch miejsc (to urządzenie + kopia w chmurze, np. po zalogowaniu na nowym telefonie).
 // Zasada: nic nie ginie i nic nie liczy się podwójnie – liczniki biorą maksimum (nie sumę),
-// zbiory (odznaki, pudełko, dni nauki) sumę, a wyniki testów i zadań – lepszy z dwóch.
+// zbiory (pudełko, dni nauki) sumę, a wyniki testów i zadań – lepszy z dwóch.
 
 function mergeRecords<T>(a: Record<string, T>, b: Record<string, T>, pick: (x: T, y: T) => T): Record<string, T> {
   const out: Record<string, T> = { ...a };

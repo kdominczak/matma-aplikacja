@@ -5,10 +5,12 @@ import Link from "next/link";
 import { Page, PageHeader } from "@/components/layout/AppShell";
 import { TypingDots } from "@/components/quiz/ExplainSheet";
 import AiLimitCard from "@/components/premium/AiLimitCard";
+import AccountGate from "@/components/settings/AccountGate";
 import ImageViewer from "@/components/ui/ImageViewer";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import RichText from "@/components/ui/RichText";
+import { useAccount } from "@/lib/account";
 import { streamAi, takeTutorDraft, type ChatMessage } from "@/lib/ai";
 import { AI_ENABLED, VISION_MODEL_LABEL } from "@/lib/ai-config";
 import { TUTOR_STYLES, type TutorStyle } from "@/lib/ai-prompts";
@@ -29,7 +31,7 @@ import {
 } from "@/lib/attachments";
 import { useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
-import { AI_PREMIUM_DAILY_LIMIT, AiLimitError, isPremium, usePremium } from "@/lib/premium";
+import { AccountRequiredError, AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, AiLimitError, isPremium, usePremium } from "@/lib/premium";
 import { useProgress } from "@/lib/progress";
 import { tutorSuggestions, type TutorSuggestion } from "@/lib/tutor-suggestions";
 
@@ -82,8 +84,12 @@ function AiQuotaLine() {
 }
 
 function Chat() {
+  const account = useAccount();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [limited, setLimited] = useState(false);
+  // serwer odmówił (np. stara sesja anonimowa) – logowanie, dopóki uczeń nie ma konta z e-mailem albo Google
+  const [accountRefused, setAccountRefused] = useState(false);
+  const needsAccount = account.status === "signed-out" || account.status === "anonymous" || (accountRefused && account.status !== "email");
   const [input, setInput] = useState(takeTutorDraft);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +179,7 @@ function Chat() {
       );
     } catch (e) {
       if (e instanceof AiLimitError) setLimited(true);
+      else if (e instanceof AccountRequiredError) setAccountRefused(true);
       else setError(e instanceof Error ? e.message : "Nie udało się połączyć z korepetytorem.");
       setMessages(history.slice(0, -1));
       setInput(text);
@@ -211,7 +218,7 @@ function Chat() {
 
   return (
     <div className="flex flex-col gap-4">
-      {messages.length === 0 ? (
+      {needsAccount ? null : messages.length === 0 ? (
         <StartPanel
           onCamera={() => cameraRef.current?.click()}
           onFiles={() => fileRef.current?.click()}
@@ -257,146 +264,153 @@ function Chat() {
 
       <div ref={bottomRef} />
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send();
-        }}
-        onDragOver={(e) => {
-          if (!e.dataTransfer.types.includes("Files")) return;
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          addFiles([...e.dataTransfer.files]);
-        }}
-        className={`sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] flex flex-col gap-2 rounded-3xl border bg-card p-2 shadow-card transition-colors lg:bottom-6 ${
-          dragging ? "border-brand ring-2 ring-brand/30" : "border-line"
-        }`}
-      >
-        {(attachments.length > 0 || preparing) && (
-          <div className="flex flex-wrap gap-2 px-1 pt-1">
-            {attachments.map((a) =>
-              a.kind === "image" ? (
-                <ImageChip key={a.id} image={a} onRemove={() => removeAttachment(a.id)} />
-              ) : (
-                <PdfChip
-                  key={a.id}
-                  pdf={a}
-                  disabled={preparing}
-                  onRemove={() => removeAttachment(a.id)}
-                  onRange={(from, to) => changeRange(a, from, to)}
-                />
-              ),
-            )}
-            {preparing && (
-              <span className="flex h-14 items-center gap-2 rounded-2xl bg-subtle px-3 text-xs font-bold text-muted">
-                <TypingDots />
-                Czytam plik…
-              </span>
+      {needsAccount ? (
+        <AccountGate
+          title="Zaloguj się, żeby pisać do korepetytora"
+          text={`Korepetytor AI działa na koncie – ${AI_FREE_DAILY_LIMIT} wiadomości dziennie za darmo. Konto zakładasz w kilka sekund przez Google albo e-mail, a postęp trafia do kopii w chmurze.`}
+        />
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+          onDragOver={(e) => {
+            if (!e.dataTransfer.types.includes("Files")) return;
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            addFiles([...e.dataTransfer.files]);
+          }}
+          className={`sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] flex flex-col gap-2 rounded-3xl border bg-card p-2 shadow-card transition-colors lg:bottom-6 ${
+            dragging ? "border-brand ring-2 ring-brand/30" : "border-line"
+          }`}
+        >
+          {(attachments.length > 0 || preparing) && (
+            <div className="flex flex-wrap gap-2 px-1 pt-1">
+              {attachments.map((a) =>
+                a.kind === "image" ? (
+                  <ImageChip key={a.id} image={a} onRemove={() => removeAttachment(a.id)} />
+                ) : (
+                  <PdfChip
+                    key={a.id}
+                    pdf={a}
+                    disabled={preparing}
+                    onRemove={() => removeAttachment(a.id)}
+                    onRange={(from, to) => changeRange(a, from, to)}
+                  />
+                ),
+              )}
+              {preparing && (
+                <span className="flex h-14 items-center gap-2 rounded-2xl bg-subtle px-3 text-xs font-bold text-muted">
+                  <TypingDots />
+                  Czytam plik…
+                </span>
+              )}
+            </div>
+          )}
+
+          <div role="radiogroup" aria-label="Jak mam pomóc?" className="grid grid-cols-3 gap-1 px-1 pt-1">
+            {(Object.keys(TUTOR_STYLES) as TutorStyle[]).map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={style === id}
+                title={TUTOR_STYLES[id].hint}
+                onClick={() => setStyle(id)}
+                className={`min-h-9 rounded-full px-2 text-xs font-bold transition-colors ${
+                  style === id ? "bg-brand text-on-brand" : "bg-subtle text-muted hover:text-ink"
+                }`}
+              >
+                {TUTOR_STYLES[id].label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-end gap-1">
+            <input
+              ref={cameraRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              onChange={(e) => {
+                addFiles([...(e.target.files ?? [])]);
+                e.target.value = "";
+              }}
+            />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,application/pdf,.pdf"
+              multiple
+              hidden
+              onChange={(e) => {
+                addFiles([...(e.target.files ?? [])]);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={preparing || attachments.length >= MAX_ATTACHMENTS}
+              aria-label="Dołącz zdjęcie lub PDF"
+              title="Dołącz zdjęcie lub PDF"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-subtle hover:text-ink disabled:opacity-40"
+            >
+              <Icon name="paperclip" className="h-5 w-5" />
+            </button>
+            <label htmlFor="tutor-input" className="sr-only">
+              Wiadomość do korepetytora
+            </label>
+            <textarea
+              id="tutor-input"
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onPaste={(e) => {
+                const files = [...e.clipboardData.files];
+                if (files.length === 0) return;
+                e.preventDefault();
+                addFiles(files);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(pointer: fine)").matches) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              rows={1}
+              placeholder="Napisz albo wklej zadanie…"
+              className="max-h-60 min-h-11 flex-1 resize-none overflow-y-auto bg-transparent px-2 py-2.5 text-ink placeholder:text-faint focus:outline-none"
+            />
+            {streaming ? (
+              <button
+                type="button"
+                onClick={stop}
+                aria-label="Zatrzymaj odpowiedź"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-subtle text-ink"
+              >
+                <Icon name="stop" className="h-4 w-4" filled />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={(!input.trim() && attachments.length === 0) || preparing}
+                aria-label="Wyślij"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-on-brand shadow-float transition-colors active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+              >
+                <Icon name="send" className="h-5 w-5" />
+              </button>
             )}
           </div>
-        )}
-
-        <div role="radiogroup" aria-label="Jak mam pomóc?" className="grid grid-cols-3 gap-1 px-1 pt-1">
-          {(Object.keys(TUTOR_STYLES) as TutorStyle[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={style === id}
-              title={TUTOR_STYLES[id].hint}
-              onClick={() => setStyle(id)}
-              className={`min-h-9 rounded-full px-2 text-xs font-bold transition-colors ${
-                style === id ? "bg-brand text-on-brand" : "bg-subtle text-muted hover:text-ink"
-              }`}
-            >
-              {TUTOR_STYLES[id].label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-end gap-1">
-          <input
-            ref={cameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            hidden
-            onChange={(e) => {
-              addFiles([...(e.target.files ?? [])]);
-              e.target.value = "";
-            }}
-          />
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*,application/pdf,.pdf"
-            multiple
-            hidden
-            onChange={(e) => {
-              addFiles([...(e.target.files ?? [])]);
-              e.target.value = "";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={preparing || attachments.length >= MAX_ATTACHMENTS}
-            aria-label="Dołącz zdjęcie lub PDF"
-            title="Dołącz zdjęcie lub PDF"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-muted transition-colors hover:bg-subtle hover:text-ink disabled:opacity-40"
-          >
-            <Icon name="paperclip" className="h-5 w-5" />
-          </button>
-          <label htmlFor="tutor-input" className="sr-only">
-            Wiadomość do korepetytora
-          </label>
-          <textarea
-            id="tutor-input"
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onPaste={(e) => {
-              const files = [...e.clipboardData.files];
-              if (files.length === 0) return;
-              e.preventDefault();
-              addFiles(files);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(pointer: fine)").matches) {
-                e.preventDefault();
-                send();
-              }
-            }}
-            rows={1}
-            placeholder="Napisz albo wklej zadanie…"
-            className="max-h-60 min-h-11 flex-1 resize-none overflow-y-auto bg-transparent px-2 py-2.5 text-ink placeholder:text-faint focus:outline-none"
-          />
-          {streaming ? (
-            <button
-              type="button"
-              onClick={stop}
-              aria-label="Zatrzymaj odpowiedź"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-subtle text-ink"
-            >
-              <Icon name="stop" className="h-4 w-4" filled />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={(!input.trim() && attachments.length === 0) || preparing}
-              aria-label="Wyślij"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-on-brand shadow-float transition-colors active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
-            >
-              <Icon name="send" className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-      </form>
+        </form>
+      )}
       <p className="-mt-2 text-center text-xs text-faint">
         Korepetytor może się pomylić – sprawdzaj obliczenia. Zdjęcia czyta model {VISION_MODEL_LABEL} (do {MAX_IMAGES} na wiadomość).
       </p>

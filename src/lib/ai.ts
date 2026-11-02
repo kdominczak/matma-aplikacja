@@ -3,7 +3,7 @@ import { gradingUserMessage, NO_SOLUTION, parseGrading, type Grading } from "@/l
 import { AI_ENABLED, TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
 import { MAX_IMAGES } from "@/lib/attachments";
 import { displayedOptions, displayKey } from "@/lib/options";
-import { AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, GradingLimitError, noteAiRemaining, noteGradingRemaining, PremiumRequiredError } from "@/lib/premium";
+import { AccountRequiredError, AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, GradingLimitError, noteAiRemaining, noteGradingRemaining, PremiumRequiredError } from "@/lib/premium";
 import type { OpenQuestion, OptionKey, QuizQuestion } from "@/types/quiz";
 
 // AI idzie wyłącznie przez naszą funkcję serwerową `ai` (supabase/functions/ai): token ucznia → dzienny limit
@@ -203,7 +203,8 @@ export async function streamAi(
     if (response.status === 401) response = await send(true);
   } catch (error) {
     if (signal?.aborted) return "";
-    if (error instanceof Error && error.message.startsWith("Korepetytor AI nie jest dostępny")) throw error;
+    // brak konta albo AI wyłączone w tej wersji – to nie jest problem z siecią
+    if (error instanceof AccountRequiredError || (error instanceof Error && error.message.includes("nie jest dostępna w tej wersji"))) throw error;
     throw new Error("Nie udało się połączyć z korepetytorem. Sprawdź internet i spróbuj ponownie.", { cause: error });
   }
   if (response.headers.has("x-ai-remaining")) {
@@ -215,6 +216,7 @@ export async function streamAi(
     if (response.status === 429 && body?.error === "limit") throw new AiLimitError();
     if (response.status === 429 && body?.error === "grading_limit") throw new GradingLimitError();
     if (response.status === 403 && body?.error === "premium_required") throw new PremiumRequiredError();
+    if (response.status === 403 && body?.error === "account_required") throw new AccountRequiredError();
     // Groq przeciążony (jego limit zapytań) – zapytanie wróciło do limitu ucznia, można ponowić
     if (body?.error === "upstream" && body.status === 429) throw new AiBusyError(await errorMessage(response, vision));
   }

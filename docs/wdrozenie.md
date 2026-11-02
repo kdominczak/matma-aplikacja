@@ -14,6 +14,7 @@ Uruchom po kolei pliki, których jeszcze nie ma na produkcji. Każdy od `2026110
 | `20261106120000_fair_ranking.sql` | ranking: każde zadanie raz dziennie, max 150 pkt dziennie |
 | `20261107120000_funnel.sql` | lejek Premium (`funnel_events`, raport `supabase/admin/lejek.sql`) |
 | `20261108120000_photo_grading.sql` | licznik oceny zdjęć (Premium) |
+| `20261109120000_ai_requires_account.sql` | AI, ocena zdjęć i kody poleceń tylko dla kont z e-mailem albo Google (konta anonimowe – błąd MA030). **Uruchom razem z wydaniem aplikacji bez rankingu**, a potem w Authentication → Sign In / Providers wyłącz „Allow anonymous sign-ins” – inaczej skrypt mógłby dalej zakładać konta anonimowe (bez dostępu do AI, ale zaśmiecające bazę) |
 
 ## 2. Funkcje serwerowe
 

@@ -14,7 +14,7 @@ const status = async (id: string) =>
 
 beforeEach(async () => {
   t = await createTestDb();
-  await t.admin(`insert into auth.users (id) values ($1), ($2)`, [A, FREE]);
+  await t.admin(`insert into auth.users (id, is_anonymous) values ($1, false), ($2, false)`, [A, FREE]);
   await t.admin(`select public.grant_premium($1, 30, 'admin')`, [A]);
 });
 

@@ -1,4 +1,3 @@
-import { DIFFICULTIES } from "@/data/topics";
 import type { Progress, Stars } from "@/types/progress";
 import type { QuizResult } from "@/types/quiz";
 import type { Difficulty } from "@/types/topic";
@@ -49,27 +48,9 @@ export function starsFor(result: QuizResult): Stars | null {
   return 1;
 }
 
-/** Poziom podstawowy zawsze otwarty; kolejny po zaliczeniu poprzedniego. */
-export function isUnlocked(progress: Progress, topicId: string, difficulty: Difficulty): boolean {
-  const index = DIFFICULTIES.findIndex((d) => d.id === difficulty);
-  return index === 0 || Boolean(progress.tests[testKey(topicId, DIFFICULTIES[index - 1].id)]);
-}
-
-export function passedLevels(progress: Progress, topicId: string): number {
-  return DIFFICULTIES.filter((d) => progress.tests[testKey(topicId, d.id)]).length;
-}
-
 /** Gwiazdki tylko za prawdziwe testy – wstępne zaliczenia z testu na start ich nie dają. */
 export function totalStars(progress: Progress): number {
   return Object.values(progress.tests).reduce((sum, t) => sum + (t.fromPlacement ? 0 : t.stars), 0);
-}
-
-/** Poziomy zaliczone samodzielnym testem (bez wstępnych zaliczeń z testu na start) – do odznak. */
-export function earnedLevels(progress: Progress, topicId: string): number {
-  return DIFFICULTIES.filter((d) => {
-    const record = progress.tests[testKey(topicId, d.id)];
-    return record && !record.fromPlacement;
-  }).length;
 }
 
 // ── Seria i aktywność ──
@@ -86,7 +67,7 @@ export function streak(progress: Progress): number {
   return count;
 }
 
-/** Najdłuższa seria w historii (do odznaki „Niezłomny”). */
+/** Najdłuższa seria w historii (rekord w karcie serii). */
 export function longestStreak(progress: Progress): number {
   const days = Object.keys(progress.activityByDay).filter((k) => progress.activityByDay[k] > 0).sort();
   let best = 0;

@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
 import type { AuthError, Session, SignInWithIdTokenCredentials } from "@supabase/supabase-js";
-import { retryRanking } from "@/lib/ranking";
 import { supabase, SUPABASE_ENABLED } from "@/lib/supabase";
 
 // Konto ucznia: e-mail + hasło, Google albo 6-cyfrowy kod (OTP). Kod zamiast magic linku, bo aplikacja to
@@ -10,10 +9,10 @@ import { supabase, SUPABASE_ENABLED } from "@/lib/supabase";
 // • Nowe konto: e-mail → kod (potwierdza adres) → hasło (updateUser). Hasło ustawione = `has_password`
 //   w user_metadata (Supabase nie mówi klientowi, czy konto ma hasło).
 // • Google: w aplikacji natywne okno wyboru konta (token ID → signInWithIdToken), w przeglądarce przekierowanie.
-//   Konto anonimowe dostaje Google jako drugą tożsamość (linkIdentity) – to samo id, ranking zostaje.
+//   Stare konto anonimowe (z czasów rankingu) dostaje Google jako drugą tożsamość (linkIdentity) – to samo id.
 //
-// • Uczeń z anonimowym kontem (ranking) – e-mail dopinamy do TEGO SAMEGO konta (auth.updateUser),
-//   więc ranking, historia odpowiedzi i pudełko na serwerze zostają.
+// • Starsze konto anonimowe (z czasów rankingu) – e-mail dopinamy do TEGO SAMEGO konta (auth.updateUser).
+//   Nowych kont anonimowych aplikacja już nie zakłada (AI wymaga konta – migracja 20261109120000).
 // • Uczeń bez konta albo na nowym telefonie – logowanie kodem (tworzy konto, jeśli go nie ma).
 // Postęp z urządzenia trafia do kopii w chmurze (cloud-sync.ts) i scala się po zalogowaniu.
 
@@ -32,20 +31,8 @@ let started: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
 function setState(next: AccountState) {
-  const prev = state;
   state = next;
   listeners.forEach((l) => l());
-  // inne konto (logowanie, wylogowanie) – stan rankingu wczytujemy od nowa. Wyjątki: to samo konto
-  // (dopięcie e-maila) i nowe konto anonimowe – to dołączanie do rankingu, które samo ustawia swój stan.
-  const prevId = userIdOf(prev);
-  const nextId = userIdOf(next);
-  if (prev.status === "loading" || prevId === nextId) return;
-  if (prev.status === "signed-out" && next.status === "anonymous") return;
-  retryRanking();
-}
-
-function userIdOf(s: AccountState): string | null {
-  return s.status === "anonymous" || s.status === "email" ? s.userId : null;
 }
 
 function fromSession(session: Session | null): AccountState {
@@ -93,12 +80,6 @@ export function useAccount(): AccountState {
 
 export function accountState(): AccountState {
   return state;
-}
-
-/** Czeka na wczytanie sesji i zwraca id konta (anonimowego albo z e-mailem). */
-export async function accountUserId(): Promise<string | null> {
-  await startAccount();
-  return userIdOf(state);
 }
 
 export function subscribeAccount(listener: () => void): () => void {

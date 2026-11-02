@@ -1,8 +1,7 @@
 // Arkusz: po „Zakończ” ocena kroków zadań otwartych (samoocena wg schematu), potem wynik z punktami częściowymi.
 // Przy okazji zrzut ekranu sprawdzania do screenshots/arkusz-sprawdzanie.png.
-import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { freshProgress, storageInit } from "./fixtures";
+import { freshProgress, signedInSession, storageInit } from "./fixtures";
 
 test.use({ viewport: { width: 375, height: 812 } });
 
@@ -48,25 +47,12 @@ test("„Pomiń” w sprawdzaniu – wynik tylko z wyników końcowych", async (
 
 // ── Ocena ze zdjęcia (Premium) – serwer podstawiony w przeglądarce, prawdziwa baza i Groq nietknięte ──
 
-function supabaseRef(): string {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? readFileSync(".env.local", "utf8").match(/NEXT_PUBLIC_SUPABASE_URL=(\S+)/)?.[1] ?? "";
-  return new URL(url).hostname.split(".")[0];
-}
-
 // 1×1 px PNG – wystarczy, żeby aplikacja przygotowała zdjęcie (createImageBitmap + JPEG)
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Expose-Headers": "x-grading-remaining" };
 const sse = (text: string) => `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
 
 test("Premium: zdjęcie kartki → poprawiony odczyt → punkty AI z uzasadnieniem → wynik", async ({ page }) => {
-  const session = {
-    access_token: "test-token",
-    token_type: "bearer",
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: "test-refresh",
-    user: { id: "00000000-0000-4000-8000-0000000000aa", aud: "authenticated", role: "authenticated", is_anonymous: true, app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() },
-  };
   const sent: { purpose?: string; text?: string }[] = [];
   await page.route(/supabase\.co/, async (route) => {
     const req = route.request();
@@ -90,11 +76,9 @@ test("Premium: zdjęcie kartki → poprawiony odczyt → punkty AI z uzasadnieni
     }
     return route.abort();
   });
-  const ref = supabaseRef();
-  await page.addInitScript(
-    ({ key, value }) => localStorage.setItem(key, value),
-    { key: `CapacitorStorage.sb-${ref}-auth-token`, value: JSON.stringify(session) },
-  );
+  // konto z e-mailem (Premium i ocena zdjęć nie działają na koncie anonimowym)
+  const session = signedInSession()!;
+  await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), session);
 
   await page.goto("/arkusz/probny-1/");
   await page.getByRole("button", { name: /Rozpocznij arkusz/ }).click();

@@ -29,15 +29,45 @@ export function topicTaskProgress(topic: Topic, progress: Progress | null): Task
   return { total: tasks.length, solved, byDifficulty };
 }
 
-/**
- * Poziomy trudności opanowane w dziale (0–3): skuteczność ≥ 75% przy co najmniej kilku odpowiedziach
- * (z zadań, arkuszy, planu – wszystko liczy się do statystyk działu) albo dawny zaliczony test. Do odznak.
- */
+/** Stan jednego poziomu trudności w dziale: opanowany (≥ 75% po wygładzeniu, co najmniej MIN_ANSWERS odpowiedzi), w toku albo nie zaczęty. */
+export type LevelState = "mastered" | "progress" | "none";
+
+export function levelState(progress: Progress, topicId: string, difficulty: Difficulty): LevelState {
+  const legacy = progress.tests[testKey(topicId, difficulty)];
+  if (legacy && !legacy.fromPlacement) return "mastered"; // dawny zaliczony test
+  const { answered, correct } = levelStat(progress, topicId, difficulty);
+  if (answered >= MIN_ANSWERS && smoothedAccuracy(answered, correct) >= LEVEL_MASTERED) return "mastered";
+  return answered > 0 ? "progress" : "none";
+}
+
+/** Poziomy trudności opanowane w dziale (0–3). */
 export function masteredLevels(progress: Progress, topicId: string): number {
-  return DIFFICULTIES.filter(({ id }) => {
-    const legacy = progress.tests[testKey(topicId, id)];
-    if (legacy && !legacy.fromPlacement) return true;
-    const { answered, correct } = levelStat(progress, topicId, id);
-    return answered >= MIN_ANSWERS && smoothedAccuracy(answered, correct) >= LEVEL_MASTERED;
-  }).length;
+  return DIFFICULTIES.filter(({ id }) => levelState(progress, topicId, id) === "mastered").length;
+}
+
+export interface TopicMasteryRow {
+  topic: Topic;
+  levels: { difficulty: Difficulty; state: LevelState; answered: number; correct: number }[];
+  /** Dział opanowany = wszystkie trzy poziomy opanowane. */
+  mastered: boolean;
+  answered: number;
+}
+
+/**
+ * „Opanowane działy” (Profil, /opanowane): dla każdego działu stan trzech poziomów według jednej miary
+ * (levelState). Zastąpiły odznaki – liczy się tylko to, co przekłada się na punkty na maturze.
+ */
+export function topicMasteryRows(progress: Progress, list: Topic[]): TopicMasteryRow[] {
+  return list.map((topic) => {
+    const levels = DIFFICULTIES.map(({ id }) => {
+      const { answered, correct } = levelStat(progress, topic.id, id);
+      return { difficulty: id, state: levelState(progress, topic.id, id), answered, correct };
+    });
+    return {
+      topic,
+      levels,
+      mastered: levels.every((l) => l.state === "mastered"),
+      answered: levels.reduce((sum, l) => sum + l.answered, 0),
+    };
+  });
 }

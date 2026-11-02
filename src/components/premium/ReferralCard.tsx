@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AccountGate from "@/components/settings/AccountGate";
 import Icon from "@/components/ui/Icon";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
 import { AI_PREMIUM_DAILY_LIMIT, formatPremiumUntil, myReferralCode, redeemReferralCode, REFERRAL_DAYS, usePremium } from "@/lib/premium";
@@ -11,6 +12,14 @@ import { AI_PREMIUM_DAILY_LIMIT, formatPremiumUntil, myReferralCode, redeemRefer
  */
 export default function ReferralCard() {
   const premium = usePremium();
+  if (premium.status === "no-account") {
+    return (
+      <AccountGate
+        title={`${REFERRAL_DAYS} dni Premium dla Ciebie i znajomego`}
+        text="Kody poleceń działają na koncie – zaloguj się, żeby dostać swój kod albo wpisać kod od znajomego."
+      />
+    );
+  }
 
   return (
     <section className="card flex flex-col gap-5 p-5 lg:p-6" aria-labelledby="referral-title">

@@ -1,8 +1,8 @@
 // Lekcje bez testów na poziomach: postęp w zadaniach działu i poziomy opanowane w zadaniach (odznaki).
 import { describe, expect, it } from "vitest";
 import { practiceTasks, theoryChecks, topics } from "@/data/topics";
-import { ACHIEVEMENTS } from "@/lib/achievements";
-import { masteredLevels, topicTaskProgress } from "@/lib/topic-progress";
+import { levelState, masteredLevels, topicMasteryRows, topicTaskProgress } from "@/lib/topic-progress";
+import { MIN_ANSWERS } from "@/lib/mastery";
 import type { Progress } from "@/types/progress";
 
 function progress(patch: Partial<Progress> = {}): Progress {
@@ -67,16 +67,25 @@ describe("poziomy opanowane (odznaki zamiast zaliczonych testów)", () => {
     expect(masteredLevels(p, topic.id)).toBe(1);
   });
 
-  it("odznaka „Mistrz Potęg” rośnie z zadań, bez żadnego testu", () => {
-    const badge = ACHIEVEMENTS.find((a) => a.id === "mistrz-poteg")!;
-    const p = progress({
+  it("dział jest opanowany, gdy wszystkie trzy poziomy są opanowane – z samych zadań, bez testu", () => {
+    const all = progress({
       topicStats: Object.fromEntries(["podstawowy", "sredni", "zaawansowany"].map((d) => [`${topic.id}/${d}`, stat(12, 11)])) as Progress["topicStats"],
     });
-    expect(badge.current(p)).toBe(badge.goal);
+    const [row] = topicMasteryRows(all, [topic]);
+    expect(row.mastered).toBe(true);
+    expect(row.levels.map((l) => l.state)).toEqual(["mastered", "mastered", "mastered"]);
+
+    const partial = progress({
+      topicStats: { [`${topic.id}/podstawowy`]: stat(12, 11), [`${topic.id}/sredni`]: stat(3, 1) } as Progress["topicStats"],
+    });
+    const [half] = topicMasteryRows(partial, [topic]);
+    expect(half.mastered).toBe(false);
+    expect(half.levels.map((l) => l.state)).toEqual(["mastered", "progress", "none"]);
   });
 
-  it("żadna odznaka nie wymaga gwiazdek ani testów (każdą da się zdobyć)", () => {
-    for (const a of ACHIEVEMENTS) expect(a.description, a.id).not.toMatch(/test|gwiazd/i);
+  it("mniej niż MIN_ANSWERS odpowiedzi to jeszcze nie opanowanie, nawet przy 100%", () => {
+    const p = progress({ topicStats: { [`${topic.id}/podstawowy`]: stat(MIN_ANSWERS - 1, MIN_ANSWERS - 1) } as Progress["topicStats"] });
+    expect(levelState(p, topic.id, "podstawowy")).toBe("progress");
   });
 });
 

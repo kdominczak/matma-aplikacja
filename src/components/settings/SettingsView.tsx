@@ -23,7 +23,6 @@ import GoalSlider from "@/components/progress/GoalSlider";
 import LevelPicker from "@/components/progress/LevelPicker";
 import { levelTarget, studentLevels } from "@/lib/level";
 import { formatDay, resetProgress, setLevels, setTarget, useProgress } from "@/lib/progress";
-import { leaveRanking, useRanking } from "@/lib/ranking";
 import type { Progress } from "@/types/progress";
 
 const SECTIONS = [
@@ -93,7 +92,6 @@ export default function SettingsView() {
           <SettingsBlock>
             <AccountCard embedded />
           </SettingsBlock>
-          <RankingRows />
         </SettingsGroup>
       )}
 
@@ -231,37 +229,6 @@ function PlacementRow({ progress }: { progress: Progress }) {
   );
 }
 
-// ── Ranking ──
-
-function RankingRows() {
-  const ranking = useRanking();
-  const [confirm, setConfirm] = useState(false);
-  if (ranking.status === "disabled") return null;
-
-  if (ranking.status !== "member") {
-    return <SettingsRow icon="trophy" tone="amber" title="Dołącz do rankingu" description="Inni zobaczą tylko Twój nick i liczbę rozwiązanych zadań" href="/ranking" />;
-  }
-  return (
-    <>
-      <SettingsRow icon="trophy" tone="amber" title="Ranking" description="Liczą się poprawnie rozwiązane zadania" value={ranking.profile.nick} href="/ranking" />
-      <SettingsRow icon="close" tone="slate" title="Wypisz mnie z rankingu" description="Nick i zdjęcie znikną z rankingu" onClick={() => setConfirm(true)} />
-      {confirm && (
-        <ConfirmDialog
-          title="Wypisać Cię z rankingu?"
-          confirmLabel="Tak, wypisz"
-          onConfirm={async () => {
-            await leaveRanking();
-            setConfirm(false);
-          }}
-          onCancel={() => setConfirm(false)}
-        >
-          Znikną Twój nick, zdjęcie w rankingu i historia odpowiedzi na serwerze. Postęp nauki na tym urządzeniu zostaje.
-        </ConfirmDialog>
-      )}
-    </>
-  );
-}
-
 // ── Strefa niebezpieczna: reset postępów i usunięcie konta (zwinięta, żeby nikt nie trafił tu przypadkiem) ──
 
 function DangerZone({ progress }: { progress: Progress }) {
@@ -295,8 +262,7 @@ function ResetSetting({ progress }: { progress: Progress }) {
     <div className="p-4 sm:p-5">
       <h3 className="font-extrabold text-ink">Resetowanie postępów</h3>
       <p className="mt-1 text-sm text-muted">
-        Usuwa rozwiązane zadania, serię, statystyki, odznaki, Pudełko porażek i historię arkuszy – także kopię na koncie. Ustawienia, zdjęcie i nick
-        zostają.
+        Usuwa rozwiązane zadania, serię, statystyki, Pudełko porażek i historię arkuszy – także kopię na koncie. Ustawienia i zdjęcie zostają.
       </p>
       {done && <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">Postęp został wyzerowany.</p>}
       {failed && (
@@ -332,8 +298,7 @@ function ResetSetting({ progress }: { progress: Progress }) {
           <p>Tej operacji nie da się cofnąć. Stracisz:</p>
           <ul className="mt-2 list-disc pl-5">
             <li>{progress.stats.answered} rozwiązanych zadań w statystykach i serię dni,</li>
-            <li>statystyki działów, rozwiązane zadania i odznaki,</li>
-            <li>{Object.keys(progress.achievements).length} zdobytych odznak,</li>
+            <li>statystyki działów, rozwiązane zadania i opanowane działy,</li>
             <li>{Object.keys(progress.mistakes).length} zadań w Pudełku porażek.</li>
           </ul>
         </ConfirmDialog>
@@ -354,7 +319,7 @@ function DeleteAccountSetting() {
       <h3 className="font-extrabold text-ink">{hasAccount ? "Usunięcie konta" : "Usunięcie danych z urządzenia"}</h3>
       <p className="mt-1 text-sm text-muted">
         {hasAccount
-          ? "Trwale usuwa konto i wszystko, co jest na serwerze: profil w rankingu, zdjęcie, historię odpowiedzi, kopię postępu, historię arkuszy i Premium – a potem dane z tego urządzenia. Subskrypcję w Google Play anuluj osobno."
+          ? "Trwale usuwa konto i wszystko, co jest na serwerze: kopię postępu, historię arkuszy, Premium i dane z dawnego rankingu – a potem dane z tego urządzenia. Subskrypcję w Google Play anuluj osobno."
           : "Nie masz konta – Twoje dane są tylko na tym urządzeniu. Możesz je wszystkie usunąć: postęp i ustawienia."}
       </p>
       {hasAccount && <AccountId id={account.userId} />}

@@ -31,7 +31,7 @@ export function CardSkeleton({ className = "" }: { className?: string }) {
 }
 
 /**
- * Zarys ekranu z zakładek (Profil, Ustawienia, Odznaki…): nagłówek, duża karta i kilka mniejszych.
+ * Zarys ekranu z zakładek (Profil, Ustawienia, Opanowane działy…): nagłówek, duża karta i kilka mniejszych.
  * Te same marginesy co `Page`, więc po wczytaniu treść nie „skacze”.
  */
 export function PageSkeleton({ cards = 3, hero = true }: { cards?: number; hero?: boolean }) {

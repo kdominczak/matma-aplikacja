@@ -1,5 +1,7 @@
-// Dane do zrzutów i testów E2E: „aktywny uczeń” po dwóch tygodniach nauki (seria, błędy, odznaki, historia wyniku).
+// Dane do zrzutów i testów E2E: „aktywny uczeń” po dwóch tygodniach nauki (seria, błędy, historia wyniku).
 // Zapisywane do localStorage przed startem aplikacji – tak, jak robi to Capacitor Preferences w przeglądarce.
+
+import { existsSync, readFileSync } from "node:fs";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 export function day(offset: number): string {
@@ -91,7 +93,34 @@ export type Theme = "light" | "dark";
 export function storageInit(progress: object | null, theme: Theme, name = "Ola") {
   return {
     progress: progress ? JSON.stringify(progress) : null,
-    settings: JSON.stringify({ name, avatar: null, avatarColor: "brand", haptics: false, sounds: false, confetti: false }),
+    settings: JSON.stringify({ name, avatar: null, haptics: false, sounds: false, confetti: false }),
     theme,
   };
 }
+
+/**
+ * Sesja zalogowanego ucznia (konto z e-mailem) do localStorage – jak po logowaniu, bez prawdziwego Supabase
+ * (testy blokują sieć do supabase.co). Klucz jak w supabase-js: `sb-<projekt>-auth-token` przez Capacitor Preferences.
+ * null – build bez Supabase (wtedy AI i konto są wyłączone, a testy z kontem nie mają sensu).
+ */
+export function signedInSession(): { key: string; value: string } | null {
+  const env = existsSync(".env.local") ? readFileSync(".env.local", "utf8") : "";
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? env.match(/^NEXT_PUBLIC_SUPABASE_URL=(.+)$/m)?.[1]?.trim();
+  if (!url) return null;
+  const ref = new URL(url).hostname.split(".")[0];
+  const expiresAt = Math.floor(Date.now() / 1000) + 24 * 3600;
+  const user = {
+    id: "00000000-0000-4000-8000-000000000e2e",
+    aud: "authenticated",
+    role: "authenticated",
+    email: "uczen@example.com",
+    is_anonymous: false,
+    app_metadata: { provider: "email" },
+    user_metadata: { has_password: true },
+    identities: [],
+    created_at: new Date().toISOString(),
+  };
+  const session = { access_token: "e2e.e2e.e2e", refresh_token: "e2e", token_type: "bearer", expires_in: 86400, expires_at: expiresAt, user };
+  return { key: `CapacitorStorage.sb-${ref}-auth-token`, value: JSON.stringify(session) };
+}
+

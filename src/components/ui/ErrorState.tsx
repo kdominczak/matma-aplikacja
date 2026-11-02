@@ -8,7 +8,7 @@ type Props = {
   message?: string;
   /** Ponowienie; może zwrócić Promise – przycisk pokazuje wtedy „Łączę…”. */
   onRetry?: () => unknown;
-  /** Mniejsza wersja do wnętrza karty (np. tabela rankingu), zamiast pełnego bloku. */
+  /** Mniejsza wersja do wnętrza karty (np. lista w karcie), zamiast pełnego bloku. */
   compact?: boolean;
   /** Przycisk zamknięcia (np. w powiadomieniu). */
   onDismiss?: () => void;

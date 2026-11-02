@@ -17,7 +17,7 @@ import { streamAi, toAiQuestion } from "@/lib/ai";
 import { AI_ENABLED } from "@/lib/ai-config";
 import { hapticError, hapticSuccess, hapticTap } from "@/lib/haptics";
 import { displayedOptions, displayKey } from "@/lib/options";
-import { AiLimitError } from "@/lib/premium";
+import { AccountRequiredError, AiLimitError } from "@/lib/premium";
 import type { SaveOutcome } from "@/lib/progress";
 import { clearScratchNotes, useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
@@ -61,7 +61,7 @@ export default function QuizScreen(props: Props) {
   const [checked, setChecked] = useState(false);
   const [hintsShown, setHintsShown] = useState<string[]>([]);
   const [hintLoading, setHintLoading] = useState(false);
-  const [hintError, setHintError] = useState<"limit" | "error" | null>(null);
+  const [hintError, setHintError] = useState<"limit" | "account" | "error" | null>(null);
   const hintAbort = useRef<AbortController | null>(null);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [correct, setCorrect] = useState(0);
@@ -103,7 +103,7 @@ export default function QuizScreen(props: Props) {
     } catch (error) {
       if (!controller.signal.aborted) {
         setHintsShown((h) => h.slice(0, -1));
-        setHintError(error instanceof AiLimitError ? "limit" : "error");
+        setHintError(error instanceof AiLimitError ? "limit" : error instanceof AccountRequiredError ? "account" : "error");
       }
     } finally {
       setHintLoading(false);
@@ -289,6 +289,14 @@ export default function QuizScreen(props: Props) {
             )}
             {hintError === "error" && (
               <p className="mt-2 text-xs font-semibold text-rose-500">Nie udało się pobrać podpowiedzi – spróbuj ponownie.</p>
+            )}
+            {hintError === "account" && (
+              <p className="mt-2 text-xs font-semibold text-muted">
+                Podpowiedzi AI działają na koncie.{" "}
+                <Link href="/ustawienia#konto" className="font-bold text-brand underline">
+                  Zaloguj się przez Google albo e-mail
+                </Link>
+              </p>
             )}
             {hintError === "limit" && (
               <p className="mt-2 text-xs font-semibold text-muted">

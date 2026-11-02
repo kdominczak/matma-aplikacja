@@ -98,7 +98,7 @@ function SignedIn({
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
         Zalogowano jako <strong className="break-all text-ink">{email}</strong>
-        {google && " (Google)"}. Postęp, odznaki, Pudełko porażek i historia arkuszy są w chmurze – na nowym telefonie wystarczy się zalogować.
+        {google && " (Google)"}. Postęp, Pudełko porażek i historia arkuszy są w chmurze – na nowym telefonie wystarczy się zalogować.
       </p>
       <div className={`flex items-center gap-2 rounded-2xl p-3 text-sm font-semibold ${cloud.state === "error" ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : "bg-subtle text-body"}`}>
         <Icon name={cloud.state === "error" ? "alert" : cloud.state === "synced" ? "checkCircle" : "refresh"} className={`h-4 w-4 shrink-0 ${cloud.state === "syncing" ? "animate-spin" : ""}`} />
@@ -216,7 +216,8 @@ function PasswordForm({ title, hint, onDone, onCancel }: { title: string; hint: 
 type Tab = "new" | "login";
 
 function SignInFlow({ anonymous, intro, onCodeVerified }: { anonymous: boolean; intro?: string; onCodeVerified: (prompt: PasswordPrompt) => void }) {
-  const [tab, setTab] = useState<Tab>(anonymous ? "new" : "login");
+  // bez konta to prawie zawsze ktoś nowy; „Mam konto” – jedno stuknięcie
+  const [tab, setTab] = useState<Tab>("new");
   const [email, setEmail] = useState("");
   const [password, setPasswordValue] = useState("");
   const [code, setCode] = useState("");
@@ -291,8 +292,8 @@ function SignInFlow({ anonymous, intro, onCodeVerified }: { anonymous: boolean; 
       <p className="text-sm text-muted">
         {intro ??
           (anonymous
-            ? "Twoje konto w rankingu nie ma e-maila – po zmianie albo wyczyszczeniu telefonu przepadnie razem z postępem. Załóż konto, a zrobimy kopię w chmurze."
-            : "Postęp, odznaki i Pudełko porażek są tylko na tym telefonie. Zaloguj się – zrobimy kopię w chmurze i przeniesiesz ją na nowy telefon.")}
+            ? "Twoje konto nie ma e-maila – po zmianie albo wyczyszczeniu telefonu przepadnie razem z postępem. Załóż konto, a zrobimy kopię w chmurze."
+            : "Postęp i Pudełko porażek są tylko na tym telefonie. Zaloguj się – zrobimy kopię w chmurze, a korepetytor AI da Ci 5 wiadomości dziennie za darmo.")}
       </p>
 
       {GOOGLE_ENABLED && !step && (

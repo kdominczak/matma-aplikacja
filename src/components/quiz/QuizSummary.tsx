@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { BadgeIcon } from "@/components/achievements/Badge";
 import WeekStreak from "@/components/home/WeekStreak";
 import Icon from "@/components/ui/Icon";
 import { celebrate } from "@/lib/celebrate";
@@ -25,16 +24,10 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
   const passed = isPassed(result);
   const stars = starsFor(result) ?? 0;
   const percent = Math.round((result.correct / result.total) * 100);
-  const earned = outcome?.earned ?? [];
 
   useEffect(() => {
     if (passed) celebrate({ particleCount: 120, spread: 80, origin: { y: 0.35 } });
   }, [passed]);
-
-  useEffect(() => {
-    // druga salwa konfetti dla nowej odznaki
-    if (earned.length > 0) celebrate({ particleCount: 80, spread: 100, origin: { y: 0.6 }, colors: ["#fbbf24", "#f97316", "#a855f7"] });
-  }, [earned.length]);
 
   return (
     <div className="flex min-h-dvh animate-fade-in flex-col bg-surface px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:justify-center lg:py-10">
@@ -62,25 +55,6 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
             ? "Jeden krok bliżej zdanej matury."
             : "Do zaliczenia potrzebujesz 60% poprawnych odpowiedzi. Przejrzyj teorię i spróbuj ponownie."}
         </p>
-
-        {earned.length > 0 && (
-          <section className="mt-6 animate-pop rounded-3xl border border-amber-500/30 bg-amber-500/10 p-4">
-            <p className="text-xs font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400">
-              {earned.length === 1 ? "Nowa odznaka!" : `Nowe odznaki: ${earned.length}`}
-            </p>
-            <ul className="mt-3 flex flex-col gap-3">
-              {earned.map((a) => (
-                <li key={a.id} className="flex items-center gap-3">
-                  <BadgeIcon achievement={a} unlocked />
-                  <div>
-                    <p className="font-extrabold text-ink">{a.title}</p>
-                    <p className="text-sm text-muted">{a.description}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
 
         <div
           className={`mt-6 flex items-center justify-between rounded-2xl border p-4 ${

@@ -74,10 +74,7 @@ Deno.serve(async (request) => {
   if (isGradingPurpose(body.purpose)) return grading(body.purpose, body.messages, db, auth, groqKey);
 
   const { data, error } = await db.rpc("consume_ai_quota");
-  if (error) {
-    if (error.code !== "28000") console.error("ai: consume_ai_quota", error.code, error.message);
-    return json(error.code === "28000" ? 401 : 500, { error: "quota", detail: error.code });
-  }
+  if (error) return quotaError("consume_ai_quota", error);
   const quota = (Array.isArray(data) ? data[0] : data) as { allowed: boolean; remaining: number; premium: boolean };
   const quotaHeaders = { "x-ai-remaining": String(quota.remaining), "x-ai-premium": quota.premium ? "1" : "0" };
   if (!quota.allowed) return json(429, { error: "limit", premium: quota.premium }, quotaHeaders);
@@ -118,16 +115,24 @@ function pick(source: Record<string, unknown>, keys: readonly string[]) {
   return Object.fromEntries(keys.filter((key) => key in source).map((key) => [key, source[key]]));
 }
 
+/**
+ * Odmowa licznika: 401 – brak ważnej sesji (aplikacja odświeży token), 403 `account_required` – konto anonimowe
+ * (AI tylko z e-mailem albo Google, migracja 20261109120000 – aplikacja pokazuje logowanie), 500 – inny błąd.
+ */
+function quotaError(fn: string, error: { code?: string; message: string }): Response {
+  if (error.code === "28000") return json(401, { error: "quota", detail: error.code });
+  if (error.code === "MA030") return json(403, { error: "account_required" });
+  console.error(`ai: ${fn}`, error.code, error.message);
+  return json(500, { error: "quota", detail: error.code });
+}
+
 /** Przepisanie zdjęcia albo ocena wg schematu – osobny licznik (tylko Premium), prompt i model z serwera. */
 async function grading(purpose: GradingPurpose, messages: unknown[], db: SupabaseClient, auth: string, groqKey: string): Promise<Response> {
   const prepared = purposeMessages(purpose, messages);
   if (!prepared) return json(400, { error: "bad_messages" });
 
   const { data, error } = await db.rpc("consume_grading_quota", { p_kind: purpose });
-  if (error) {
-    if (error.code !== "28000") console.error("ai: consume_grading_quota", error.code, error.message);
-    return json(error.code === "28000" ? 401 : 500, { error: "quota", detail: error.code });
-  }
+  if (error) return quotaError("consume_grading_quota", error);
   const quota = (Array.isArray(data) ? data[0] : data) as { allowed: boolean; remaining: number; premium: boolean };
   const headers = { "x-grading-remaining": String(quota.remaining) };
   if (!quota.premium) return json(403, { error: "premium_required" }, headers);

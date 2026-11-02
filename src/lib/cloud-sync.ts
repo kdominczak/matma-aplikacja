@@ -7,7 +7,7 @@ import { supabase, SUPABASE_ENABLED } from "@/lib/supabase";
 import type { ExamAttempt, ExamTaskResult } from "@/types/exam";
 
 // Kopia w chmurze: postęp z urządzenia (tabela user_progress) i historia arkuszy (exam_attempts).
-// Działa dla każdego konta – anonimowego (ranking) i z e-mailem; po zalogowaniu na nowym telefonie
+// Działa dla konta z e-mailem albo Google (i starszego anonimowego); po zalogowaniu na nowym telefonie
 // kopia SCALA się z tym, co jest na urządzeniu (progress-merge.ts), więc nic nie znika.
 //
 // Kolejność ma znaczenie: najpierw pobranie i scalenie, dopiero potem wysyłanie – inaczej świeży,

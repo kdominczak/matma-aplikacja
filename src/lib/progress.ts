@@ -1,20 +1,8 @@
 import { useSyncExternalStore } from "react";
 import { Preferences } from "@capacitor/preferences";
 import { findQuestion, findTask } from "@/data/topics";
-import { newlyEarned, type Achievement } from "@/lib/achievements";
-import {
-  fetchServerMistakes,
-  flushAnswers,
-  flushMistakes,
-  importLocalMistakesOnce,
-  queueAnswers,
-  queueMistakes,
-  resetServerLearning,
-  type AnswerSource,
-} from "@/lib/learning-sync";
 import { scorePlacement } from "@/lib/placement";
 import { mergeProgress } from "@/lib/progress-merge";
-import { readyMemberId } from "@/lib/ranking";
 import { scheduleReview } from "@/lib/reviews";
 import { dayKey, isPassed, starsFor, testKey } from "@/lib/stats";
 import type { ExamAttempt } from "@/types/exam";
@@ -39,12 +27,7 @@ const EMPTY_PROGRESS: Progress = {
   stats: {
     answered: 0,
     correct: 0,
-    perfectTests: 0,
-    dailyChallenges: 0,
-    nightSessions: 0,
-    earlySessions: 0,
     mistakesBeaten: 0,
-    reviewsMastered: 0,
   },
   achievements: {},
   mistakes: {},
@@ -55,10 +38,9 @@ const EMPTY_PROGRESS: Progress = {
   statsByDay: {},
 };
 
-/** Wynik zapisu sesji – nowy stan i odznaki zdobyte właśnie teraz. */
+/** Wynik zapisu sesji – nowy stan postępu. */
 export interface SaveOutcome {
   progress: Progress;
-  earned: Achievement[];
 }
 
 // ── Magazyn współdzielony przez wszystkie ekrany ──
@@ -183,20 +165,12 @@ function update(change: (progress: Progress) => Progress): Promise<SaveOutcome> 
 
 async function applyUpdate(change: (progress: Progress) => Progress): Promise<SaveOutcome> {
   await ensureLoaded();
-  let next = change(current ?? EMPTY_PROGRESS);
-  const earned = newlyEarned(next);
-  if (earned.length > 0) {
-    const today = dayKey();
-    next = {
-      ...next,
-      achievements: { ...next.achievements, ...Object.fromEntries(earned.map((a) => [a.id, today])) },
-    };
-  }
+  const next = change(current ?? EMPTY_PROGRESS);
   current = next;
   emit();
   await persist(next);
   savedListeners.forEach((listener) => listener(next));
-  return { progress: next, earned };
+  return { progress: next };
 }
 
 // ── Kopia w chmurze (cloud-sync.ts) ──
@@ -261,7 +235,6 @@ function recordAnswers(progress: Progress, answers: QuizAnswer[]): Progress {
   let answered = 0;
   let correct = 0;
   let beaten = 0;
-  let mastered = 0;
 
   for (const answer of answers) {
     const ref = findQuestion(answer.questionId);
@@ -271,7 +244,7 @@ function recordAnswers(progress: Progress, answers: QuizAnswer[]): Progress {
 
     countAnswer(counted, testKey(ref.topic.id, ref.difficulty), answer.correct, today);
 
-    if (scheduleReview(reviews, answer.questionId, answer.correct, today) === "mastered") mastered++;
+    scheduleReview(reviews, answer.questionId, answer.correct, today);
 
     const existing = mistakes[answer.questionId];
     if (!answer.correct) {
@@ -294,43 +267,23 @@ function recordAnswers(progress: Progress, answers: QuizAnswer[]): Progress {
       answered: stats.answered + answered,
       correct: stats.correct + correct,
       mistakesBeaten: stats.mistakesBeaten + beaten,
-      reviewsMastered: stats.reviewsMastered + mastered,
     },
   };
 }
 
 /** Odpowiedzi i statystyki wspólne dla wszystkich sesji (testy, wyzwanie, trening). */
 function recordSession(progress: Progress, result: QuizResult): Progress {
-  const hour = new Date().getHours();
-  const next = recordAnswers(progress, result.answers);
-  return {
-    ...next,
-    stats: {
-      ...next.stats,
-      perfectTests: next.stats.perfectTests + (result.correct === result.total ? 1 : 0),
-      nightSessions: next.stats.nightSessions + (hour >= 22 || hour < 4 ? 1 : 0),
-      earlySessions: next.stats.earlySessions + (hour >= 4 && hour < 7 ? 1 : 0),
-    },
-  };
+  return recordAnswers(progress, result.answers);
 }
 
-/**
- * Zapis ukończonej sesji. W tle (nie blokuje ekranu wyniku) odpowiedzi idą do historii w Supabase –
- * serwer sam je ocenia i na tej podstawie liczy ranking (tylko dla uczniów w rankingu).
- */
-async function saveSession(
-  result: QuizResult,
-  source: AnswerSource,
-  change: (progress: Progress) => Progress,
-): Promise<SaveOutcome> {
-  const outcome = await update(change);
-  void queueAnswers(source, result.answers);
-  return outcome;
+/** Zapis ukończonej sesji (kopia w chmurze idzie w tle – cloud-sync.ts). */
+function saveSession(change: (progress: Progress) => Progress): Promise<SaveOutcome> {
+  return update(change);
 }
 
 /** Zapisuje test działu: zostaje najlepszy zaliczony wynik. */
 export function saveTestResult(topicId: string, difficulty: Difficulty, result: QuizResult) {
-  return saveSession(result, "test", (progress) => {
+  return saveSession((progress) => {
     const next = recordSession(progress, result);
     const stars = starsFor(result);
     const key = testKey(topicId, difficulty);
@@ -348,26 +301,23 @@ export function saveTestResult(topicId: string, difficulty: Difficulty, result: 
 
 /**
  * „Sprawdź się” w lekcji (pytania przy krokach teorii i na jej końcu): zwykła sesja – statystyki działu,
- * Pudełko porażek, seria, ranking – bez zaliczania testów (lekcje nie mają już poziomów do odblokowania).
+ * Pudełko porażek, seria – bez zaliczania testów (lekcje nie mają już poziomów do odblokowania).
  */
 export function saveLessonCheck(result: QuizResult) {
-  return saveSession(result, "test", (progress) => recordSession(progress, result));
+  return saveSession((progress) => recordSession(progress, result));
 }
 
 export function saveDailyResult(result: QuizResult) {
-  return saveSession(result, "daily", (progress) => {
+  return saveSession((progress) => {
     const next = recordSession(progress, result);
-    if (isPassed(result) && progress.dailyDone !== dayKey()) {
-      next.dailyDone = dayKey();
-      next.stats = { ...next.stats, dailyChallenges: next.stats.dailyChallenges + 1 };
-    }
+    if (isPassed(result) && progress.dailyDone !== dayKey()) next.dailyDone = dayKey();
     return next;
   });
 }
 
-/** Plan na dziś – zwykła sesja (powtórki, statystyki, ranking) plus licznik ukończonych planów dnia. */
+/** Plan na dziś – zwykła sesja (powtórki, statystyki) plus licznik ukończonych planów dnia. */
 export function savePlanResult(result: QuizResult) {
-  return saveSession(result, "training", (progress) => {
+  return saveSession((progress) => {
     const next = recordSession(progress, result);
     const today = dayKey();
     next.planDays = { ...progress.planDays, [today]: (progress.planDays[today] ?? 0) + 1 };
@@ -375,9 +325,9 @@ export function savePlanResult(result: QuizResult) {
   });
 }
 
-/** Trening z „Pudełka porażek” – liczy się jak każda sesja (seria, wyjmowanie błędów, ranking). */
+/** Trening z „Pudełka porażek” – liczy się jak każda sesja (seria, wyjmowanie błędów). */
 export function saveMistakeTraining(result: QuizResult) {
-  return saveSession(result, "training", (progress) => recordSession(progress, result));
+  return saveSession((progress) => recordSession(progress, result));
 }
 
 // ── Zakładka „Zadania” ──
@@ -396,8 +346,8 @@ export interface PracticeAttempt {
 }
 
 /**
- * Wynik zadania z zakładki „Zadania”. Punkty częściowe z samooceny liczą się do statystyk na urządzeniu,
- * do rankingu trafiają tylko zadania zamknięte (serwer sam sprawdza wybraną odpowiedź).
+ * Wynik zadania z zakładki „Zadania”. Punkty częściowe z samooceny liczą się do punktów zadania,
+ * ale do skuteczności działu – tylko wynik sprawdzony przez aplikację.
  */
 export async function savePracticeTask(attempt: PracticeAttempt): Promise<SaveOutcome> {
   const outcome = await update((progress) => {
@@ -412,7 +362,7 @@ export async function savePracticeTask(attempt: PracticeAttempt): Promise<SaveOu
       next = recordAnswers(progress, [{ questionId: attempt.taskId, chosen: attempt.chosen, correct: solved }]);
     } else {
       // zadanie otwarte: do skuteczności działu liczy się jako poprawne tylko pełne rozwiązanie sprawdzone przez
-      // aplikację – samoocena wg schematu nie podnosi szacowanego wyniku (tak jak nie liczy się do rankingu)
+      // aplikację – samoocena wg schematu nie podnosi szacowanego wyniku (sama ocena kroków nie jest sprawdzona przez aplikację)
       const correct = solved && attempt.verified;
       const counted = { topicStats: { ...progress.topicStats }, statsByDay: { ...progress.statsByDay } };
       countAnswer(counted, testKey(attempt.topicId, attempt.difficulty), correct, today);
@@ -438,9 +388,6 @@ export async function savePracticeTask(attempt: PracticeAttempt): Promise<SaveOu
       },
     };
   });
-  if (attempt.kind === "closed" && attempt.chosen) {
-    void queueAnswers("training", [{ questionId: attempt.taskId, chosen: attempt.chosen, correct: attempt.points === 1 }]);
-  }
   return outcome;
 }
 
@@ -471,7 +418,7 @@ export async function saveExamResult(attempt: ExamAttempt): Promise<SaveOutcome>
   });
 }
 
-/** Dodaje błędne odpowiedzi (zadania zamknięte z bazy) do Pudełka porażek – na urządzeniu i na koncie. */
+/** Dodaje błędne odpowiedzi (zadania zamknięte z bazy) do Pudełka porażek (na konto trafia z kopią postępu). */
 export async function addMistakes(entries: { questionId: string; chosen: OptionKey }[]): Promise<number> {
   const known = entries.filter((e) => findQuestion(e.questionId));
   if (known.length === 0) return 0;
@@ -483,7 +430,6 @@ export async function addMistakes(entries: { questionId: string; chosen: OptionK
     }
     return { ...progress, mistakes };
   });
-  void queueMistakes(known.map(({ questionId, chosen }) => ({ q: questionId, c: chosen, n: 1, d: today })));
   return known.length;
 }
 
@@ -491,7 +437,7 @@ export async function addMistakes(entries: { questionId: string; chosen: OptionK
 
 /**
  * Wynik testu na start: ustawia cel i wstępnie zalicza poziomy w działach z poprawnymi odpowiedziami.
- * To diagnoza, nie sesja nauki – bez gwiazdek i odznak. Odpowiedzi trafiają do statystyk działów i pudełka.
+ * To diagnoza, nie sesja nauki – bez gwiazdek. Odpowiedzi trafiają do statystyk działów i pudełka.
  */
 export async function savePlacementResult(result: QuizResult): Promise<SaveOutcome> {
   const score = scorePlacement(result.answers);
@@ -508,7 +454,6 @@ export async function savePlacementResult(result: QuizResult): Promise<SaveOutco
       placement: { status: "done", at: today, correct: score.correct, total: score.total, target: score.target, credited },
     };
   });
-  void queueAnswers("placement", result.answers);
   return outcome;
 }
 
@@ -517,39 +462,12 @@ export async function skipPlacement() {
 }
 
 /**
- * Kasuje cały postęp nauki na tym urządzeniu (testy, serię, statystyki, odznaki, pudełko porażek).
- * Ustawienia (motyw) i profil w rankingu zostają – mają osobne magazyny.
+ * Kasuje cały postęp nauki na tym urządzeniu (testy, serię, statystyki, pudełko porażek).
+ * Ustawienia (motyw, imię, zdjęcie) zostają – mają osobny magazyn.
  */
 export async function resetProgress() {
-  // reset obejmuje też historię odpowiedzi na koncie – inaczej synchronizacja przywróciłaby pudełko
-  await resetServerLearning().catch(() => {});
   await update(() => ({ ...EMPTY_PROGRESS, stats: { ...EMPTY_PROGRESS.stats } }));
   await Promise.all([Preferences.remove({ key: STORAGE_KEY }), Preferences.remove({ key: BACKUP_KEY })]).catch(() => {});
-}
-
-// ── Synchronizacja z kontem (Supabase) ──
-
-let syncing: Promise<void> | null = null;
-
-/**
- * Wyrównuje Pudełko porażek z kontem: wysyła zaległe odpowiedzi, jednorazowo przenosi lokalne
- * pudełko na konto, a potem przyjmuje stan z serwera (np. pomyłki pokonane na innym urządzeniu).
- */
-export function syncLearning(): Promise<void> {
-  syncing ??= (async () => {
-    if (!(await readyMemberId())) return;
-    if (!(await flushAnswers())) return; // zaległe odpowiedzi nie dotarły – serwer nie jest aktualny
-    if (!(await flushMistakes())) return; // pomyłki dodane ręcznie (np. z arkusza) też muszą być na serwerze
-    await ensureLoaded();
-    const local = current ?? EMPTY_PROGRESS;
-    if (!(await importLocalMistakesOnce(local.mistakes))) return;
-    const server = await fetchServerMistakes();
-    if (!server) return;
-    await update((progress) => ({ ...progress, mistakes: server }));
-  })().finally(() => {
-    syncing = null;
-  });
-  return syncing;
 }
 
 /** Cel ucznia (procent) na maturze danego poziomu – podstawowa: `target`, rozszerzona: `targetExtended`. */

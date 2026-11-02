@@ -54,8 +54,8 @@ export default function TermsPage() {
               <strong className="text-ink">Użytkownik</strong> – osoba korzystająca z Aplikacji.
             </li>
             <li>
-              <strong className="text-ink">Konto</strong> – konto anonimowe (bez e-maila, zakładane przy dołączeniu do rankingu lub pierwszej wiadomości do
-              AI) albo konto z e-mailem (logowanie kodem wysyłanym na e-mail).
+              <strong className="text-ink">Konto</strong> – konto z adresem e-mail (logowanie hasłem albo kodem wysyłanym na e-mail) albo konto
+              Google (logowanie przez Google).
             </li>
             <li>
               <strong className="text-ink">Korepetytor AI</strong> – funkcje, w których odpowiedzi tworzy zewnętrzny model sztucznej inteligencji:
@@ -88,7 +88,7 @@ export default function TermsPage() {
           <ol>
             <li>Do korzystania z Aplikacji potrzebny jest telefon z Androidem 7.0 lub nowszym albo aktualna przeglądarka internetowa.</li>
             <li>
-              Lekcje i zadania działają bez internetu. Połączenie jest potrzebne do Korepetytora AI, rankingu, konta, kopii postępu i zakupu Premium.
+              Lekcje i zadania działają bez internetu. Połączenie jest potrzebne do Korepetytora AI, konta, kopii postępu i zakupu Premium.
             </li>
             <li>Ocena rozwiązania ze zdjęcia wymaga dostępu do aparatu albo galerii – zgodę dajesz w ustawieniach telefonu.</li>
           </ol>
@@ -96,15 +96,15 @@ export default function TermsPage() {
 
         <Section title="§ 5. Konto i zasady korzystania">
           <ol>
-            <li>Z lekcji, zadań i arkuszy możesz korzystać bez konta. Konto jest potrzebne do rankingu, Korepetytora AI, kopii postępu i Premium.</li>
+            <li>Z lekcji, zadań i arkuszy możesz korzystać bez konta. Konto jest potrzebne do Korepetytora AI, kodów poleceń, kopii postępu i Premium.</li>
             <li>
-              Nie wolno: używać nicku lub zdjęcia wulgarnego, obraźliwego albo z cudzymi danymi; używać skryptów i innych automatów, obchodzić limitów ani
-              zawyżać wyników w rankingu; udostępniać Premium innym osobom; próbować uzyskać dostęp do cudzych danych; przesyłać do Korepetytora AI
+              Nie wolno: używać skryptów i innych automatów, obchodzić limitów, zakładać kont w celu wielokrotnego korzystania z darmowych limitów
+              lub kodów poleceń; udostępniać Premium innym osobom; próbować uzyskać dostęp do cudzych danych; przesyłać do Korepetytora AI
               treści bezprawnych ani danych osobowych innych osób.
             </li>
             <li>
-              Przy naruszeniu tych zasad możemy zmienić nick, usunąć zdjęcie, wypisać z rankingu, a przy poważnym lub powtarzającym się naruszeniu –
-              zablokować Konto (§ 12). O decyzji i jej powodzie informujemy, a od decyzji możesz się odwołać mailowo.
+              Przy naruszeniu tych zasad możemy cofnąć nienależnie uzyskane Premium, a przy poważnym lub powtarzającym się naruszeniu – zablokować
+              Konto (§ 12). O decyzji i jej powodzie informujemy, a od decyzji możesz się odwołać mailowo.
             </li>
           </ol>
         </Section>

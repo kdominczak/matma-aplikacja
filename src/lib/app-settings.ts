@@ -3,26 +3,13 @@ import { Preferences } from "@capacitor/preferences";
 import { DEFAULT_REMINDER, type ReminderSettings } from "@/lib/reminders";
 import type { Level } from "@/types/topic";
 
-// Ustawienia aplikacji i wygląd profilu – zapisane na urządzeniu (Preferences).
-// Zdjęcie profilowe trzymamy tu zawsze (działa bez rankingu); uczniowie w rankingu wgrywają je też do Supabase.
-
-export const AVATAR_COLORS = {
-  brand: "from-amber-200 to-brand",
-  sunset: "from-orange-400 to-rose-500",
-  mint: "from-emerald-400 to-teal-600",
-  ocean: "from-sky-400 to-blue-600",
-  candy: "from-pink-400 to-fuchsia-600",
-  gold: "from-amber-300 to-orange-500",
-} as const;
-
-export type AvatarColor = keyof typeof AVATAR_COLORS;
+// Ustawienia aplikacji i wygląd profilu – zapisane tylko na urządzeniu (Preferences), także zdjęcie profilowe.
 
 export interface AppSettings {
   /** Imię do powitania na ekranie głównym (tylko na urządzeniu). */
   name: string;
   /** Zdjęcie profilowe jako data URL (JPEG 256×256). */
   avatar: string | null;
-  avatarColor: AvatarColor;
   haptics: boolean;
   /** Ciche dźwięki przy wyborze odpowiedzi. */
   sounds: boolean;
@@ -36,7 +23,7 @@ export interface AppSettings {
 }
 
 const STORAGE_KEY = "settings.v1";
-const DEFAULTS: AppSettings = { name: "", avatar: null, avatarColor: "brand", haptics: true, sounds: true, confetti: true, reminder: DEFAULT_REMINDER, reminderAsked: false, activeLevel: "podstawowy" };
+const DEFAULTS: AppSettings = { name: "", avatar: null, haptics: true, sounds: true, confetti: true, reminder: DEFAULT_REMINDER, reminderAsked: false, activeLevel: "podstawowy" };
 
 let current: AppSettings = DEFAULTS;
 let loaded = false;

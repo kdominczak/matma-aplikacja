@@ -47,24 +47,25 @@ export default function DeleteAccountPage() {
               <strong className="text-ink">ID konta</strong> – znajdziesz je w aplikacji w Ustawieniach → Strefa niebezpieczna → Usunięcie konta (przycisk „Kopiuj”),
             </li>
             <li>
-              <strong className="text-ink">nick z rankingu</strong>, jeśli konto było w rankingu,
+              albo <strong className="text-ink">adres e-mail konta</strong> – e-mail, którym logujesz się hasłem, kodem albo przez Google (napisz wtedy z
+              tego adresu),
             </li>
             <li>
-              albo <strong className="text-ink">adres e-mail konta</strong> – jeśli logujesz się e-mailem (napisz wtedy z tego adresu).
+              przy starszym koncie bez e-maila (z dawnego rankingu) – <strong className="text-ink">ID konta i nick</strong>.
             </li>
           </ul>
           <p>
-            Usuniemy konto w ciągu {LEGAL.requestDays} dni i potwierdzimy to mailem. Konta bez e-maila (tylko ranking) rozpoznajemy po ID i nicku –
+            Usuniemy konto w ciągu {LEGAL.requestDays} dni i potwierdzimy to mailem. Starsze konta bez e-maila rozpoznajemy po ID i nicku –
             bez nich nie da się bezpiecznie wskazać, które konto jest Twoje.
           </p>
         </Section>
 
         <Section title="Co zostanie usunięte">
           <ul>
-            <li>konto (anonimowe albo z adresem e-mail),</li>
-            <li>profil w rankingu: nick, zdjęcie profilowe, wynik i seria dni,</li>
-            <li>historia odpowiedzi i „Pudełko porażek” zapisane na serwerze,</li>
-            <li>kopia postępu w chmurze (testy, odznaki, statystyki) i historia arkuszy.</li>
+            <li>konto (e-mail, Google albo starsze konto bez e-maila),</li>
+            <li>kopia postępu w chmurze (statystyki, Pudełko porażek, rozwiązane zadania) i historia arkuszy,</li>
+            <li>Premium, kody poleceń i historia zakupów zapisane u nas,</li>
+            <li>dane z dawnego rankingu, jeśli konto w nim było (nick, zdjęcie, historia odpowiedzi).</li>
           </ul>
           <p>
             Nie zatrzymujemy żadnych danych po usunięciu konta. Jedynie automatyczne kopie zapasowe bazy u dostawcy (Supabase, {LEGAL.serverRegion || <Missing what="region" />}
@@ -74,10 +75,6 @@ export default function DeleteAccountPage() {
 
         <Section title="Usunięcie części danych (bez usuwania konta)">
           <ul>
-            <li>
-              <strong className="text-ink">Ranking:</strong> Ustawienia → Konto i kopia zapasowa → „Wypisz mnie z rankingu” – usuwa nick, zdjęcie i historię
-              odpowiedzi.
-            </li>
             <li>
               <strong className="text-ink">Zdjęcie profilowe:</strong> Profil → „Usuń zdjęcie”.
             </li>
