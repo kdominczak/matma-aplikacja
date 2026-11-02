@@ -12,7 +12,7 @@
 //   supabase functions deploy revenuecat --no-verify-jwt
 // (--no-verify-jwt, bo webhook nie ma tokenu Supabase; token ucznia sprawdzamy sami przez auth.getUser).
 
-import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.117.3";
 import { affectedUsers, purchaseUntil, safeEqual, type RevenueCatEvent, type RevenueCatSubscriber } from "../_shared/purchase.ts";
 
 const RC_API = "https://api.revenuecat.com/v1/subscribers/";

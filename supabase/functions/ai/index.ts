@@ -16,7 +16,7 @@
 // schematu). Osobny licznik consume_grading_quota(); prompt, model i limity ustawia serwer (_shared/grading.ts),
 // z zapytania aplikacji bierze tylko zdjęcia albo tekst. 403 {error:"premium_required"}, 429 {error:"grading_limit"}.
 
-import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.117.3";
 import { isGradingPurpose, PURPOSES, purposeMessages, type GradingPurpose } from "../_shared/grading.ts";
 import { TEXT_MODEL, VISION_MODEL } from "../_shared/models.ts";
 
