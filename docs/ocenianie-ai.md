@@ -37,10 +37,12 @@ Pomiary (punkt odniesienia przy każdej zmianie promptu albo modelu):
 - 29.10.2026, przez funkcję `ai`, 5 najtrudniejszych przypadków: 4/4 odczytanych ocen zgodnych co do kroku, 1 odpowiedź nieczytelna (LaTeX w JSON-ie) – naprawione w `parseGrading` i prompcie.
 - **29.10.2026, pełny zestaw, Groq `openai/gpt-oss-120b`: 18/18 sum zgodnych (100%), kroki 57/57, 0 nieczytelnych, manipulacja odparta.** Przy limicie zapytań Groq skrypt czekał wg `Retry-After`.
 
-- 3.11.2026: prompt z poziomem (`gradingSystem`) i zasada równoważnych zapisów wyniku – **pomiar do zrobienia**: „przed” na commicie `d000cfc` (stary prompt, nowe przypadki), „po” na kolejnym. Do tego czasu ocena z rozszerzenia nie ma potwierdzonej trafności.
+- 3.11.2026, pełny zestaw 26 przypadków (18 podstawa + 8 rozszerzenie), Groq `openai/gpt-oss-120b`:
+  - przed (stary prompt, `d000cfc`): 24/26 sum zgodnych (92%), ±1 26/26, kroki 84/86, 0 nieczytelnych – rozbieżności: `wybieg-bez-dziedziny` i `rz-viete-bez-delty` (punkt za wynik bez sprawdzenia warunku Δ),
+  - **po (`gradingSystem(level)`, `3728ba1`): 26/26 (100%), kroki 86/86, 0 nieczytelnych, manipulacja odparta.** Wdrożone 3.11.2026.
 
 Uwaga: zestaw mierzy samą ocenę tekstu. Odczyt pisma ze zdjęcia (`transcribeSolution`) nie ma jeszcze pomiaru – uczeń poprawia odczyt przed oceną, ale warto zebrać zdjęcia prawdziwych kartek.
 
 ## Przed premierą
 
-Pełny pomiar – zrobiony (18/18). Przy każdej zmianie promptu (`_shared/grading.ts`) albo modelu (`_shared/models.ts`): `npm run grading:eval` przed i po.
+Pełny pomiar – zrobiony (26/26 z rozszerzeniem, 3.11.2026). Przy każdej zmianie promptu (`_shared/grading.ts`) albo modelu (`_shared/models.ts`): `npm run grading:eval` przed i po.
