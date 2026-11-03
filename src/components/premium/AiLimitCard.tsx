@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import Icon from "@/components/ui/Icon";
 import { AI_FREE_DAILY_LIMIT, AI_PREMIUM_DAILY_LIMIT, REFERRAL_DAYS } from "@/lib/premium";
 
@@ -32,6 +33,7 @@ export default function AiLimitCard() {
           Ucz się dalej z planem
         </Link>
       </div>
+      <RedeemCodeForm collapsed />
     </section>
   );
 }

@@ -151,7 +151,7 @@ function PlanSummary({ result, outcome }: SummaryProps) {
         <div className="mt-auto flex flex-col gap-3 lg:mt-2">
           <Link
             href="/"
-            className="flex items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
+            className="flex items-center justify-center gap-2 rounded-2xl bg-cta py-4 font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark"
           >
             Gotowe na dziś <Icon name="checkCircle" className="h-5 w-5" />
           </Link>

@@ -134,12 +134,12 @@ function TopicTasksCard({ topic, progress }: { topic: Topic; progress: Progress 
     <Link
       href={`/zadania/${topic.id}`}
       onClick={() => hapticTap()}
-      className="card group flex flex-col gap-3 p-4 card-hover hover:border-brand/40"
+      className="card group flex flex-col gap-3 p-4 card-hover hover:border-brand/60 dark:hover:border-brand/40"
     >
       <div className="flex items-center gap-3">
         <CategoryTile topic={topic} />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-faint">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">
             {topic.lesson} · {topic.category}
           </p>
           <p className="leading-snug font-extrabold text-ink">{topic.title}</p>
@@ -154,7 +154,7 @@ function TopicTasksCard({ topic, progress }: { topic: Topic; progress: Progress 
         <div className="h-1.5 overflow-hidden rounded-full bg-subtle">
           <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${(solved / tasks.length) * 100}%` }} />
         </div>
-        <p className="mt-1 text-xs font-semibold text-faint">
+        <p className="mt-1 text-xs font-semibold text-muted">
           Rozwiązane: {solved}/{tasks.length}
         </p>
       </div>

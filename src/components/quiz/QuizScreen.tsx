@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ComponentType } from "react";
 import Link from "next/link";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import ExplainSheet, { TypingDots } from "@/components/quiz/ExplainSheet";
 import QuizSummary from "@/components/quiz/QuizSummary";
 import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
@@ -175,7 +176,7 @@ export default function QuizScreen(props: Props) {
     if (!checked) {
       return key === selected
         ? `${base} border-brand bg-brand-soft text-brand shadow-float ring-4 ring-brand/15`
-        : `${base} border-line bg-card text-ink hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-card`;
+        : `${base} border-line bg-card text-ink hover:-translate-y-0.5 hover:border-brand/60 dark:hover:border-brand/40 hover:shadow-card`;
     }
     if (key === question.correct)
       return `${base} border-emerald-500 bg-emerald-500/10 text-emerald-700 ring-4 ring-emerald-500/15 dark:text-emerald-300`;
@@ -260,7 +261,7 @@ export default function QuizScreen(props: Props) {
               {canHint && (
                 <button
                   onClick={handleHint}
-                  className="flex min-h-11 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
+                  className="flex min-h-11 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
                 >
                   <Icon name="bulb" className="h-4 w-4" />
                   {hintsShown.length === 0 ? "Podpowiedź" : "Kolejna podpowiedź"}
@@ -277,7 +278,7 @@ export default function QuizScreen(props: Props) {
                     key={i}
                     className="flex animate-fade-in gap-2.5 rounded-2xl bg-amber-500/10 p-3 text-sm text-amber-950 dark:text-amber-100"
                   >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-extrabold text-white">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-extrabold text-amber-950">
                       {i + 1}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -306,6 +307,7 @@ export default function QuizScreen(props: Props) {
                 </Link>
               </p>
             )}
+            {hintError === "limit" && <RedeemCodeForm collapsed className="mt-1" />}
           </section>
 
           <TaskScratch
@@ -392,15 +394,15 @@ export default function QuizScreen(props: Props) {
             </>
           ) : (
             <>
-              <p className="hidden text-sm font-medium text-faint lg:block">Masz czas. Dasz radę.</p>
+              <p className="hidden text-sm font-medium text-muted lg:block">Masz czas. Dasz radę.</p>
               <button
                 onClick={handleCheck}
                 disabled={!selected}
-                className="w-full rounded-2xl bg-brand py-4 text-base font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
+                className="w-full rounded-2xl bg-cta py-4 text-base font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none lg:w-64"
               >
                 Sprawdź odpowiedź
               </button>
-              <p className="text-center text-xs font-medium text-faint lg:hidden">Masz czas. Dasz radę.</p>
+              <p className="text-center text-xs font-medium text-muted lg:hidden">Masz czas. Dasz radę.</p>
             </>
           )}
         </div>

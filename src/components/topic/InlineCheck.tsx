@@ -107,7 +107,7 @@ export default function InlineCheck({
                     ? "border-rose-500 bg-rose-500/10"
                     : isChosen
                       ? "border-brand bg-brand-soft"
-                      : "border-line bg-card hover:border-brand/40"
+                      : "border-line bg-card hover:border-brand/60 dark:hover:border-brand/40"
               }`}
             >
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-subtle text-sm font-extrabold text-ink">{option.label}</span>

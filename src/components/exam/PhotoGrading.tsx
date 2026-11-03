@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import Icon from "@/components/ui/Icon";
 import RichText from "@/components/ui/RichText";
 import { gradeSolution, transcribeSolution } from "@/lib/ai";
@@ -38,14 +39,18 @@ export default function PhotoGrading({ task, level, onGraded }: { task: OpenQues
 
   if (!active || error?.upsell) {
     return (
-      <Link href="/premium" className="flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand-soft p-3 text-sm font-bold text-brand">
-        <Icon name="camera" className="h-5 w-5 shrink-0" />
-        <span className="min-w-0 flex-1">
-          Ocena ze zdjęcia z AI – Premium
-          <span className="block text-xs font-semibold text-brand/80">Robisz zdjęcie kartki, a korepetytor przyznaje punkty za kroki jak egzaminator.</span>
-        </span>
-        <Icon name="chevron" className="h-4 w-4 shrink-0" />
-      </Link>
+      <div className="flex flex-col gap-1">
+        <Link href="/premium" className="flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand-soft p-3 text-sm font-bold text-brand">
+          <Icon name="camera" className="h-5 w-5 shrink-0" />
+          <span className="min-w-0 flex-1">
+            Ocena ze zdjęcia z AI – Premium
+            <span className="block text-xs font-semibold text-brand/80">Robisz zdjęcie kartki, a korepetytor przyznaje punkty za kroki jak egzaminator.</span>
+          </span>
+          <Icon name="chevron" className="h-4 w-4 shrink-0" />
+        </Link>
+        {/* kod z przedsprzedaży od razu przy blokadzie – po sukcesie blokada znika, a złoty ekran zostaje (root layout) */}
+        <RedeemCodeForm collapsed />
+      </div>
     );
   }
 
@@ -149,7 +154,7 @@ export default function PhotoGrading({ task, level, onGraded }: { task: OpenQues
             className="w-full rounded-xl border border-line bg-surface p-3 font-mono text-sm text-ink focus:border-brand focus:outline-none"
           />
           <div className="rounded-xl bg-card p-3 text-sm">
-            <p className="mb-1 text-xs font-extrabold uppercase tracking-widest text-faint">Podgląd</p>
+            <p className="mb-1 text-xs font-extrabold uppercase tracking-widest text-muted">Podgląd</p>
             <RichText text={phase.text} className="text-body" />
           </div>
           <div className="flex flex-wrap items-center gap-2">

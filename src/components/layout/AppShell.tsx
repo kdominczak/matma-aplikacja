@@ -115,7 +115,7 @@ function TopBar({ active }: { active: string }) {
           aria-label="Twój profil"
           aria-current={active === "/profil" ? "page" : undefined}
           className={`flex items-center gap-2.5 rounded-full border bg-card p-1 transition-colors sm:pr-4 ${
-            active === "/profil" ? "border-brand ring-2 ring-brand/30" : "border-line hover:border-brand/40"
+            active === "/profil" ? "border-brand ring-2 ring-brand/30" : "border-line hover:border-brand/60 dark:hover:border-brand/40"
           }`}
         >
           <ProfileAvatar size="h-9 w-9 text-sm" />
@@ -208,9 +208,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <AnimatePresence initial={false}>
             <motion.div
               key={pathname}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              // krótko jak w systemowych przejściach Androida/iOS – przy szybkim przełączaniu zakładek nic nie „muli”
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
               {children}
             </motion.div>
@@ -227,11 +228,21 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   href={item.href}
                   aria-current={tab === item.href ? "page" : undefined}
-                  className={`flex flex-col items-center gap-1 py-2.5 text-xs font-bold transition-colors sm:text-xs ${
-                    tab === item.href ? "text-brand" : "text-faint"
+                  className={`press flex flex-col items-center gap-1 py-2.5 text-xs font-bold sm:text-xs ${
+                    tab === item.href ? "text-brand" : "text-muted"
                   }`}
                 >
-                  <Icon name={item.icon} className="h-6 w-6" />
+                  {/* pigułka pod ikoną aktywnej zakładki „przepływa” między pozycjami (jak w panelu bocznym) */}
+                  <span className="relative flex h-7 w-14 items-center justify-center">
+                    {tab === item.href && (
+                      <motion.span
+                        layoutId="tab-active"
+                        className="absolute inset-0 rounded-full bg-brand-soft"
+                        transition={{ type: "spring", stiffness: 480, damping: 36 }}
+                      />
+                    )}
+                    <Icon name={item.icon} className="relative h-6 w-6" />
+                  </span>
                   {item.label}
                 </Link>
               </li>

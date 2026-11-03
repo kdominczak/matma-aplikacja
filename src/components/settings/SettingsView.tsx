@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Page, PageHeader, ProfileAvatar, useDisplayName } from "@/components/layout/AppShell";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import AccountCard from "@/components/settings/AccountCard";
 import ReminderSetting from "@/components/settings/ReminderSetting";
 import { IconTile, SettingsBlock, SettingsGroup, SettingsRow, StatusPill } from "@/components/settings/SettingsUI";
@@ -79,7 +80,7 @@ export default function SettingsView() {
             aria-selected={tab === s.id}
             onClick={() => choose(s.id)}
             className={`press shrink-0 rounded-full border px-3.5 py-2 text-sm font-bold transition-colors ${
-              tab === s.id ? "border-brand bg-brand text-on-brand shadow-float" : "border-line bg-card text-muted hover:border-brand/40 hover:text-ink"
+              tab === s.id ? "border-brand bg-brand text-on-brand shadow-float" : "border-line bg-card text-muted hover:border-brand/60 dark:hover:border-brand/40 hover:text-ink"
             }`}
           >
             {s.label}
@@ -116,7 +117,7 @@ export default function SettingsView() {
             <div className="flex flex-col divide-y divide-line">
               <Switch label="Dźwięki" description="Cichy klik przy wyborze odpowiedzi" checked={settings.sounds} onChange={(sounds) => void saveAppSettings({ sounds })} />
               <Switch label="Wibracje" description="Krótka wibracja przy dobrej i złej odpowiedzi" checked={settings.haptics} onChange={(haptics) => void saveAppSettings({ haptics })} />
-              <Switch label="Konfetti" description="Animacja po zaliczonym teście i planie na dziś" checked={settings.confetti} onChange={(confetti) => void saveAppSettings({ confetti })} />
+              <Switch label="Konfetti" description="Animacja po zaliczonym teście, planie na dziś i odblokowaniu Premium" checked={settings.confetti} onChange={(confetti) => void saveAppSettings({ confetti })} />
             </div>
           </SettingsBlock>
         </SettingsGroup>
@@ -125,6 +126,10 @@ export default function SettingsView() {
       {AI_ENABLED && tab === "ustawienia-ai" && (
         <SettingsGroup id="ustawienia-ai" title="Korepetytor AI i Premium" hint={`Za darmo ${AI_FREE_DAILY_LIMIT} wiadomości do AI dziennie, z Premium – do ${AI_PREMIUM_DAILY_LIMIT}.`}>
           <SettingsRow icon="sparkles" title="Premium i kody poleceń" description={`${REFERRAL_DAYS} dni Premium dla Ciebie i znajomego za polecenie`} href="/premium" />
+          <SettingsBlock>
+            {/* kod z przedsprzedaży, podarunkowy albo od znajomego – bez szukania go na ekranie Premium */}
+            <RedeemCodeForm />
+          </SettingsBlock>
         </SettingsGroup>
       )}
 
@@ -141,7 +146,7 @@ export default function SettingsView() {
         </>
       )}
 
-      <footer className="pb-4 text-center text-xs text-faint">
+      <footer className="pb-4 text-center text-xs text-muted">
         Matma – codzienna nauka do matury z matematyki. Aplikacja nie jest powiązana z Centralną Komisją Egzaminacyjną.
       </footer>
     </Page>
@@ -380,7 +385,7 @@ function AccountId({ id }: { id: string }) {
   return (
     <div className="mt-3 flex items-center gap-2 rounded-2xl bg-card px-3 py-2">
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-bold uppercase tracking-wide text-faint">ID konta (do zgłoszeń mailowych)</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-muted">ID konta (do zgłoszeń mailowych)</p>
         <p className="truncate font-mono text-xs text-body select-all">{id}</p>
       </div>
       <button onClick={() => void copy()} className="min-h-11 shrink-0 px-2 text-sm font-bold text-brand">

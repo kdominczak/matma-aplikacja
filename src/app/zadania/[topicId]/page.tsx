@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import PracticeSession from "@/components/practice/PracticeSession";
+import { QuizSkeleton } from "@/components/ui/Skeleton";
 import { allTopics, getTopic, practiceTasks } from "@/data/topics";
 
 // Static export: plik HTML dla każdego działu z zadaniami, innych adresów nie ma.
@@ -14,5 +16,10 @@ export default async function PracticeTopicPage({ params }: PageProps<"/zadania/
   const topic = getTopic(topicId);
   if (!topic || practiceTasks(topic).length === 0) notFound();
 
-  return <PracticeSession topicId={topicId} />;
+  // Suspense: sesja czyta `?zadanie=` w przeglądarce (useSearchParams w statycznym eksporcie)
+  return (
+    <Suspense fallback={<QuizSkeleton />}>
+      <PracticeSession topicId={topicId} />
+    </Suspense>
+  );
 }

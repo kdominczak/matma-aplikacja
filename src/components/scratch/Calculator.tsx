@@ -70,14 +70,14 @@ export default function Calculator({ onInsert, onClose }: Props) {
   return (
     <div className="w-64 rounded-3xl border border-line glass-card p-3 shadow-2xl" role="dialog" aria-label="Kalkulator">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-extrabold uppercase tracking-widest text-faint">Kalkulator</p>
+        <p className="text-xs font-extrabold uppercase tracking-widest text-muted">Kalkulator</p>
         <button onClick={onClose} aria-label="Zamknij kalkulator" className="rounded-full p-1 text-faint hover:text-ink">
           <Icon name="close" className="h-4 w-4" />
         </button>
       </div>
 
       <div className="rounded-2xl bg-surface px-3 py-2 text-right">
-        <p className="h-4 truncate text-xs text-faint">{lastResult ?? ""}</p>
+        <p className="h-4 truncate text-xs text-muted">{lastResult ?? ""}</p>
         <input
           value={expr}
           onChange={(e) => setExpr(e.target.value)}
@@ -109,7 +109,7 @@ export default function Calculator({ onInsert, onClose }: Props) {
       <button
         onClick={() => preview !== null && onInsert(preview)}
         disabled={preview === null}
-        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-line py-2 text-sm font-bold text-brand transition-colors hover:border-brand/40 disabled:opacity-40"
+        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-line py-2 text-sm font-bold text-brand transition-colors hover:border-brand/60 dark:hover:border-brand/40 disabled:opacity-40"
       >
         <Icon name="pencil" className="h-4 w-4" />
         Wstaw wynik na kartkę

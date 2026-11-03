@@ -838,7 +838,7 @@ export default function ScratchBoard(props: Props) {
 
       {formulasOpen && formulas.length > 0 && (
         <div className="border-b border-line bg-surface">
-          <p className="px-3 pt-2 text-xs font-bold text-faint">Przeciągnij wzór na kartkę albo stuknij, żeby go wstawić</p>
+          <p className="px-3 pt-2 text-xs font-bold text-muted">Przeciągnij wzór na kartkę albo stuknij, żeby go wstawić</p>
           <div className="flex gap-2 overflow-x-auto px-3 py-2">
             {formulas.map((f) => (
               <button
@@ -851,7 +851,7 @@ export default function ScratchBoard(props: Props) {
                 // pan-x: przewijanie paska w poziomie zostaje przeglądarce, ruch w dół (na kartkę) to przeciąganie
                 className="shrink-0 cursor-grab touch-pan-x rounded-xl border border-line bg-card px-3 py-1.5 text-left select-none active:cursor-grabbing"
               >
-                <span className="block text-xs font-bold uppercase tracking-wide text-faint">{f.label}</span>
+                <span className="block text-xs font-bold uppercase tracking-wide text-muted">{f.label}</span>
                 <span className="pointer-events-none block text-sm whitespace-nowrap text-ink">
                   <MathText text={`$${f.tex}$`} />
                 </span>
@@ -1304,7 +1304,7 @@ function SelectionOptions({
                 key={index}
                 onClick={() => setEditing({ index, value: label })}
                 title="Zmień nazwę wierzchołka"
-                className="h-9 min-w-9 shrink-0 rounded-lg border border-line px-2 font-serif text-base italic text-ink hover:border-brand/40"
+                className="h-9 min-w-9 shrink-0 rounded-lg border border-line px-2 font-serif text-base italic text-ink hover:border-brand/60 dark:hover:border-brand/40"
               >
                 {label}
               </button>

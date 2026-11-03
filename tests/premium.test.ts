@@ -1,6 +1,6 @@
-// Premium po stronie aplikacji: wpisywanie kodu polecenia i odczyt stanu (liczy serwer – tests/db/premium.test.ts).
+// Premium po stronie aplikacji: wpisywanie kodów (polecenia, podarunkowych) i odczyt stanu (liczy serwer – tests/db/premium.test.ts).
 import { describe, expect, it } from "vitest";
-import { isPremium, normalizeReferralCode, REFERRAL_CODE_PATTERN, type PremiumState } from "@/lib/premium";
+import { GIFT_CODE_PATTERN, isPremium, normalizeReferralCode, redeemCode, REFERRAL_CODE_PATTERN, type PremiumState } from "@/lib/premium";
 
 const base: PremiumState = { status: "ready", premiumUntil: null, aiUsed: 0, aiLimit: 5, referralCode: null, referralCount: 0, gradingUsed: 0, gradingLimit: 0 };
 
@@ -13,6 +13,21 @@ describe("kod polecenia", () => {
     expect(REFERRAL_CODE_PATTERN.test("K7MP2Q")).toBe(true);
     expect(REFERRAL_CODE_PATTERN.test("K7MP2")).toBe(false);
     expect(REFERRAL_CODE_PATTERN.test("O0I1LL")).toBe(false);
+  });
+});
+
+describe("kod podarunkowy", () => {
+  it("XXXX-XXXX-XXXX po normalizacji – 12 znaków z tego samego alfabetu co SQL (redeem_gift_code)", () => {
+    expect(GIFT_CODE_PATTERN.test(normalizeReferralCode("abcd-efgh-jk23"))).toBe(true);
+    expect(GIFT_CODE_PATTERN.test(normalizeReferralCode("ABCD-EFGH-JK2"))).toBe(false);
+    expect(GIFT_CODE_PATTERN.test("ABCD0FGH1K23")).toBe(false);
+  });
+
+  it("zły format nie idzie do serwera", async () => {
+    // 12 znaków, ale z mylącym „0” – odrzucone na urządzeniu (bez zakładania konta)
+    expect(await redeemCode("ABCD-0FGH-JK23")).toEqual({ error: expect.stringContaining("Nie ma takiego kodu") });
+    // ani 6, ani 12 – komunikat o obu formatach
+    expect(await redeemCode("ABC")).toEqual({ error: expect.stringContaining("12") });
   });
 });
 

@@ -68,7 +68,7 @@ export default function GoalSlider({
         style={{ "--fill": `${fill}%` } as CSSProperties}
         className="goal-range h-11 w-full"
       />
-      <div className="flex justify-between text-xs font-bold text-faint" aria-hidden>
+      <div className="flex justify-between text-xs font-bold text-muted" aria-hidden>
         <span>
           {range.min} pkt{level === "podstawowy" ? " · zdana" : ""}
         </span>

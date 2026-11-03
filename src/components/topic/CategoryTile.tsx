@@ -3,7 +3,7 @@ import type { Category, Topic } from "@/types/topic";
 const CATEGORY_STYLE: Record<Category, string> = {
   Liczby: "bg-brand-soft text-brand",
   Algebra: "bg-violet-500/15 text-violet-600 dark:text-violet-300",
-  Funkcje: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+  Funkcje: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
   Geometria: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
   Statystyka: "bg-pink-500/15 text-pink-600 dark:text-pink-300",
 };

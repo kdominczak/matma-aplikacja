@@ -75,7 +75,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
               Rozwiązane łącznie
             </p>
             <p className="mt-1 text-3xl font-extrabold text-brand">{outcome ? outcome.progress.stats.answered : "–"}</p>
-            <p className="text-xs text-faint">{outcome ? `w tym ${outcome.progress.stats.correct} poprawnie` : "Zapisywanie…"}</p>
+            <p className="text-xs text-muted">{outcome ? `w tym ${outcome.progress.stats.correct} poprawnie` : "Zapisywanie…"}</p>
           </div>
           <div className="rounded-2xl border border-line bg-card p-4 shadow-card">
             <p className="flex items-center gap-1 text-xs font-bold uppercase text-muted">
@@ -85,7 +85,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
             <p className="mt-1 text-3xl font-extrabold text-ink">
               {result.correct}/{result.total}
             </p>
-            <p className="text-xs text-faint">Zalicza 60%</p>
+            <p className="text-xs text-muted">Zalicza 60%</p>
           </div>
         </div>
 
@@ -95,7 +95,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
           {passed ? (
             <Link
               href={exitHref}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cta py-4 font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark"
             >
               Kontynuuj <Icon name="arrow" className="h-4 w-4" />
             </Link>
@@ -103,7 +103,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
             <>
               <button
                 onClick={onRetry}
-                className="w-full rounded-2xl bg-brand py-4 font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
+                className="w-full rounded-2xl bg-cta py-4 font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark"
               >
                 Spróbuj ponownie
               </button>

@@ -36,7 +36,10 @@ async function examInProgress(): Promise<Resume | null> {
   };
 }
 
-/** Ostatnio ćwiczony dział z „Zadań”, jeśli został w nim jeszcze jakiś nierozwiązany. */
+/**
+ * Ostatnio ćwiczony dział z „Zadań”, jeśli został w nim jeszcze jakiś nierozwiązany – link prowadzi prosto do zadania:
+ * ostatniego, jeśli nie jest rozwiązane, inaczej do następnego nierozwiązanego (po kolei, z zawinięciem na początek).
+ */
 function recentPractice(progress: Progress): Resume | null {
   const [taskId, record] = Object.entries(progress.practice).sort(([, a], [, b]) => b.lastAt.localeCompare(a.lastAt))[0] ?? [];
   if (!taskId || !record) return null;
@@ -44,12 +47,15 @@ function recentPractice(progress: Progress): Resume | null {
   const ref = findTask(taskId);
   if (!ref || days > RECENT_DAYS) return null;
   const tasks = practiceTasks(ref.topic);
-  const left = tasks.filter((t) => progress.practice[t.id]?.verifiedPoints !== t.points).length;
+  const unsolved = (i: number) => progress.practice[tasks[i].id]?.verifiedPoints !== tasks[i].points;
+  const left = tasks.filter((_, i) => unsolved(i)).length;
   if (left === 0) return null;
+  const last = Math.max(0, tasks.findIndex((t) => t.id === taskId));
+  const target = [...tasks.keys()].map((k) => (last + k) % tasks.length).find(unsolved) ?? last;
   return {
-    href: `/zadania/${ref.topic.id}`,
+    href: `/zadania/${ref.topic.id}?zadanie=${encodeURIComponent(tasks[target].id)}`,
     kicker: days === 0 ? "Ćwiczone dziś" : days === 1 ? "Ćwiczone wczoraj" : `Ćwiczone ${formatDay(record.lastAt)}`,
-    title: ref.topic.title,
+    title: `${ref.topic.title} · zadanie ${target + 1}`,
     detail: `Do rozwiązania: ${left} z ${tasks.length}`,
   };
 }
@@ -74,13 +80,13 @@ export default function ContinueCard({ progress }: { progress: Progress | null }
     <Link
       href={resume.href}
       onClick={() => hapticTap()}
-      className="card group flex items-center gap-4 p-4 card-hover hover:border-brand/40 active:scale-[0.99]"
+      className="card group flex items-center gap-4 p-4 card-hover hover:border-brand/60 dark:hover:border-brand/40 active:scale-[0.99]"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
         <Icon name={exam ? "file" : "tasks"} className="h-6 w-6" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-bold uppercase tracking-wide text-faint">Wróć do · {resume.kicker}</span>
+        <span className="block text-xs font-bold uppercase tracking-wide text-muted">Kontynuuj · {resume.kicker}</span>
         <span className="block truncate font-extrabold text-ink">{resume.title}</span>
         <span className="block truncate text-sm text-muted">{resume.detail}</span>
       </span>

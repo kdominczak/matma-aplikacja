@@ -151,6 +151,11 @@ export default function TermsPage() {
               Kody poleceń: osoba polecona (Konto młodsze niż 7 dni, raz) i polecająca otrzymują po {REFERRAL_DAYS} dni Premium; polecający – najwyżej 5
               razy w sezonie maturalnym. Dni z poleceń sumują się z zakupionym Premium.
             </li>
+            <li>
+              Kody podarunkowe i z przedsprzedaży dają liczbę dni Premium podaną przy kodzie, jeśli kod jest wpisany przed datą jego ważności. Dany kod
+              można wpisać na Koncie jeden raz; kod przeznaczony dla wielu osób działa do wyczerpania liczby użyć. Kod nie podlega wymianie na
+              pieniądze. Dni z kodów sumują się z pozostałym Premium.
+            </li>
           </ol>
         </Section>
 

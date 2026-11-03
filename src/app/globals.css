@@ -16,34 +16,41 @@
  */
 /*
  * Motyw „Graphite Glass”: grafitowe tła i jeden powściągliwy akcent – szampańskie złoto (`brand`).
- * Jasny motyw: porcelana + głębsze złoto (tekst złoty na białym musi mieć kontrast ≥ 4.5:1).
- * `on-brand` – kolor tekstu na złotym przycisku: biały na ciemnym złocie (jasny motyw), grafit na jasnym złocie (ciemny).
+ * Jasny motyw: kamienne tło + białe, kryjące karty z wyraźną ramką i ciepłym cieniem (głębia bez szkła)
+ * i głębsze złoto (tekst złoty na białym ≥ 6:1, na `brand-soft` ≥ 4.5:1).
+ * `on-brand` – kolor tekstu na złotym tle: biały na ciemnym złocie (jasny motyw), grafit na jasnym złocie (ciemny).
+ * `cta` – główne przyciski: jasne, świetliste złoto z grafitowym tekstem w obu motywach.
  * `navy` – karty-bohaterowie (wynik, plan dnia): grafit w obu motywach, tekst biały.
+ * `faint` nie spełnia 4.5:1 – tylko ikony, separatory i dekoracje; czytelny tekst pomocniczy to `muted`.
  */
 @theme {
-  --color-surface: #f6f5f2;   /* tło strony */
+  --color-surface: #eeece6;   /* tło strony */
   --color-card: #ffffff;      /* karty */
-  --color-subtle: #efede8;    /* wypełnienia drugiego planu */
-  --color-line: #e5e1d8;      /* obramowania */
+  --color-subtle: #e7e4dc;    /* wypełnienia drugiego planu */
+  --color-line: #dcd7cb;      /* obramowania */
   --color-ink: #0b0f19;       /* tekst główny */
-  --color-body: #374151;      /* tekst akapitów */
-  --color-muted: #6b7280;     /* tekst pomocniczy */
-  --color-faint: #9ca3af;     /* tekst najmniej ważny, ikony nieaktywne */
+  --color-body: #2b3441;      /* tekst akapitów */
+  --color-muted: #5b6270;     /* tekst pomocniczy */
+  --color-faint: #7c8494;     /* ikony nieaktywne, separatory */
 
-  --color-brand: #8c6b14;
-  --color-brand-dark: #74580f;
-  --color-brand-soft: #f5eedb;
+  --color-brand: #7a5c0e;
+  --color-brand-dark: #644b0a;
+  --color-brand-soft: #f3e9cc;
   --color-on-brand: #ffffff;
+  --color-cta: #c9a227;
+  --color-cta-dark: #b38f1f;
+  --color-on-cta: #0b0f19;
   --color-navy: #111827;
 
   /* lżejsza typografia: „extrabold” i „bold” w całej aplikacji to półgrube odmiany Inter/Outfit */
   --font-weight-extrabold: 650;
   --font-weight-bold: 600;
 
-  --shadow-card: 0 1px 2px rgb(11 15 25 / 0.04), 0 8px 24px -12px rgb(11 15 25 / 0.14);
-  /* przycisk nad treścią: krótki, neutralny cień (bez złotej poświaty) */
-  --shadow-float: 0 1px 2px rgb(11 15 25 / 0.08), 0 6px 14px -8px rgb(11 15 25 / 0.25);
-  --shadow-lift: 0 2px 4px rgb(11 15 25 / 0.05), 0 18px 36px -14px rgb(140 107 20 / 0.3);
+  /* ciepły (brązowawy) cień zamiast szarego – na porcelanie nie wygląda na brud; jasna linia u góry = płytka */
+  --shadow-card: inset 0 1px 0 rgb(255 255 255), 0 1px 3px rgb(60 50 30 / 0.08), 0 12px 28px -14px rgb(60 50 30 / 0.22);
+  /* przycisk nad treścią: krótki, neutralny cień (bez złotej poświaty – audyt 2.11) */
+  --shadow-float: inset 0 0 0 1px rgb(11 15 25 / 0.08), 0 1px 2px rgb(60 50 30 / 0.1), 0 6px 14px -8px rgb(60 50 30 / 0.3);
+  --shadow-lift: 0 2px 4px rgb(60 50 30 / 0.08), 0 22px 40px -16px rgb(60 50 30 / 0.28);
 
   --animate-drift: drift 24s ease-in-out infinite alternate;
   --animate-float: float 16s ease-in-out infinite;
@@ -97,6 +104,9 @@
   --color-brand-dark: #b8962c;
   --color-brand-soft: #262112;
   --color-on-brand: #0b0f19;
+  --color-cta: #d4af37;
+  --color-cta-dark: #b8962c;
+  --color-on-cta: #0b0f19;
   --color-navy: #131a29;
 
   /* głębia: krótki cień przy krawędzi + długi, miękki pod kartą (warstwa nad tłem, nie płaska plama) */
@@ -109,7 +119,7 @@
 /*
  * Karta, która lekko „podskakuje” pod kursorem (sprężysta krzywa, mocniejszy cień).
  * Tylko na urządzeniach z kursorem – na telefonie efekt nie „zawisa” po tapnięciu.
- * Kolor obwódki przy najechaniu dokładamy w komponencie, np. `hover:border-brand/40`.
+ * Kolor obwódki przy najechaniu dokładamy w komponencie, np. `hover:border-brand/60 dark:hover:border-brand/40`.
  */
 @utility card-hover {
   transition:
@@ -157,8 +167,8 @@
  * przeliczały rozmycie w każdej klatce i tło migało; na pozostałych ekranach rozmycie i tak nic nie dawało.
  */
 @utility glass-card {
-  background-color: color-mix(in oklab, var(--color-card) 86%, transparent);
-  border-top-color: rgb(255 255 255 / 0.9);
+  /* jasny motyw: karta kryjąca – półprzezroczysta biel na jasnym tle zlewała się z nim (kontrast 1.08) */
+  background-color: var(--color-card);
   &:where(.dark, .dark *) {
     /* grafitowe szkło: półprzezroczysta tafla, jaśniejsza krawędź u góry i delikatne światło od góry (głębia) */
     background-color: color-mix(in oklab, var(--color-card) 78%, transparent);
@@ -169,10 +179,22 @@
 
 /*
  * Karta – jeden wygląd dla wszystkich kart w aplikacji (zaokrąglenie, ramka, półprzezroczyste tło, cień).
- * Odstępy wewnątrz (p-4 / p-5 / p-6) dobiera widok. Kartę-link uzupełnij o `card-hover hover:border-brand/40`.
+ * Odstępy wewnątrz (p-4 / p-5 / p-6) dobiera widok. Kartę-link uzupełnij o `card-hover hover:border-brand/60 dark:hover:border-brand/40`.
  */
 @utility card {
   @apply rounded-3xl border border-line shadow-card glass-card;
+}
+
+/*
+ * Grafitowe panele (`bg-navy`, `hero-surface`) są ciemne w obu motywach – wewnątrz zawsze złoto z ciemnego motywu
+ * (głębokie złoto jasnego motywu ginęło na grafitowym tle).
+ */
+.bg-navy,
+.hero-surface {
+  --color-brand: #d4af37;
+  --color-brand-dark: #b8962c;
+  --color-brand-soft: #262112;
+  --color-on-brand: #0b0f19;
 }
 
 /*

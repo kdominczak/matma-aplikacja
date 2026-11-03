@@ -58,7 +58,7 @@ export default function ReminderSetting({ settings }: { settings: AppSettings })
                     void saveAppSettings({ reminder: { ...reminder, ...time } });
                   }}
                   className={`min-h-11 rounded-xl border-2 text-sm font-bold tabular-nums transition-colors ${
-                    selected ? "border-brand bg-brand-soft text-brand" : "border-line text-muted hover:border-brand/40"
+                    selected ? "border-brand bg-brand-soft text-brand" : "border-line text-muted hover:border-brand/60 dark:hover:border-brand/40"
                   }`}
                 >
                   {formatTime(time.hour, time.minute)}

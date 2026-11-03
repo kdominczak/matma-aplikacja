@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import RedeemCodeForm from "@/components/premium/RedeemCodeForm";
 import AccountGate from "@/components/settings/AccountGate";
 import Icon from "@/components/ui/Icon";
-import { hapticSuccess, hapticTap } from "@/lib/haptics";
-import { AI_PREMIUM_DAILY_LIMIT, formatPremiumUntil, myReferralCode, redeemReferralCode, REFERRAL_DAYS, usePremium } from "@/lib/premium";
+import { hapticTap } from "@/lib/haptics";
+import { myReferralCode, REFERRAL_DAYS, usePremium } from "@/lib/premium";
 
 /**
  * Kody poleceń: własny kod do wysłania znajomym i pole na kod od znajomego.
@@ -35,7 +36,7 @@ export default function ReferralCard() {
       </div>
       <MyCode />
       <div className="h-px bg-line" />
-      <RedeemCode />
+      <RedeemCodeForm />
     </section>
   );
 }
@@ -112,70 +113,5 @@ function MyCode() {
       </div>
       {message && <p className="text-sm text-muted">{message}</p>}
     </div>
-  );
-}
-
-function RedeemCode() {
-  const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ ok: true; until: Date } | { ok: false; error: string } | null>(null);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (busy) return;
-    setBusy(true);
-    setResult(null);
-    const outcome = await redeemReferralCode(input);
-    setBusy(false);
-    if ("until" in outcome) {
-      hapticSuccess();
-      setInput("");
-      setResult({ ok: true, until: outcome.until });
-    } else {
-      setResult({ ok: false, error: outcome.error });
-    }
-  }
-
-  if (result?.ok) {
-    return (
-      <div role="status" className="flex animate-pop items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white">
-          <Icon name="checkCircle" className="h-6 w-6" />
-        </span>
-        <div>
-          <p className="font-extrabold text-emerald-700 dark:text-emerald-300">Kod przyjęty! Masz {REFERRAL_DAYS} dni Premium</p>
-          <p className="text-sm text-emerald-800/80 dark:text-emerald-200/80">Premium do {formatPremiumUntil(result.until)} – korepetytor AI do {AI_PREMIUM_DAILY_LIMIT} wiadomości dziennie.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={submit} className="flex flex-col gap-2">
-      <label htmlFor="referral-input" className="text-sm font-bold text-ink">
-        Masz kod od znajomego?
-      </label>
-      <div className="flex gap-2">
-        <input
-          id="referral-input"
-          value={input}
-          onChange={(e) => setInput(e.target.value.toUpperCase())}
-          maxLength={8}
-          autoCapitalize="characters"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder="np. K7MP2Q"
-          className="min-h-12 min-w-0 flex-1 rounded-2xl border-2 border-line bg-surface px-4 font-mono text-lg font-bold tracking-[0.2em] text-ink uppercase outline-none focus:border-brand"
-        />
-        <button
-          type="submit"
-          disabled={busy || input.trim().length < 6}
-          className="min-h-12 shrink-0 rounded-2xl bg-ink px-5 font-bold text-surface transition-opacity disabled:opacity-40"
-        >
-          {busy ? "Sprawdzam…" : "Wpisz"}
-        </button>
-      </div>
-      {result && !result.ok && <p className="text-sm text-rose-600 dark:text-rose-400">{result.error}</p>}
-    </form>
   );
 }

@@ -106,7 +106,7 @@ export default function Welcome() {
               )}
               <button
                 onClick={next}
-                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
+                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-cta font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark"
               >
                 Dalej <Icon name="arrow" className="h-4 w-4" />
               </button>
@@ -119,7 +119,7 @@ export default function Welcome() {
                   hapticTap();
                   void save();
                 }}
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-on-brand shadow-float btn-hover active:bg-brand-dark"
+                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-cta font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark"
               >
                 Test na start · ok. 10 min <Icon name="arrow" className="h-4 w-4" />
               </Link>
@@ -130,7 +130,7 @@ export default function Welcome() {
               >
                 Pomiń test – zacznę od planu
               </button>
-              <p className="text-center text-xs text-faint">Test zrobisz też później w Ustawieniach.</p>
+              <p className="text-center text-xs text-muted">Test zrobisz też później w Ustawieniach.</p>
             </>
           )}
         </div>
@@ -188,7 +188,7 @@ function PromiseSlide({ name, onName }: { name: string; onName: (name: string) =
       </p>
       <label className="mt-5 block">
         <span className="text-sm font-bold text-ink">
-          Jak masz na imię? <span className="font-semibold text-faint">(opcjonalnie)</span>
+          Jak masz na imię? <span className="font-semibold text-muted">(opcjonalnie)</span>
         </span>
         <input
           value={name}
@@ -198,7 +198,7 @@ function PromiseSlide({ name, onName }: { name: string; onName: (name: string) =
           placeholder="np. Ola"
           className="mt-2 w-full rounded-2xl border-2 border-line bg-surface px-4 py-3 font-bold text-ink outline-none focus:border-brand"
         />
-        <span className="mt-1 block text-xs text-faint">Widzisz je tylko Ty – w powitaniu na ekranie głównym.</span>
+        <span className="mt-1 block text-xs text-muted">Widzisz je tylko Ty – w powitaniu na ekranie głównym.</span>
       </label>
     </>
   );
@@ -247,7 +247,7 @@ function ScratchSlide() {
   return (
     <>
       <div aria-hidden className="mb-5 rounded-3xl border border-line bg-surface p-4">
-        <div className="flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2.5 text-sm font-bold text-orange-600 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300">
+        <div className="flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2.5 text-sm font-bold text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300">
           <Icon name="pencil" className="h-4 w-4" />
           Brudnopis · kalkulator · wzory
           <Icon name="chevron" className="ml-auto h-4 w-4 rotate-90" />

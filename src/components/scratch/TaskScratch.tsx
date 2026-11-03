@@ -40,7 +40,7 @@ export default function TaskScratch(props: Props) {
           setMobileOpen(!mobileOpen);
         }}
         aria-expanded={mobileOpen}
-        className="flex items-center justify-between gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm font-bold text-orange-600 lg:hidden dark:text-orange-400"
+        className="flex items-center justify-between gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm font-bold text-orange-700 lg:hidden dark:text-orange-400"
       >
         <span className="flex items-center gap-2">
           <Icon name="pencil" className="h-4 w-4" />

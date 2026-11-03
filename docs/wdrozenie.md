@@ -15,6 +15,9 @@ Uruchom po kolei pliki, których jeszcze nie ma na produkcji. Każdy od `2026110
 | `20261107120000_funnel.sql` | lejek Premium (`funnel_events`, raport `supabase/admin/lejek.sql`) |
 | `20261108120000_photo_grading.sql` | licznik oceny zdjęć (Premium) |
 | `20261109120000_ai_requires_account.sql` | AI, ocena zdjęć i kody poleceń tylko dla kont z e-mailem albo Google (konta anonimowe – błąd MA030). **Uruchom razem z wydaniem aplikacji bez rankingu**, a potem w Authentication → Sign In / Providers wyłącz „Allow anonymous sign-ins” – inaczej skrypt mógłby dalej zakładać konta anonimowe (bez dostępu do AI, ale zaśmiecające bazę) |
+| `20261110120000_gift_codes.sql` | kody podarunkowe / z przedsprzedaży (`redeem_gift_code()`, partie: `supabase/admin/kody.sql`) |
+
+Po migracjach uruchom `supabase/admin/kontrola-bezpieczenstwa.sql` – RLS, funkcje i uprawnienia klienta muszą zgadzać się z `tests/db/security.test.ts`.
 
 ## 2. Funkcje serwerowe
 

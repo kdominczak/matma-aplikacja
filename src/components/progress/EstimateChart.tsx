@@ -18,7 +18,7 @@ import type { Level } from "@/types/topic";
 
 // Kolory z tokenów motywu (Recharts potrzebuje wartości, nie klas). Linia sprawdzona walidatorem kontrastu.
 const CHART_COLORS = {
-  light: { line: "#8c6b14", grid: "#e5e1d8", axis: "#6b7280", surface: "#ffffff", target: "#9ca3af" },
+  light: { line: "#7a5c0e", grid: "#dcd7cb", axis: "#5b6270", surface: "#ffffff", target: "#7c8494" },
   dark: { line: "#d4af37", grid: "#232b3b", axis: "#8b94a7", surface: "#111827", target: "#5b6476" },
 };
 
@@ -107,7 +107,7 @@ export default function EstimateChart({ progress, level = "podstawowy" }: { prog
         <summary className="cursor-pointer font-semibold">Pokaż dane w tabeli</summary>
         <table className="mt-2 w-full text-left">
           <thead>
-            <tr className="text-xs uppercase text-faint">
+            <tr className="text-xs uppercase text-muted">
               <th className="py-1 font-bold">Dzień</th>
               <th className="py-1 text-right font-bold">Szacowany wynik</th>
             </tr>
