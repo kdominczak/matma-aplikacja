@@ -86,3 +86,18 @@ describe("matura podstawowa maj 2024 – klucz i zadania „wybór”", () => {
     expect(t.kind === "choice" && t.choice.options.every((o) => o.image?.startsWith("/cke/2024-maj/") && existsSync(`public${o.image}`))).toBe(true);
   });
 });
+
+describe("matura podstawowa maj 2023 – klucz wersji A", () => {
+  const exam = EXAMS.find((e) => e.id === "cke-2023-maj")!;
+
+  it("zamknięte, P/F i „wybór” (11: C, E; 23: A i 2; 29: C, A)", () => {
+    const key = Object.fromEntries(exam.tasks.flatMap((t, i) => (t.kind === "closed" ? [[taskNumber(exam, i), t.question.correct]] : [])));
+    expect(key).toEqual({
+      "1": "B", "2": "A", "4": "D", "5": "A", "6": "C", "7": "D", "8": "A", "10": "D", "12.1": "A", "12.2": "C", "12.3": "D",
+      "13": "C", "14": "A", "15": "D", "16": "C", "18": "D", "19": "A", "20": "B", "21": "B", "24": "D", "25": "B", "27": "B",
+      "28": "C", "31.1": "C",
+    });
+    const choices = Object.fromEntries(exam.tasks.flatMap((t, i) => (t.kind === "choice" ? [[taskNumber(exam, i), t.choice.blanks.map((b) => b.answer.join(""))]] : [])));
+    expect(choices).toEqual({ "11": ["CE"], "23": ["A", "2"], "29": ["C", "A"] });
+  });
+});

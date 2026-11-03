@@ -1,6 +1,9 @@
 import type { Plot } from "@/types/plot";
 
 const UNIT = 28; // px na jednostkę układu
+/** Najmniejsza szerokość obszaru wykresu (px): wąski zakres (np. 3 jednostki) dostaje większą jednostkę, żeby po
+ * powiększeniu do szerokości ekranu linie i punkty nie były grube jak flamaster. */
+const MIN_WIDTH = 320;
 const PAD = 14;
 
 /**
@@ -14,10 +17,11 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
   const ys = range(Math.ceil(yMin), Math.floor(yMax));
   // oś OY przy lewej krawędzi (x od 0): podpisy osi stoją na lewo od niej – robimy im miejsce
   const left = axes && xMin > -0.5 ? PAD + Math.max(1, ...ys.map((y) => String(y).length)) * 6 : PAD;
-  const width = (xMax - xMin) * UNIT + left + PAD;
-  const height = (yMax - yMin) * UNIT + PAD * 2;
-  const px = (x: number) => left + (x - xMin) * UNIT;
-  const py = (y: number) => PAD + (yMax - y) * UNIT;
+  const unit = Math.max(UNIT, MIN_WIDTH / (xMax - xMin));
+  const width = (xMax - xMin) * unit + left + PAD;
+  const height = (yMax - yMin) * unit + PAD * 2;
+  const px = (x: number) => left + (x - xMin) * unit;
+  const py = (y: number) => PAD + (yMax - y) * unit;
   // id z wymiarów: kilka wykresów na stronie nie nadpisze sobie obszaru przycięcia
   const clipId = `plot-${xMin}-${xMax}-${yMin}-${yMax}`;
 
