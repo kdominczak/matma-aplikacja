@@ -44,8 +44,11 @@ export interface OpenQuestion {
   hints?: string[];
   /** Schemat oceniania: kolejne kroki rozwiązania z punktami (jak w zasadach oceniania CKE). */
   solution: { step: string; points: number }[];
-  /** „short” – krótka odpowiedź (na maturze liczy się sam wynik); domyślnie zadanie z rozwiązaniem. */
-  format?: "short" | "extended";
+  /**
+   * „short” – krótka odpowiedź (na maturze liczy się sam wynik); domyślnie zadanie z rozwiązaniem.
+   * „proof” – dowód („Wykaż, że…”): bez wyniku do wpisania (`answers: []`), punkty tylko z oceny kroków.
+   */
+  format?: "short" | "extended" | "proof";
   family?: string;
 }
 

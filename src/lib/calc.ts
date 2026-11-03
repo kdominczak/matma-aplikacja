@@ -244,6 +244,12 @@ function sameSet(parts: string[], expected: number[]): boolean {
 /** Czy odpowiedź ucznia odpowiada jednej z akceptowanych (porównanie wartości, kolejność rozwiązań dowolna). */
 export function matchesAnswer(given: string, accepted: string[]): boolean {
   if (!given.trim()) return false;
+  // klucz-przedział (np. „[-4, 4)”) porównujemy jako zbiór: krańce i ich domknięcie, zapis dowolny
+  const keyIntervals = accepted.map(readIntervals);
+  if (keyIntervals.some(Boolean)) {
+    const mine = readIntervals(given);
+    return mine !== null && keyIntervals.some((key) => key !== null && sameIntervals(mine, key));
+  }
   const options = readings(given);
   return accepted.some((answer) => {
     const expected = keyValues(answer);
@@ -265,4 +271,133 @@ export function readAnswer(given: string): number[] | null {
     values.push(value);
   }
   return values.length ? values : null;
+}
+
+// ── Przedziały (odpowiedzi typu „zbiór rozwiązań”, dziedzina, zbiór wartości) ──
+//
+// Akceptujemy zapisy z polskiej szkoły i z CKE: [a, b), ⟨a; b), <a; b) (znak „<” jako ⟨), (−∞, 3], x ∈ …,
+// nierówności („-4 ≤ x < 4”, „x ≥ -9”) i sumy przedziałów (∪). Odwrócona kolejność krańców („(4, −4]”) to błąd.
+
+export interface IntervalBound {
+  value: number;
+  closed: boolean;
+}
+
+export interface Interval {
+  lo: IntervalBound;
+  hi: IntervalBound;
+}
+
+const LEFT = "[(⟨<";
+const RIGHT = "])⟩>";
+
+/** Kraniec: liczba albo nieskończoność („∞”, „+∞”, „inf”, „oo”). */
+function boundValue(text: string): number | null {
+  const t = text.replace(/\s+/g, "");
+  if (/^\+?(∞|inf|oo|nieskończoność)$/.test(t)) return Infinity;
+  if (/^-(∞|inf|oo|nieskończoność)$/.test(t)) return -Infinity;
+  for (const candidate of [t, t.replace(",", ".")]) {
+    try {
+      return evaluate(candidate);
+    } catch {
+      // kolejny zapis
+    }
+  }
+  return null;
+}
+
+function interval(lo: number, loClosed: boolean, hi: number, hiClosed: boolean): Interval | null {
+  if (!(lo < hi)) return null;
+  // przy nieskończoności domknięcie nie ma znaczenia
+  return { lo: { value: lo, closed: Number.isFinite(lo) && loClosed }, hi: { value: hi, closed: Number.isFinite(hi) && hiClosed } };
+}
+
+/** Jeden przedział w nawiasach: „[a, b)”, „⟨a; b⟩”, „(1,5; 3)” – przecinek dziesiętny rozstrzyga średnik albo próba. */
+function bracketInterval(text: string): Interval | null {
+  const open = text[0];
+  const close = text[text.length - 1];
+  if (!LEFT.includes(open) || !RIGHT.includes(close)) return null;
+  const inside = text.slice(1, -1);
+  const splits = inside.includes(";")
+    ? [inside.split(";")]
+    : [...inside.matchAll(/,/g)].map((m) => [inside.slice(0, m.index), inside.slice(m.index! + 1)]);
+  for (const parts of splits) {
+    if (parts.length !== 2) continue;
+    const lo = boundValue(parts[0]);
+    const hi = boundValue(parts[1]);
+    if (lo === null || hi === null) continue;
+    return interval(lo, "[⟨<".includes(open), hi, "]⟩>".includes(close));
+  }
+  return null;
+}
+
+const LE = "(?:<=|≤|=<)";
+const GE = "(?:>=|≥|=>)";
+
+/** Nierówność z jedną zmienną: „a ≤ x < b”, „x ≥ a”, „x < b”, „a < x”. */
+function inequalityInterval(text: string): Interval | null {
+  const v = "[a-z]";
+  let m = text.match(new RegExp(`^(.+?)(${LE}|<)${v}(${LE}|<)(.+)$`));
+  if (m) {
+    const lo = boundValue(m[1]);
+    const hi = boundValue(m[4]);
+    return lo === null || hi === null ? null : interval(lo, m[2] !== "<", hi, m[3] !== "<");
+  }
+  m = text.match(new RegExp(`^${v}(${GE}|>|${LE}|<)(.+)$`)) ?? null;
+  if (m) {
+    const value = boundValue(m[2]);
+    if (value === null) return null;
+    const greater = /^(>|>=|≥|=>)$/.test(m[1]);
+    const closed = !/^[<>]$/.test(m[1]);
+    return greater ? interval(value, closed, Infinity, false) : interval(-Infinity, false, value, closed);
+  }
+  m = text.match(new RegExp(`^(.+?)(${LE}|<|${GE}|>)${v}$`));
+  if (m) {
+    const value = boundValue(m[1]);
+    if (value === null) return null;
+    const below = /^(<|<=|≤|=<)$/.test(m[2]); // „a < x” – x większe od a
+    const closed = !/^[<>]$/.test(m[2]);
+    return below ? interval(value, closed, Infinity, false) : interval(-Infinity, false, value, closed);
+  }
+  return null;
+}
+
+/**
+ * Odpowiedź jako suma przedziałów albo null (to nie jest przedział – np. sama liczba).
+ * Zwykła liczba nie jest przedziałem, więc liczbowe klucze sprawdzamy jak dotąd.
+ */
+export function readIntervals(answer: string): Interval[] | null {
+  const text = normalize(answer)
+    .replace(/\s+/g, "")
+    .replace(/^(?:[a-z]∈|[a-z]należydo)/, "")
+    .replace(/\.$/, "");
+  if (!text) return null;
+  const parts = text.split(/∪|(?<=[\])⟩>])u(?=[[(⟨<])/); // „U” z klawiatury tylko między przedziałami
+  const out: Interval[] = [];
+  for (const part of parts) {
+    const found = bracketInterval(part) ?? inequalityInterval(part);
+    if (!found) return null;
+    out.push(found);
+  }
+  return out;
+}
+
+const sameBound = (a: IntervalBound, b: IntervalBound) => a.closed === b.closed && (a.value === b.value || close(a.value, b.value));
+
+/** Te same przedziały (kolejność w sumie dowolna). */
+function sameIntervals(a: Interval[], b: Interval[]): boolean {
+  if (a.length !== b.length) return false;
+  const left = [...b];
+  return a.every((x) => {
+    const i = left.findIndex((y) => sameBound(x.lo, y.lo) && sameBound(x.hi, y.hi));
+    if (i < 0) return false;
+    left.splice(i, 1);
+    return true;
+  });
+}
+
+/** Przedział do podglądu („[−4; 4)”), jak go odczytała aplikacja. */
+export function formatIntervals(intervals: Interval[]): string {
+  const bound = (b: IntervalBound) => (b.value === Infinity ? "+∞" : b.value === -Infinity ? "−∞" : formatNumber(b.value));
+  return intervals.map((i) => `${i.lo.closed ? "[" : "("}${bound(i.lo)}; ${bound(i.hi)}${i.hi.closed ? "]" : ")"}`).join(" ∪ ");
 }

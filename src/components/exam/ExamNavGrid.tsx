@@ -2,11 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import type { PracticeTask } from "@/data/topics";
-import { isAnswered } from "@/lib/exam";
+import { isAnswered, taskNumber } from "@/lib/exam";
 import type { ExamAnswer } from "@/types/exam";
 
 type Props = {
   tasks: PracticeTask[];
+  /** Numery jak w arkuszu CKE („12.1”) – domyślnie 1, 2, 3… */
+  numbers?: string[];
   answers: Record<string, ExamAnswer>;
   flagged: string[];
   current: number;
@@ -16,7 +18,7 @@ type Props = {
 };
 
 /** Numery zadań: rozwiązane (niebieskie), pominięte (szare), oznaczone „wrócę” (bursztynowa kropka), bieżące (obwódka). */
-export default function ExamNavGrid({ tasks, answers, flagged, current, onSelect, layout = "strip" }: Props) {
+export default function ExamNavGrid({ tasks, numbers, answers, flagged, current, onSelect, layout = "strip" }: Props) {
   const currentRef = useRef<HTMLButtonElement>(null);
 
   // bieżące zadanie zawsze widoczne w pasku (także po przejściu „Dalej”)
@@ -39,12 +41,12 @@ export default function ExamNavGrid({ tasks, answers, flagged, current, onSelect
             ref={isCurrent ? currentRef : undefined}
             onClick={() => onSelect(i)}
             aria-current={isCurrent ? "step" : undefined}
-            aria-label={`Zadanie ${i + 1}${answered ? ", rozwiązane" : ", bez odpowiedzi"}${isFlagged ? ", oznaczone do powrotu" : ""}`}
+            aria-label={`Zadanie ${taskNumber({ numbers }, i)}${answered ? ", rozwiązane" : ", bez odpowiedzi"}${isFlagged ? ", oznaczone do powrotu" : ""}`}
             className={`relative flex h-11 min-w-11 shrink-0 items-center justify-center rounded-xl px-2 text-sm font-extrabold tabular-nums transition-all ${
               answered ? "bg-brand text-on-brand shadow-float" : "border border-line bg-card text-muted"
             } ${isCurrent ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}`}
           >
-            {i + 1}
+            {taskNumber({ numbers }, i)}
             {task.kind === "open" && <span className="ml-0.5 text-xs opacity-75">O</span>}
             {isFlagged && <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-surface bg-amber-400" aria-hidden />}
           </button>

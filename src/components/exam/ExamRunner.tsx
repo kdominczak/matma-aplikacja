@@ -6,6 +6,7 @@ import ExamAssessment from "@/components/exam/ExamAssessment";
 import ExamNavGrid, { NavLegend } from "@/components/exam/ExamNavGrid";
 import ExamSummary from "@/components/exam/ExamSummary";
 import AnswerTools from "@/components/practice/AnswerTools";
+import { readIntervals } from "@/lib/calc";
 import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
 import TaskScratch from "@/components/scratch/TaskScratch";
 import FormulaList from "@/components/topic/FormulaList";
@@ -18,7 +19,7 @@ import MathText from "@/components/ui/MathText";
 import { examKindLabel, examMaxPoints, examSource, getExam, taskSource } from "@/data/exams";
 import CkeNotice from "@/components/legal/CkeNotice";
 import { formulaGroup, topicsOfLevel, type PracticeTask } from "@/data/topics";
-import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam, sessionElapsedMs } from "@/lib/exam";
+import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam, sessionElapsedMs, taskNumber } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import { displayedOptions } from "@/lib/options";
 import { saveExamResult } from "@/lib/progress";
@@ -292,7 +293,8 @@ function ExamInProgress({
             </Link>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-extrabold text-ink">
-                Zadanie {index + 1} <span className="font-semibold text-muted">z {exam.tasks.length}</span>
+                Zadanie {taskNumber(exam, index)}
+                {!exam.numbers && <span className="font-semibold text-muted"> z {exam.tasks.length}</span>}
               </p>
               <p className="truncate text-xs font-semibold text-muted">
                 Odpowiedzi: {answeredCount}/{exam.tasks.length}
@@ -309,7 +311,7 @@ function ExamInProgress({
           </div>
           <div className="mt-2 flex items-center gap-2">
             <div className="min-w-0 flex-1">
-              <ExamNavGrid tasks={exam.tasks} answers={session.answers} flagged={session.flagged} current={index} onSelect={go} />
+              <ExamNavGrid tasks={exam.tasks} numbers={exam.numbers} answers={session.answers} flagged={session.flagged} current={index} onSelect={go} />
             </div>
             <button
               onClick={() => setPanel("overview")}
@@ -411,6 +413,7 @@ function ExamInProgress({
             <NavLegend />
             <ExamNavGrid
               layout="grid"
+              numbers={exam.numbers}
               tasks={exam.tasks}
               answers={session.answers}
               flagged={session.flagged}
@@ -513,7 +516,21 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
     );
   }
 
+  if (task.task.format === "proof") {
+    return (
+      <section className="flex items-start gap-3 rounded-2xl border border-line bg-subtle/60 p-4 text-sm text-body">
+        <Icon name="info" className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+        <p>
+          To zadanie na dowód – nie ma wyniku do wpisania. Zapisz rozumowanie na kartce albo w brudnopisie. Po „Zakończ” ocenisz je krokami ze schematu
+          CKE (z Premium – także ze zdjęcia kartki), do {task.points} pkt.
+        </p>
+      </section>
+    );
+  }
+
   const input = answer?.kind === "open" ? answer.input : "";
+  // odpowiedzią jest przedział (dziedzina, zbiór rozwiązań) – inna podpowiedź zapisu
+  const interval = task.task.answers.some((a) => readIntervals(a) !== null);
   const setInput = (value: string) => update((s) => ({ ...s, answers: { ...s.answers, [task.id]: { kind: "open", input: value } } }));
   return (
     <section className="flex flex-col gap-3">
@@ -534,13 +551,16 @@ function AnswerInput({ task, session, update }: { task: PracticeTask; session: E
           autoComplete="off"
           spellCheck={false}
           inputMode="text"
-          placeholder="np. 3/2, 1,5 albo -2; 3"
+          placeholder={interval ? "np. [-4, 4) albo x ≥ 2" : "np. 3/2, 1,5 albo -2; 3"}
           className="min-h-12 min-w-0 flex-1 bg-transparent py-3 text-lg font-bold text-ink placeholder:font-medium placeholder:text-faint focus:outline-none"
         />
       </div>
       <AnswerTools value={input} onChange={setInput} inputRef={inputRef} />
       <p className="text-xs text-muted">
-        Wpisz sam wynik liczbowy (ułamek jako 3/2), kilka rozwiązań oddziel średnikiem. Za poprawny wynik dostajesz {task.points} pkt – tok rozwiązania porównasz ze
+        {interval
+          ? "Wpisz przedział: nawias kwadratowy [ albo ⟨ – koniec należy do zbioru, okrągły ( – nie należy; nieskończoność to ∞. Możesz też zapisać nierówność."
+          : "Wpisz sam wynik liczbowy (ułamek jako 3/2), kilka rozwiązań oddziel średnikiem."}{" "}
+        Za poprawny wynik dostajesz {task.points} pkt – tok rozwiązania porównasz ze
         schematem na podsumowaniu.
       </p>
     </section>

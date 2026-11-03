@@ -46,7 +46,7 @@ describe("tutorSuggestions", () => {
   });
 
   it("ostatni arkusz: pierwsze zadanie otwarte bez kompletu – z wynikiem ucznia, tryb „naprowadź”", () => {
-    const exam = EXAMS.find((e) => e.tasks.some((t) => t.kind === "open"))!;
+    const exam = EXAMS.find((e) => e.kind === "probny" && e.tasks.some((t) => t.kind === "open"))!;
     const task = exam.tasks.find((t) => t.kind === "open")!;
     const attempt: ExamAttempt = {
       id: "a1",

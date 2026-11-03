@@ -87,7 +87,7 @@ describe("arkusz poprawek z błędów", () => {
   });
 
   it("błędy z arkuszy sumują się z pomyłkami; zadanie poprawione później w „Zadaniach” wypada", () => {
-    const exam = EXAMS[0];
+    const exam = EXAMS.find((e) => e.kind === "probny")!;
     const [a, b] = exam.tasks;
     const sheet = buildMistakeSheet(
       progress({
@@ -108,8 +108,18 @@ describe("arkusz poprawek z błędów", () => {
     expect(sheet.items[0].source).toBeNull(); // arkusz próbny – zadania autorskie
   });
 
+  it("dowód z arkusza CKE nie trafia do arkusza poprawek (nie da się go sprawdzić wynikiem)", () => {
+    const sheet = buildMistakeSheet(
+      progress(),
+      [attempt("cke-2025-maj", "2026-10-28T10:00:00.000Z", [{ taskId: "cke-2025-maj-5", kind: "open", status: "partial" }, { taskId: "cke-2025-maj-9", kind: "open", status: "wrong" }])],
+      { today: TODAY },
+    );
+    expect(sheet.items.map((i) => i.task.id)).toEqual(["cke-2025-maj-9"]);
+    expect(sheet.items[0].source).toBe("Zadanie z arkusza CKE, maj 2025");
+  });
+
   it("pomija pominięte zadania arkusza i nieznane arkusze", () => {
-    const exam = EXAMS[0];
+    const exam = EXAMS.find((e) => e.kind === "probny")!;
     const sheet = buildMistakeSheet(
       progress(),
       [attempt(exam.id, "2026-10-28T10:00:00.000Z", [{ taskId: exam.tasks[0].id, status: "skipped" }]), attempt("nie-ma", "2026-10-28T10:00:00.000Z", [{ taskId: "x" }])],

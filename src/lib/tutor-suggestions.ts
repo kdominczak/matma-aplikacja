@@ -1,4 +1,5 @@
 import { getExam } from "@/data/exams";
+import { taskNumber } from "@/lib/exam";
 import { findQuestion, topics } from "@/data/topics";
 import { questionAsText } from "@/lib/ai";
 import type { TutorStyle } from "@/lib/ai-prompts";
@@ -35,10 +36,10 @@ export function tutorSuggestions(progress: Progress, attempts: ExamAttempt[] = [
   const missed = last?.results.find((r) => r.kind === "open" && r.status !== "correct");
   const task = missed && exam?.tasks.find((t) => t.id === missed.taskId);
   if (exam && missed && task?.kind === "open") {
-    const answer = missed.given ? `\n\nMój wynik: ${missed.given}. Poprawny wynik to ${task.task.answers[0].replace(";", "; ")}.` : "";
+    const answer = missed.given && task.task.answers.length > 0 ? `\n\nMój wynik: ${missed.given}. Poprawny wynik to ${task.task.answers[0].replace(";", "; ")}.` : "";
     out.push({
       id: `exam-${task.id}`,
-      source: `${exam.title} · zad. ${missed.number}`,
+      source: `${exam.title} · zad. ${taskNumber(exam, missed.number - 1)}`,
       title: preview(task.task.prompt),
       text: `${task.task.prompt}${answer}\n\nPomóż mi dojść do rozwiązania.`,
       style: "naprowadz",

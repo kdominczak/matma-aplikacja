@@ -2,10 +2,10 @@
 
 import type { RefObject } from "react";
 import Icon from "@/components/ui/Icon";
-import { formatNumber, readAnswer } from "@/lib/calc";
+import { formatIntervals, formatNumber, readAnswer, readIntervals } from "@/lib/calc";
 
 /** Znaki, których brakuje na klawiaturze telefonu (albo są głęboko schowane). */
-const KEYS = ["/", "√", "π", "^", "-", ";"];
+const KEYS = ["/", "√", "π", "^", "-", ";", "∞"];
 
 type Props = {
   value: string;
@@ -20,6 +20,8 @@ type Props = {
  */
 export default function AnswerTools({ value, onChange, inputRef, disabled = false }: Props) {
   const values = readAnswer(value);
+  // przedział (np. „⟨-4; 4)”, „x ≥ -9”) – podgląd, jak aplikacja go zrozumiała
+  const intervals = values ? null : readIntervals(value);
 
   function insert(key: string) {
     const input = inputRef.current;
@@ -52,9 +54,9 @@ export default function AnswerTools({ value, onChange, inputRef, disabled = fals
         </div>
       )}
       {value.trim() &&
-        (values ? (
+        (values || intervals ? (
           <p className="text-sm text-muted" aria-live="polite">
-            Odczytam: <strong className="text-ink">{values.map((v) => formatNumber(v)).join("; ")}</strong>
+            Odczytam: <strong className="text-ink">{values ? values.map((v) => formatNumber(v)).join("; ") : formatIntervals(intervals!)}</strong>
           </p>
         ) : (
           <p className="flex items-start gap-1.5 text-sm font-semibold text-amber-700 dark:text-amber-300" aria-live="polite">

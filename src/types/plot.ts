@@ -10,4 +10,12 @@ export interface Plot {
   guides?: Point[][];
   /** Wyróżnione punkty; `open` = puste kółko (punkt nie należy do wykresu). */
   dots?: { at: Point; open?: boolean }[];
+  /** false = rysunek geometryczny: bez kratki i osi, linie cieńsze, w kolorze tekstu (domyślnie układ współrzędnych). */
+  axes?: boolean;
+  /** Podpisy na rysunku: wierzchołki, długości, kąty („A”, „5”, „α”, „50°”). Pojedyncza litera – kursywą. */
+  labels?: { at: Point; text: string; anchor?: "start" | "middle" | "end" }[];
+  /** Wypełnione wielokąty (np. słupki diagramu) – półprzezroczyste, pod liniami. */
+  fills?: Point[][];
+  /** Nazwy osi zamiast „x” i „y” (np. „ocena”, „liczba uczniów”). */
+  axisNames?: [x: string, y: string];
 }

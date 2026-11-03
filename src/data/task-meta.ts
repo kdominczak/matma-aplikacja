@@ -44,7 +44,8 @@ function baseMeta(task: PracticeTask, topic: Topic): TaskMeta {
     topicId: topic.id,
     section: topic.section,
     // zadania otwarte w aplikacji mają rozwiązanie krok po kroku i schemat punktowania – jak „rozszerzone” w CKE
-    format: closed ? (task.question.format ?? "abcd") : (task.task.format ?? "extended"),
+    // dowód to na maturze też zadanie rozszerzonej odpowiedzi
+    format: closed ? (task.question.format ?? "abcd") : task.task.format === "short" ? "short" : "extended",
     points: task.points,
     difficulty: task.difficulty,
     family: (closed ? task.question.family : task.task.family) ?? task.id,

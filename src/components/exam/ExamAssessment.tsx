@@ -8,7 +8,7 @@ import MathText from "@/components/ui/MathText";
 import type { PracticeTask } from "@/data/topics";
 import { AI_ENABLED } from "@/lib/ai-config";
 import type { Grading } from "@/lib/ai-grading";
-import { applyAssessment, needsAssessment } from "@/lib/exam";
+import { applyAssessment, needsAssessment, taskNumber } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import type { ExamSheet, ExamTaskResult, StepAssessment } from "@/types/exam";
 import type { Level } from "@/types/topic";
@@ -65,6 +65,7 @@ export default function ExamAssessment({
             <AssessCard
               key={task.id}
               task={task}
+              number={taskNumber(exam, result.number - 1)}
               level={exam.level}
               result={result}
               assessment={assessments[task.id]}
@@ -96,12 +97,15 @@ export default function ExamAssessment({
 
 function AssessCard({
   task,
+  number,
   level,
   result,
   assessment,
   onChange,
 }: {
   task: OpenTask;
+  /** Numer jak w arkuszu („12.1”). */
+  number: string;
   /** Poziom arkusza – AI ocenia według zasad tego poziomu (w arkuszu rozszerzonym także zadania z podstawy). */
   level: Level;
   result: ExamTaskResult;
@@ -126,7 +130,7 @@ function AssessCard({
   return (
     <li className="card flex flex-col gap-3 p-4 sm:p-5">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-extrabold text-ink">Zadanie {result.number}</p>
+        <p className="text-sm font-extrabold text-ink">Zadanie {number}</p>
         <p className="text-sm font-extrabold text-brand tabular-nums">
           {points}/{task.points} pkt{byAi ? " · ocena AI" : ""}
         </p>
@@ -139,10 +143,12 @@ function AssessCard({
           <FunctionPlot plot={task.task.figure} />
         </div>
       )}
-      <p className="text-sm text-body">
-        Twój wynik: <strong className="text-ink">{result.given ?? "– (brak)"}</strong> · poprawny:{" "}
-        <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
-      </p>
+      {task.task.answers.length > 0 && (
+        <p className="text-sm text-body">
+          Twój wynik: <strong className="text-ink">{result.given ?? "– (brak)"}</strong> · poprawny:{" "}
+          <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
+        </p>
+      )}
       {AI_ENABLED && <PhotoGrading task={task.task} level={level} onGraded={graded} />}
       <fieldset>
         <legend className="mb-2 text-xs font-extrabold uppercase tracking-widest text-muted">

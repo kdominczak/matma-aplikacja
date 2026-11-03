@@ -83,8 +83,11 @@ export function buildMistakeSheet(
       // poprawione później w „Zadaniach” – już nie jest problemem
       const later = progress.practice[result.taskId];
       if (later && later.verifiedPoints >= later.maxPoints && later.lastAt >= day) continue;
+      const task = exam.tasks.find((t) => t.id === result.taskId);
+      // dowodu nie da się sprawdzić wynikiem w aplikacji – zostaje do oceny krokami w arkuszu
+      if (task?.kind === "open" && task.task.format === "proof") continue;
       add(
-        exam.tasks.find((t) => t.id === result.taskId),
+        task,
         1,
         day,
         taskSource(exam),

@@ -30,6 +30,11 @@ export function scoreTask(task: PracticeTask, answer: ExamAnswer | undefined, nu
   return { ...base, status: correct ? "correct" : "wrong", points: correct ? task.points : 0, given: input };
 }
 
+/** Numer zadania do wyświetlenia: z arkusza CKE („12.1”) albo kolejny (1, 2, 3…). `index` liczony od 0. */
+export function taskNumber(exam: Pick<ExamSheet, "numbers">, index: number): string {
+  return exam.numbers?.[index] ?? String(index + 1);
+}
+
 export function isAnswered(answer: ExamAnswer | undefined): boolean {
   return answer?.kind === "closed" || (answer?.kind === "open" && answer.input.trim() !== "");
 }

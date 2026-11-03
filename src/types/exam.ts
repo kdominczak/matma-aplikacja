@@ -20,6 +20,8 @@ export interface ExamSheet {
   /** Sesja egzaminu CKE (tylko `kind: "cke"`) – do oznaczenia źródła: „Zadanie z arkusza CKE, matura maj 2024”. */
   session?: "maj" | "czerwiec" | "sierpień";
   level: Level;
+  /** Numery zadań jak w arkuszu CKE (np. „12.1”, „14.2”) – domyślnie 1, 2, 3… (`taskNumber`). */
+  numbers?: string[];
   /** Czas na egzamin w minutach (matura podstawowa i rozszerzona: 180). */
   durationMin: number;
   tasks: PracticeTask[];

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluate, formatNumber, matchesAnswer, readAnswer } from "@/lib/calc";
+import { evaluate, formatIntervals, formatNumber, matchesAnswer, readAnswer, readIntervals } from "@/lib/calc";
 
 describe("kalkulator (parser bez eval)", () => {
   it.each([
@@ -47,5 +47,46 @@ describe("podgląd wyniku (readAnswer)", () => {
   it("nie odczytuje zapisu, którego nie da się policzyć", () => {
     expect(readAnswer("log3 3-3/2")).toBeNull();
     expect(readAnswer("")).toBeNull();
+  });
+});
+
+describe("przedziały w odpowiedziach (zadania typu „zbiór rozwiązań”)", () => {
+  it.each([
+    ["[-4, 4)", "[-4, 4)"],
+    ["⟨-4; 4)", "[-4, 4)"],
+    ["<-4;4)", "[-4, 4)"],
+    ["x ∈ [−4, 4)", "[-4, 4)"],
+    ["-4 ≤ x < 4", "[-4, 4)"],
+    ["-4<=x<4", "[-4, 4)"],
+    ["(-3, 3]", "(-3, 3]"],
+    ["x ≥ -9", "[-9, +∞)"],
+    ["⟨-9; ∞)", "[-9, +∞)"],
+    ["[-9, inf)", "[-9, +∞)"],
+    ["(1/3, 3/2)", "(1/3, 3/2)"],
+    ["(1/3; 1,5)", "(1/3, 3/2)"],
+    ["1/3 < x < 1,5", "(1/3, 3/2)"],
+    ["(-∞, -2) ∪ (1, +∞)", "(-∞, -2) ∪ (1, +∞)"],
+    ["(1, ∞) U (-∞, -2)", "(-∞, -2) ∪ (1, +∞)"],
+  ])("„%s” = %s", (given, key) => {
+    expect(matchesAnswer(given, [key])).toBe(true);
+  });
+
+  it.each([
+    ["[-4, 4]", "[-4, 4)"], // inne domknięcie
+    ["(-4, 4)", "[-4, 4)"],
+    ["(4, -4]", "[-4, 4)"], // odwrócona kolejność krańców – CKE nie daje punktu (poza dyskalkulią)
+    ["[-4, 3)", "[-4, 4)"],
+    ["x > -9", "[-9, +∞)"],
+    ["4", "[-4, 4)"], // sama liczba to nie przedział
+    ["(1/3, 3/2)", "(1/3, 3/2) ∪ (2, 3)"],
+  ])("„%s” ≠ %s", (given, key) => {
+    expect(matchesAnswer(given, [key])).toBe(false);
+  });
+
+  it("liczbowe klucze działają jak dotąd, a podgląd pokazuje odczytany przedział", () => {
+    expect(matchesAnswer("x = 1,5", ["3/2"])).toBe(true);
+    expect(readIntervals("3/2")).toBeNull();
+    expect(formatIntervals(readIntervals("⟨-4;4)")!)).toBe("[-4; 4)");
+    expect(formatIntervals(readIntervals("x ≥ -9")!)).toBe("[-9; +∞)");
   });
 });

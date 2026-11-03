@@ -3,13 +3,17 @@ import type { Plot } from "@/types/plot";
 const UNIT = 28; // px na jednostkę układu
 const PAD = 14;
 
-/** Wykres funkcji w układzie współrzędnych z kratką – skaluje się do szerokości ekranu. */
+/**
+ * Wykres funkcji w układzie współrzędnych z kratką albo (`axes: false`) rysunek geometryczny z podpisami –
+ * skaluje się do szerokości ekranu.
+ */
 export default function FunctionPlot({ plot }: { plot: Plot }) {
   const [xMin, xMax] = plot.x;
   const [yMin, yMax] = plot.y;
+  const axes = plot.axes !== false;
   const ys = range(Math.ceil(yMin), Math.floor(yMax));
   // oś OY przy lewej krawędzi (x od 0): podpisy osi stoją na lewo od niej – robimy im miejsce
-  const left = xMin > -0.5 ? PAD + Math.max(1, ...ys.map((y) => String(y).length)) * 6 : PAD;
+  const left = axes && xMin > -0.5 ? PAD + Math.max(1, ...ys.map((y) => String(y).length)) * 6 : PAD;
   const width = (xMax - xMin) * UNIT + left + PAD;
   const height = (yMax - yMin) * UNIT + PAD * 2;
   const px = (x: number) => left + (x - xMin) * UNIT;
@@ -24,7 +28,7 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
       viewBox={`0 0 ${width} ${height}`}
       className="mx-auto h-auto w-full max-w-sm"
       role="img"
-      aria-label="Wykres funkcji"
+      aria-label={axes ? "Wykres funkcji" : "Rysunek do zadania"}
     >
       <defs>
         <clipPath id={clipId}>
@@ -32,48 +36,69 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
         </clipPath>
       </defs>
 
-      {/* kratka */}
-      <g className="stroke-line" strokeWidth={1}>
-        {xs.map((x) => (
-          <line key={`gx${x}`} x1={px(x)} x2={px(x)} y1={PAD} y2={height - PAD} />
-        ))}
-        {ys.map((y) => (
-          <line key={`gy${y}`} x1={left} x2={width - PAD} y1={py(y)} y2={py(y)} />
-        ))}
-      </g>
+      {/* kratka, osie i ich podpisy – tylko w układzie współrzędnych */}
+      {axes && (
+        <>
+          {/* kratka */}
+          <g className="stroke-line" strokeWidth={1}>
+            {xs.map((x) => (
+              <line key={`gx${x}`} x1={px(x)} x2={px(x)} y1={PAD} y2={height - PAD} />
+            ))}
+            {ys.map((y) => (
+              <line key={`gy${y}`} x1={left} x2={width - PAD} y1={py(y)} y2={py(y)} />
+            ))}
+          </g>
 
-      {/* osie */}
-      <g className="stroke-muted" strokeWidth={1.5}>
-        <line x1={left - 6} x2={width - PAD + 6} y1={py(0)} y2={py(0)} />
-        <line x1={px(0)} x2={px(0)} y1={height - PAD + 6} y2={PAD - 6} />
-      </g>
-      <g className="fill-muted">
-        <path d={`M${width - PAD + 8} ${py(0)} l-7 -4 v8z`} />
-        <path d={`M${px(0)} ${PAD - 8} l-4 7 h8z`} />
-      </g>
-      <g className="fill-muted" fontSize={10} fontWeight={600}>
-        <text x={width - PAD - 2} y={py(0) - 6} textAnchor="end">x</text>
-        <text x={px(0) + 6} y={PAD + 4}>y</text>
-        {xs
-          .filter((x) => x !== 0)
-          .map((x) => (
-            <text key={`lx${x}`} x={px(x)} y={py(0) + 13} textAnchor="middle">
-              {x}
-            </text>
+          {/* osie */}
+          <g className="stroke-muted" strokeWidth={1.5}>
+            <line x1={left - 6} x2={width - PAD + 6} y1={py(0)} y2={py(0)} />
+            <line x1={px(0)} x2={px(0)} y1={height - PAD + 6} y2={PAD - 6} />
+          </g>
+          <g className="fill-muted">
+            <path d={`M${width - PAD + 8} ${py(0)} l-7 -4 v8z`} />
+            <path d={`M${px(0)} ${PAD - 8} l-4 7 h8z`} />
+          </g>
+          <g className="fill-muted" fontSize={10} fontWeight={600}>
+            <text x={width - PAD - 2} y={py(0) - 6} textAnchor="end">{plot.axisNames?.[0] ?? "x"}</text>
+            <text x={px(0) + 6} y={PAD + 4}>{plot.axisNames?.[1] ?? "y"}</text>
+            {xs
+              .filter((x) => x !== 0)
+              .map((x) => (
+                <text key={`lx${x}`} x={px(x)} y={py(0) + 13} textAnchor="middle">
+                  {x}
+                </text>
+              ))}
+            {ys
+              .filter((y) => y !== 0)
+              .map((y) => (
+                <text key={`ly${y}`} x={px(0) - 5} y={py(y) + 3.5} textAnchor="end">
+                  {y}
+                </text>
+              ))}
+            <text x={px(0) - 5} y={py(0) + 13} textAnchor="end">0</text>
+          </g>
+        </>
+      )}
+
+      {/* wypełnienia (słupki diagramu) – pod liniami */}
+      {plot.fills && (
+        <g className="fill-brand/25 stroke-brand" strokeWidth={1.5}>
+          {plot.fills.map((shape, i) => (
+            <polygon key={i} points={shape.map(([x, y]) => `${px(x)},${py(y)}`).join(" ")} />
           ))}
-        {ys
-          .filter((y) => y !== 0)
-          .map((y) => (
-            <text key={`ly${y}`} x={px(0) - 5} y={py(y) + 3.5} textAnchor="end">
-              {y}
-            </text>
-          ))}
-        <text x={px(0) - 5} y={py(0) + 13} textAnchor="end">0</text>
-      </g>
+        </g>
+      )}
 
       {/* linie pomocnicze – przerywane, pod wykresem */}
       {plot.guides && (
-        <g clipPath={`url(#${clipId})`} className="stroke-faint" fill="none" strokeWidth={2} strokeDasharray="6 5" strokeLinecap="round">
+        <g
+          clipPath={axes ? `url(#${clipId})` : undefined}
+          className={axes ? "stroke-faint" : "stroke-muted"}
+          fill="none"
+          strokeWidth={axes ? 2 : 1.5}
+          strokeDasharray="6 5"
+          strokeLinecap="round"
+        >
           {plot.guides.map((line, i) => (
             <polyline key={i} points={line.map(([x, y]) => `${px(x)},${py(y)}`).join(" ")} />
           ))}
@@ -82,10 +107,10 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
 
       {/* wykres */}
       <g
-        clipPath={`url(#${clipId})`}
-        className="stroke-brand"
+        clipPath={axes ? `url(#${clipId})` : undefined}
+        className={axes ? "stroke-brand" : "stroke-ink"}
         fill="none"
-        strokeWidth={3}
+        strokeWidth={axes ? 3 : 1.75}
         strokeLinejoin="round"
         strokeLinecap="round"
       >
@@ -103,6 +128,15 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
           strokeWidth={2}
         />
       ))}
+      {plot.labels && (
+        <g className="fill-ink" fontSize={12}>
+          {plot.labels.map(({ at: [x, y], text, anchor = "middle" }, i) => (
+            <text key={i} x={px(x)} y={py(y) + 4} textAnchor={anchor} fontStyle={/^[A-Za-z]$/.test(text) ? "italic" : undefined}>
+              {text}
+            </text>
+          ))}
+        </g>
+      )}
     </svg>
   );
 }

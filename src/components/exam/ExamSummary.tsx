@@ -10,7 +10,7 @@ import CkeNotice from "@/components/legal/CkeNotice";
 import CountUp from "@/components/ui/CountUp";
 import { examSource } from "@/data/exams";
 import { findQuestion, type PracticeTask } from "@/data/topics";
-import { formatDuration, PASS_PERCENT, useExamAttempts } from "@/lib/exam";
+import { formatDuration, PASS_PERCENT, taskNumber, useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import { displayKey } from "@/lib/options";
 import { addMistakes } from "@/lib/progress";
@@ -166,7 +166,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-extrabold text-ink">
-                        Zadanie {result.number} <span className="font-semibold text-muted">· {result.kind === "closed" ? "zamknięte" : "otwarte"}</span>
+                        Zadanie {taskNumber(exam, result.number - 1)} <span className="font-semibold text-muted">· {result.kind === "closed" ? "zamknięte" : "otwarte"}</span>
                       </span>
                       <span className="block truncate text-sm text-muted">
                         <MathText text={prompt} />
@@ -209,10 +209,12 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                         </>
                       ) : (
                         <>
-                          <p className="text-body">
-                            Twój wynik: <strong className="text-ink">{result.given ?? "–"}</strong> · Poprawny:{" "}
-                            <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
-                          </p>
+                          {task.task.answers.length > 0 && (
+                            <p className="text-body">
+                              Twój wynik: <strong className="text-ink">{result.given ?? "–"}</strong> · Poprawny:{" "}
+                              <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
+                            </p>
+                          )}
                           {result.assessment && (
                             <p className="text-body">
                               Punkty za kroki ({result.assessment.by === "ai" ? "ocena korepetytora AI" : "Twoja samoocena"}):{" "}
