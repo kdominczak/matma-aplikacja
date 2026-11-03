@@ -332,8 +332,8 @@ function ExamInProgress({
         {/* telefon: kolumna rozpada się na elementy siatki – odpowiedź zaraz pod treścią, brudnopis na końcu */}
         <div className="flex min-w-0 flex-col gap-4 max-lg:contents">
           <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold uppercase tracking-wide">
-            <span className={`rounded-full px-2.5 py-1 ${task.kind === "closed" ? "bg-brand-soft text-brand" : "bg-violet-500/15 text-violet-600 dark:text-violet-300"}`}>
-              {task.kind === "closed" ? "Zamknięte" : "Otwarte"} · {task.points} pkt
+            <span className={`rounded-full px-2.5 py-1 ${task.kind !== "open" ? "bg-brand-soft text-brand" : "bg-violet-500/15 text-violet-600 dark:text-violet-300"}`}>
+              {task.kind === "open" ? "Otwarte" : "Zamknięte"} · {task.points} pkt
             </span>
             <button
               onClick={() =>

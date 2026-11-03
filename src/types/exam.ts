@@ -9,6 +9,8 @@ export interface ChoiceOption {
   key: string;
   text?: string;
   figure?: Plot;
+  /** Rysunek wycięty z PDF arkusza CKE (`/public`), gdy nie da się go wiernie odtworzyć w `Plot` (np. bryły z kątem). */
+  image?: string;
 }
 
 /**
@@ -22,8 +24,13 @@ export interface ChoiceQuestion {
   prompt: string;
   figure?: Plot;
   options: ChoiceOption[];
-  /** Luki do uzupełnienia: opis (np. „funkcja g”) i litery z klucza (kolejność dowolna). */
-  blanks: { label?: string; answer: string[] }[];
+  /**
+   * Luki do uzupełnienia: opis (np. „funkcja g”), litery z klucza (kolejność dowolna) i – gdy luki mają osobne
+   * zestawy odpowiedzi (np. „A/B” oraz „1/2/3”) – litery dozwolone w tej luce.
+   */
+  blanks: { label?: string; answer: string[]; keys?: string[] }[];
+  /** Punkty tylko za komplet (wszystkie luki dobrze) – np. „rosnący oraz m = 2” za 1 pkt. Domyślnie 1 pkt za literę. */
+  allOrNothing?: boolean;
   explanation: string;
 }
 

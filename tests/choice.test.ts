@@ -34,3 +34,18 @@ describe("zadanie „choice”", () => {
     expect(isAnswered({ kind: "choice", picks: [[]] })).toBe(false);
   });
 });
+
+it("„wszystko albo nic” (np. „malejący oraz m = 2” za 1 pkt): punkt tylko za komplet", () => {
+  const q: ChoiceQuestion = {
+    id: "w",
+    label: "",
+    prompt: "",
+    options: ["A", "B", "1", "2", "3"].map((key) => ({ key, text: key })),
+    explanation: "",
+    allOrNothing: true,
+    blanks: [{ answer: ["B"], keys: ["A", "B"] }, { answer: ["2"], keys: ["1", "2", "3"] }],
+  };
+  const t: ChoiceTask = { kind: "choice", id: "w", difficulty: "sredni", points: 1, choice: q };
+  expect(scoreTask(t, { kind: "choice", picks: [["B"], ["2"]] }, 1)).toMatchObject({ status: "correct", points: 1 });
+  expect(scoreTask(t, { kind: "choice", picks: [["B"], ["3"]] }, 1)).toMatchObject({ status: "wrong", points: 0 });
+});

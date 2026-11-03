@@ -1,6 +1,7 @@
 import { CURRENT_BLUEPRINTS } from "@/data/blueprints";
 import { CKE_2025_MAJ } from "@/data/cke/matura-2025-maj";
 import { CKE_2025_MAJ_R } from "@/data/cke/matura-2025-maj-rozszerzona";
+import { CKE_2024_MAJ } from "@/data/cke/matura-2024-maj";
 import { CKE_2024_MAJ_R } from "@/data/cke/matura-2024-maj-rozszerzona";
 import { MOCK_EXAMS, type FrozenExam } from "@/data/mock-exams";
 import { practiceTaskById } from "@/data/topics";
@@ -80,7 +81,7 @@ function mockExams(): ExamSheet[] {
  * Przykład wpisu: { id: "cke-2024-maj", kind: "cke", year: 2024, session: "maj", title: "Matura maj 2024", … , pdf: { … } }.
  * `year` i `session` są obowiązkowe – z nich powstaje oznaczenie źródła (examSource, taskSource; pilnuje tego test).
  */
-const CKE_EXAMS: ExamSheet[] = [CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ_R];
+const CKE_EXAMS: ExamSheet[] = [CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R];
 
 export const EXAMS: ExamSheet[] = [...CKE_EXAMS, ...mockExams()];
 

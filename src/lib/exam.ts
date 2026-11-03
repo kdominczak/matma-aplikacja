@@ -23,7 +23,9 @@ export function scoreTask(task: ExamTask, answer: ExamAnswer | undefined, number
   if (task.kind === "choice") {
     const picks = answer?.kind === "choice" ? answer.picks : [];
     if (!picks.some((p) => p.length > 0)) return { ...base, status: "skipped", points: 0 };
-    const points = choicePoints(task.choice, picks);
+    const letters = choicePoints(task.choice, picks);
+    const full = task.choice.blanks.reduce((sum, b) => sum + b.answer.length, 0);
+    const points = task.choice.allOrNothing ? (letters === full ? task.points : 0) : letters;
     return { ...base, status: points === task.points ? "correct" : points > 0 ? "partial" : "wrong", points, given: formatPicks(task.choice, picks) };
   }
   if (task.kind === "closed") {

@@ -1,7 +1,6 @@
 "use client";
 
 import FunctionPlot from "@/components/ui/FunctionPlot";
-import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import { hapticTap } from "@/lib/haptics";
 import { soundSelect } from "@/lib/sounds";
@@ -41,6 +40,11 @@ export default function ChoiceAnswer({ question, picks, onChange }: { question: 
               <span className="min-w-0 flex-1">
                 {option.text && <MathText display text={option.text} />}
                 {option.figure && <FunctionPlot plot={option.figure} />}
+                {option.image && (
+                  // rysunek z arkusza CKE (czarne linie) – zawsze na białym tle, także w ciemnym motywie
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={option.image} alt={`Rysunek ${option.key}`} className="mx-auto w-full max-w-60 rounded-xl bg-white p-2" />
+                )}
               </span>
             </>
           );
@@ -74,7 +78,7 @@ export default function ChoiceAnswer({ question, picks, onChange }: { question: 
               <span className="ml-1 font-semibold text-muted">· {size === 1 ? "wybierz jedną literę" : `wybierz ${size} litery (${mine.length}/${size})`}</span>
             </legend>
             <div className="mt-1 flex flex-wrap gap-2">
-              {question.options.map((option) => {
+              {question.options.filter((option) => !blank.keys || blank.keys.includes(option.key)).map((option) => {
                 const on = mine.includes(option.key);
                 return (
                   <button
@@ -86,7 +90,7 @@ export default function ChoiceAnswer({ question, picks, onChange }: { question: 
                       on ? "border-brand bg-brand text-on-brand" : "border-line bg-card text-ink hover:border-brand/60"
                     }`}
                   >
-                    {on ? <Icon name="check" className="h-5 w-5" /> : option.key}
+                    {option.key}
                   </button>
                 );
               })}
