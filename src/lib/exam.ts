@@ -3,7 +3,8 @@ import { Preferences } from "@capacitor/preferences";
 import { examMaxPoints } from "@/data/exams";
 import type { PracticeTask } from "@/data/topics";
 import { matchesAnswer } from "@/lib/calc";
-import type { ExamAnswer, ExamAttempt, ExamSession, ExamSheet, ExamTaskResult, StepAssessment } from "@/types/exam";
+import type { Plot } from "@/types/plot";
+import type { ChoiceQuestion, ExamAnswer, ExamAttempt, ExamSession, ExamSheet, ExamTask, ExamTaskResult, StepAssessment } from "@/types/exam";
 
 // Symulacja arkusza: punktacja, zapis rozwiązywanego arkusza (odświeżenie strony go nie przerywa)
 // i historia prób na urządzeniu.
@@ -17,8 +18,14 @@ export const PASS_PERCENT = 30;
  * Zamknięte: 1 pkt za literę z klucza. Otwarte: komplet punktów za poprawny wynik końcowy
  * (sprawdzony jak w zakładce „Zadania”), 0 za błędny – aplikacja nie ocenia toku rozumowania.
  */
-export function scoreTask(task: PracticeTask, answer: ExamAnswer | undefined, number: number): ExamTaskResult {
+export function scoreTask(task: ExamTask, answer: ExamAnswer | undefined, number: number): ExamTaskResult {
   const base = { taskId: task.id, number, kind: task.kind, maxPoints: task.points } as const;
+  if (task.kind === "choice") {
+    const picks = answer?.kind === "choice" ? answer.picks : [];
+    if (!picks.some((p) => p.length > 0)) return { ...base, status: "skipped", points: 0 };
+    const points = choicePoints(task.choice, picks);
+    return { ...base, status: points === task.points ? "correct" : points > 0 ? "partial" : "wrong", points, given: formatPicks(task.choice, picks) };
+  }
   if (task.kind === "closed") {
     if (answer?.kind !== "closed") return { ...base, status: "skipped", points: 0 };
     const correct = answer.chosen === task.question.correct;
@@ -30,13 +37,40 @@ export function scoreTask(task: PracticeTask, answer: ExamAnswer | undefined, nu
   return { ...base, status: correct ? "correct" : "wrong", points: correct ? task.points : 0, given: input };
 }
 
+/** Treść zadania dowolnego rodzaju (zamknięte, otwarte, „wybór” z arkusza CKE). */
+export function taskPrompt(task: ExamTask): string {
+  return task.kind === "closed" ? task.question.prompt : task.kind === "open" ? task.task.prompt : task.choice.prompt;
+}
+
+/** Rysunek pod treścią zadania (jeśli jest). */
+export function taskFigure(task: ExamTask): Plot | undefined {
+  return task.kind === "closed" ? task.question.figure : task.kind === "open" ? task.task.figure : task.choice.figure;
+}
+
 /** Numer zadania do wyświetlenia: z arkusza CKE („12.1”) albo kolejny (1, 2, 3…). `index` liczony od 0. */
 export function taskNumber(exam: Pick<ExamSheet, "numbers">, index: number): string {
   return exam.numbers?.[index] ?? String(index + 1);
 }
 
 export function isAnswered(answer: ExamAnswer | undefined): boolean {
+  if (answer?.kind === "choice") return answer.picks.some((p) => p.length > 0);
   return answer?.kind === "closed" || (answer?.kind === "open" && answer.input.trim() !== "");
+}
+
+/**
+ * Punkty za zadanie „choice”: w każdej luce 1 pkt za każdą literę z klucza (jak CKE: „1 pkt – jedna poprawna
+ * odpowiedź”). Liter ponad liczbę w kluczu nie liczymy – pierwsze wybrane decydują (interfejs i tak na więcej nie pozwala).
+ */
+export function choicePoints(question: ChoiceQuestion, picks: string[][]): number {
+  return question.blanks.reduce((sum, blank, i) => {
+    const mine = (picks[i] ?? []).slice(0, blank.answer.length);
+    return sum + mine.filter((key) => blank.answer.includes(key)).length;
+  }, 0);
+}
+
+/** Odpowiedź do podsumowania: „A; E” (luki), „B, F” (kilka liter w jednej luce), „–” – pusta luka. */
+export function formatPicks(question: ChoiceQuestion, picks: string[][]): string {
+  return question.blanks.map((_, i) => (picks[i]?.length ? [...picks[i]].sort().join(", ") : "–")).join("; ");
 }
 
 /** Wyniki zadań sprawdzone automatycznie (litera z klucza, wynik końcowy zadania otwartego). */
@@ -48,7 +82,7 @@ export function scoreExam(exam: ExamSheet, session: ExamSession): ExamTaskResult
  * Czy zadanie czeka na ocenę kroków: otwarte z rozwiązaniem (nie „short”), bez poprawnego wyniku końcowego.
  * Na maturze za dobrą metodę z pomyłką rachunkową albo niedokończone rozwiązanie są punkty częściowe.
  */
-export function needsAssessment(task: PracticeTask, result: ExamTaskResult): task is PracticeTask & { kind: "open" } {
+export function needsAssessment(task: ExamTask, result: ExamTaskResult): task is PracticeTask & { kind: "open" } {
   return task.kind === "open" && task.task.format !== "short" && result.status !== "correct" && task.task.solution.length > 1;
 }
 

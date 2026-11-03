@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import ChoiceAnswer from "@/components/exam/ChoiceAnswer";
 import ExamAssessment from "@/components/exam/ExamAssessment";
 import ExamNavGrid, { NavLegend } from "@/components/exam/ExamNavGrid";
 import ExamSummary from "@/components/exam/ExamSummary";
 import AnswerTools from "@/components/practice/AnswerTools";
-import { readIntervals } from "@/lib/calc";
 import type { ScratchTemplate } from "@/components/scratch/ScratchBoard";
 import TaskScratch from "@/components/scratch/TaskScratch";
 import FormulaList from "@/components/topic/FormulaList";
@@ -18,14 +18,15 @@ import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import { examKindLabel, examMaxPoints, examSource, getExam, taskSource } from "@/data/exams";
 import CkeNotice from "@/components/legal/CkeNotice";
-import { formulaGroup, topicsOfLevel, type PracticeTask } from "@/data/topics";
-import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam, sessionElapsedMs, taskNumber } from "@/lib/exam";
+import { formulaGroup, topicsOfLevel } from "@/data/topics";
+import { clearSession, finishExam, formatDuration, isAnswered, loadSession, needsAssessment, saveAttempt, saveSession, scoreExam, sessionElapsedMs, taskFigure, taskNumber, taskPrompt } from "@/lib/exam";
+import { readIntervals } from "@/lib/calc";
 import { hapticTap } from "@/lib/haptics";
 import { displayedOptions } from "@/lib/options";
 import { saveExamResult } from "@/lib/progress";
 import { useScratchNotes } from "@/lib/scratch-notes";
 import { soundSelect } from "@/lib/sounds";
-import type { ExamAttempt, ExamSession, ExamSheet, ExamTaskResult } from "@/types/exam";
+import type { ExamAttempt, ExamSession, ExamSheet, ExamTask, ExamTaskResult } from "@/types/exam";
 import type { FormulaGroup, Level } from "@/types/topic";
 
 
@@ -276,8 +277,8 @@ function ExamInProgress({
   }, [go, index, panel]);
 
   const flagged = session.flagged.includes(task.id);
-  const prompt = task.kind === "closed" ? task.question.prompt : task.task.prompt;
-  const figure = task.kind === "closed" ? task.question.figure : task.task.figure;
+  const prompt = taskPrompt(task);
+  const figure = taskFigure(task);
 
   return (
     <div className="flex min-h-dvh animate-fade-in flex-col bg-surface pt-[env(safe-area-inset-top)]">
@@ -464,9 +465,20 @@ function ExamInProgress({
 }
 
 /** Odpowiedź: litery A–D albo pole na wynik. Bez sprawdzania – jak na egzaminie. */
-function AnswerInput({ task, session, update }: { task: PracticeTask; session: ExamSession; update: (change: (s: ExamSession) => ExamSession) => void }) {
+function AnswerInput({ task, session, update }: { task: ExamTask; session: ExamSession; update: (change: (s: ExamSession) => ExamSession) => void }) {
   const answer = session.answers[task.id];
   const inputRef = useRef<HTMLInputElement>(null);
+
+  if (task.kind === "choice") {
+    const picks = answer?.kind === "choice" ? answer.picks : [];
+    return (
+      <ChoiceAnswer
+        question={task.choice}
+        picks={picks}
+        onChange={(next) => update((s) => ({ ...s, answers: { ...s.answers, [task.id]: { kind: "choice", picks: next } } }))}
+      />
+    );
+  }
 
   if (task.kind === "closed") {
     const chosen = answer?.kind === "closed" ? answer.chosen : undefined;

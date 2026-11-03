@@ -10,7 +10,7 @@ import CkeNotice from "@/components/legal/CkeNotice";
 import CountUp from "@/components/ui/CountUp";
 import { examSource } from "@/data/exams";
 import { findQuestion, type PracticeTask } from "@/data/topics";
-import { formatDuration, PASS_PERCENT, taskNumber, useExamAttempts } from "@/lib/exam";
+import { formatDuration, formatPicks, PASS_PERCENT, taskFigure, taskNumber, taskPrompt, useExamAttempts } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import { displayKey } from "@/lib/options";
 import { addMistakes } from "@/lib/progress";
@@ -152,8 +152,8 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
               if (!task) return null;
               const status = STATUS[result.status];
               const expanded = open === result.taskId;
-              const prompt = task.kind === "closed" ? task.question.prompt : task.task.prompt;
-              const figure = task.kind === "closed" ? task.question.figure : task.task.figure;
+              const prompt = taskPrompt(task);
+              const figure = taskFigure(task);
               return (
                 <li key={result.taskId} className="overflow-hidden rounded-2xl border border-line glass-card shadow-card">
                   <button
@@ -166,7 +166,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-extrabold text-ink">
-                        Zadanie {taskNumber(exam, result.number - 1)} <span className="font-semibold text-muted">· {result.kind === "closed" ? "zamknięte" : "otwarte"}</span>
+                        Zadanie {taskNumber(exam, result.number - 1)} <span className="font-semibold text-muted">· {result.kind === "open" ? "otwarte" : "zamknięte"}</span>
                       </span>
                       <span className="block truncate text-sm text-muted">
                         <MathText text={prompt} />
@@ -206,6 +206,16 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                               <Icon name="sparkles" className="h-4 w-4" /> Wyjaśnij mi ten błąd
                             </button>
                           )}
+                        </>
+                      ) : task.kind === "choice" ? (
+                        <>
+                          <p className="text-body">
+                            Twoja odpowiedź: <strong className="text-ink">{result.given ?? "–"}</strong> · Poprawna:{" "}
+                            <strong className="text-emerald-600 dark:text-emerald-400">{formatPicks(task.choice, task.choice.blanks.map((b) => b.answer))}</strong>
+                          </p>
+                          <p className="leading-relaxed text-body">
+                            <MathText text={task.choice.explanation} />
+                          </p>
                         </>
                       ) : (
                         <>

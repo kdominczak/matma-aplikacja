@@ -1,7 +1,37 @@
 import type { PracticeTask } from "@/data/topics";
 import type { Relaxation } from "@/types/blueprint";
+import type { Plot } from "@/types/plot";
 import type { OptionKey } from "@/types/quiz";
-import type { Level } from "@/types/topic";
+import type { Difficulty, Level } from "@/types/topic";
+
+/** Odpowiedź do wyboru w zadaniu „choice” – tekst (LaTeX w $…$) albo rysunek, np. wykres funkcji. */
+export interface ChoiceOption {
+  key: string;
+  text?: string;
+  figure?: Plot;
+}
+
+/**
+ * Zadanie z arkusza CKE „wybierz spośród A–F”: dopasowanie (kilka luk po jednej literze), wybór kilku odpowiedzi
+ * (luka z kilkoma literami) albo ABCD z rysunkami. Punkt za każdą poprawną literę w luce – tak punktuje CKE
+ * („1 pkt – jedna poprawna odpowiedź”); w luce nie da się zaznaczyć więcej liter, niż ma klucz.
+ */
+export interface ChoiceQuestion {
+  id: string;
+  label: string;
+  prompt: string;
+  figure?: Plot;
+  options: ChoiceOption[];
+  /** Luki do uzupełnienia: opis (np. „funkcja g”) i litery z klucza (kolejność dowolna). */
+  blanks: { label?: string; answer: string[] }[];
+  explanation: string;
+}
+
+/** Zadanie tylko w arkuszach CKE (nie ma go w „Zadaniach” ani w puli generatora). */
+export type ChoiceTask = { kind: "choice"; id: string; difficulty: Difficulty; points: number; choice: ChoiceQuestion };
+
+/** Zadanie arkusza: jak w „Zadaniach” (zamknięte, otwarte) albo „wybór” z arkusza CKE. */
+export type ExamTask = PracticeTask | ChoiceTask;
 
 /**
  * Arkusz do rozwiązania w aplikacji (tryb symulacji egzaminu).
@@ -24,7 +54,7 @@ export interface ExamSheet {
   numbers?: string[];
   /** Czas na egzamin w minutach (matura podstawowa i rozszerzona: 180). */
   durationMin: number;
-  tasks: PracticeTask[];
+  tasks: ExamTask[];
   /** Oficjalne pliki CKE – do porównania z oryginałem (tylko `kind: "cke"`). */
   pdf?: { exam: string; solutions: string };
   /** Kod arkusza z generatora – do udostępnienia znajomym (ten sam kod = ten sam arkusz). */
@@ -36,7 +66,11 @@ export interface ExamSheet {
 }
 
 /** Odpowiedź ucznia w trakcie arkusza. */
-export type ExamAnswer = { kind: "closed"; chosen: OptionKey } | { kind: "open"; input: string };
+export type ExamAnswer =
+  | { kind: "closed"; chosen: OptionKey }
+  | { kind: "open"; input: string }
+  /** Litery wybrane w kolejnych lukach zadania „choice”. */
+  | { kind: "choice"; picks: string[][] };
 
 /** Rozwiązywany arkusz – zapisywany na urządzeniu po każdej zmianie (odświeżenie strony nic nie gubi). */
 export interface ExamSession {
@@ -70,7 +104,7 @@ export interface StepAssessment {
 export interface ExamTaskResult {
   taskId: string;
   number: number;
-  kind: "closed" | "open";
+  kind: "closed" | "open" | "choice";
   /**
    * „correct” – wynik sprawdzony przez aplikację; „partial” – część punktów za kroki (samoocena albo AI, bez poprawnego
    * wyniku końcowego); „skipped” – bez odpowiedzi. Tylko „correct” liczy się w statystykach jako poprawne.

@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { PracticeTask } from "@/data/topics";
 import { isAnswered, taskNumber } from "@/lib/exam";
-import type { ExamAnswer } from "@/types/exam";
+import type { ExamAnswer, ExamTask } from "@/types/exam";
 
 type Props = {
-  tasks: PracticeTask[];
+  tasks: ExamTask[];
   /** Numery jak w arkuszu CKE („12.1”) – domyślnie 1, 2, 3… */
   numbers?: string[];
   answers: Record<string, ExamAnswer>;

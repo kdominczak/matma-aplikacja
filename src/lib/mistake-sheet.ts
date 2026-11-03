@@ -84,8 +84,9 @@ export function buildMistakeSheet(
       const later = progress.practice[result.taskId];
       if (later && later.verifiedPoints >= later.maxPoints && later.lastAt >= day) continue;
       const task = exam.tasks.find((t) => t.id === result.taskId);
-      // dowodu nie da się sprawdzić wynikiem w aplikacji – zostaje do oceny krokami w arkuszu
-      if (task?.kind === "open" && task.task.format === "proof") continue;
+      // dowodu nie da się sprawdzić wynikiem w aplikacji – zostaje do oceny krokami w arkuszu;
+      // zadania „wybierz spośród A–F” są tylko w arkuszach CKE (w „Zadaniach” nie ma takiego ekranu)
+      if (!task || task.kind === "choice" || (task.kind === "open" && task.task.format === "proof")) continue;
       add(
         task,
         1,
