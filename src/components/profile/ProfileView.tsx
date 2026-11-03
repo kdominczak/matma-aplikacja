@@ -13,7 +13,9 @@ import { extendedTopics, practiceTasks, topics } from "@/data/topics";
 import { useAccount } from "@/lib/account";
 import { AI_ENABLED } from "@/lib/ai-config";
 import { prepareAvatar, saveAppSettings, useAppSettings } from "@/lib/app-settings";
+import { ckeProgress } from "@/lib/cke-progress";
 import { answersToEstimate, currentEstimate } from "@/lib/estimate";
+import { useExamAttempts } from "@/lib/exam";
 import { LEVEL_POINTS } from "@/lib/exam-weights";
 import { LEVEL_LONG, levelTarget } from "@/lib/level";
 import LevelSwitch, { useActiveLevel } from "@/components/progress/LevelSwitch";
@@ -55,6 +57,10 @@ export default function ProfileView() {
 
       <Section title="Opanowane działy" action={{ label: "Wszystkie działy", href: "/opanowane" }}>
         <MasteryPreview progress={progress} />
+      </Section>
+
+      <Section title="Zadania z matur">
+        <CkeProgressCard progress={progress} />
       </Section>
 
       <Section title="Szacowany wynik">
@@ -469,6 +475,46 @@ function MasteryPreview({ progress }: { progress: Progress }) {
       <div className="mt-2">
         <MasteryRows rows={rows} />
       </div>
+    </section>
+  );
+}
+
+/**
+ * „Zadania z matur” – prawdziwe zadania z arkuszy CKE rozwiązane w „Zadaniach” albo w arkuszu, dla aktywnego poziomu;
+ * działy z największą liczbą nierozwiązanych zadań prowadzą prosto do zadań działu.
+ */
+function CkeProgressCard({ progress }: { progress: Progress }) {
+  const attempts = useExamAttempts();
+  const { levels } = useActiveLevel(progress);
+  const list = levels.includes("rozszerzony") ? [...topics, ...extendedTopics] : topics;
+  const { solved, total, rows } = ckeProgress(progress, attempts, list);
+  const open = rows.filter((r) => r.solved < r.total).slice(0, 4);
+  return (
+    <section className="card overflow-hidden">
+      <div className="p-5">
+        <p className="text-sm text-muted">Prawdziwe zadania z matur CKE z lat 2023–2026, rozwiązane w „Zadaniach” albo w arkuszu.</p>
+        <p className="mt-2 font-display text-3xl font-extrabold text-ink tabular-nums">
+          {solved} <span className="text-lg font-bold text-muted">z {total}</span>
+        </p>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-subtle">
+          <div className="bar-grow h-full rounded-full bg-brand" style={{ width: `${total ? Math.max((solved / total) * 100, solved ? 3 : 0) : 0}%` }} />
+        </div>
+      </div>
+      {open.length > 0 && (
+        <ul className="flex flex-col divide-y divide-line border-t border-line">
+          {open.map(({ topic, solved: done, total: all }) => (
+            <li key={topic.id}>
+              <Link href={`/zadania/${topic.id}`} className="group flex min-h-12 items-center gap-3 px-5 py-3 transition-colors hover:bg-subtle/60 active:bg-subtle">
+                <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">{topic.title}</span>
+                <span className="shrink-0 text-sm font-semibold text-muted tabular-nums">
+                  {done}/{all}
+                </span>
+                <Icon name="chevron" className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
