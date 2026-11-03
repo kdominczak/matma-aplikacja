@@ -142,7 +142,7 @@ Migracje w `supabase/migrations` uruchamiane **po kolei** (seed `question_keys.s
 - **Historia arkuszy:** `exam_attempts` – tylko do dopisywania.
 - **Usuwanie konta:** `delete_my_account()` – kaskada od `auth.users`.
 
-⚠️ **Proces:** migracje produkcyjne wykonywane ręcznie w SQL Editorze. Przed styczniem: osobny **projekt testowy (staging)** i `supabase db push` z historią migracji, żeby było wiadomo, co jest na produkcji.
+✅ (3.11.2026 – `npm run db:push:test` / `db:push:prod`, `docs/wdrozenie.md`) ~~**Proces:** migracje produkcyjne wykonywane ręcznie w SQL Editorze.~~ Przed styczniem: osobny **projekt testowy (staging)** i `supabase db push` z historią migracji, żeby było wiadomo, co jest na produkcji.
 
 ### 3.2 Free vs Pro
 

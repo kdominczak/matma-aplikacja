@@ -1,23 +1,27 @@
 # Wdrożenie produkcyjne – lista kontrolna
 
-Stan na 29.10.2026 (`main` po scaleniu `faza-b-premium`). Szczegóły poszczególnych części: `docs/premium.md` (AI, Premium, zakupy, lejek), `docs/ocenianie-ai.md` (ocena ze zdjęcia). Kolejność ma znaczenie – serwer przed aplikacją.
+Stan na 3.11.2026. Szczegóły poszczególnych części: `docs/premium.md` (AI, Premium, zakupy, lejek), `docs/ocenianie-ai.md` (ocena ze zdjęcia). Kolejność ma znaczenie – serwer przed aplikacją.
 
-## 1. Baza (Supabase → SQL Editor)
+## 1. Baza – migracje przez Supabase CLI (od 3.11.2026)
 
-Uruchom po kolei pliki, których jeszcze nie ma na produkcji. Każdy od `20261103…` można bezpiecznie powtórzyć **razem ze wszystkimi nowszymi, w kolejności**:
+Dwa projekty: **produkcja** `nnpgwnxfqsjsdgtitobe` (podlinkowany, `supabase/.temp`) i **testowy** `hewatagpzhxhuoaqckih` („projekt2”, plan darmowy). Obie bazy mają historię migracji (`supabase_migrations.schema_migrations`) – CLI wie, co już jest, i wgrywa tylko brakujące pliki, po kolei. Hasło do bazy nie jest potrzebne (CLI zakłada tymczasową rolę logowania przez konto Supabase).
 
-| Migracja | Co robi |
-|---|---|
-| `20261103120000_ai_quota_refund.sql` | zwrot wiadomości AI przy błędzie Groq |
-| `20261104120000_purchases.sql` | zakupy: `purchase_until`, `purchase_events`, `set_purchase_premium()` |
-| `20261105120000_progress_save_cas.sql` | kopia postępu tylko przez `save_progress()` (bez wyścigu urządzeń) – **uruchom razem z wydaniem nowej aplikacji**: starsze buildy stracą synchronizację kopii (postęp zostaje na telefonie) |
-| `20261106120000_fair_ranking.sql` | ranking: każde zadanie raz dziennie, max 150 pkt dziennie |
-| `20261107120000_funnel.sql` | lejek Premium (`funnel_events`, raport `supabase/admin/lejek.sql`) |
-| `20261108120000_photo_grading.sql` | licznik oceny zdjęć (Premium) |
-| `20261109120000_ai_requires_account.sql` | AI, ocena zdjęć i kody poleceń tylko dla kont z e-mailem albo Google (konta anonimowe – błąd MA030). **Uruchom razem z wydaniem aplikacji bez rankingu**, a potem w Authentication → Sign In / Providers wyłącz „Allow anonymous sign-ins” – inaczej skrypt mógłby dalej zakładać konta anonimowe (bez dostępu do AI, ale zaśmiecające bazę) |
-| `20261110120000_gift_codes.sql` | kody podarunkowe / z przedsprzedaży (`redeem_gift_code()`, partie: `supabase/admin/kody.sql`) |
+```sh
+npm run db:status          # które migracje są lokalnie / na produkcji
+npm run db:push:test       # najpierw projekt testowy
+npm run db:push:prod       # potem produkcja (CLI pyta o potwierdzenie i pokazuje listę)
+npx supabase db push --remote --dry-run   # sama lista, bez zmian
+```
+
+Zasady:
+- **Nigdy więcej migracji przez SQL Editor** – wtedy historia się rozjeżdża (tak było z `20261108120000_photo_grading.sql`: nikt jej nie uruchomił, a następna migracja z niej korzystała – ocena zdjęć na produkcji kończyła się błędem; naprawione 3.11.2026).
+- Nowa migracja = kolejny wolny numer (`RRRRMMDDGGMMSS_nazwa.sql`); przed nadaniem numeru `git fetch` – druga osoba też dodaje migracje. Powtórzony numer zatrzymuje `tests/migration-names.test.ts`.
+- Migracja, która zmienia to, czego używa starsza aplikacja – wgrywaj razem z wydaniem nowego builda (opis w nagłówku pliku migracji).
+- SQL Editor tylko do zapytań i skryptów z `supabase/admin/` (np. partie kodów, raport lejka). Zapytanie tylko do odczytu z terminala: `npx supabase db query --remote --read-only "select …"`.
 
 Po migracjach uruchom `supabase/admin/kontrola-bezpieczenstwa.sql` – RLS, funkcje i uprawnienia klienta muszą zgadzać się z `tests/db/security.test.ts`.
+
+Stan 3.11.2026: obie bazy mają komplet migracji do `20261110120000_gift_codes.sql`. „Allow anonymous sign-ins” (Authentication → Sign In / Providers) – **wyłącz na produkcji** po wydaniu nowego builda (do potwierdzenia). Projekt testowy nie ma seeda `question_keys` (tylko ranking, do usunięcia).
 
 ## 2. Funkcje serwerowe
 
