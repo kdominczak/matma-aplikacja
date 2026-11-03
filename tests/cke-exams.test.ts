@@ -101,3 +101,16 @@ describe("matura podstawowa maj 2023 – klucz wersji A", () => {
     expect(choices).toEqual({ "11": ["CE"], "23": ["A", "2"], "29": ["C", "A"] });
   });
 });
+
+describe("matura podstawowa maj 2026 – klucz wersji A", () => {
+  const exam = EXAMS.find((e) => e.id === "cke-2026-maj")!;
+
+  it("zamknięte i P/F", () => {
+    const key = Object.fromEntries(exam.tasks.flatMap((t, i) => (t.kind === "closed" ? [[taskNumber(exam, i), t.question.correct]] : [])));
+    expect(key).toEqual({
+      "1": "C", "2": "B", "3": "C", "4": "B", "5": "A", "6": "A", "8": "C", "9": "D", "13.1": "D", "13.2": "A", "16": "B",
+      "18": "C", "19": "C", "20": "B", "23": "D", "24.1": "B", "24.2": "D", "25": "B", "26": "D", "28": "D", "29": "A",
+      "31": "A", "32": "C", "33.1": "D", "33.2": "A",
+    });
+  });
+});

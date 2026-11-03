@@ -4,6 +4,8 @@ import { CKE_2024_MAJ } from "@/data/cke/matura-2024-maj";
 import { CKE_2024_MAJ_R } from "@/data/cke/matura-2024-maj-rozszerzona";
 import { CKE_2025_MAJ } from "@/data/cke/matura-2025-maj";
 import { CKE_2025_MAJ_R } from "@/data/cke/matura-2025-maj-rozszerzona";
+import { CKE_2026_MAJ } from "@/data/cke/matura-2026-maj";
+import { CKE_2026_MAJ_R } from "@/data/cke/matura-2026-maj-rozszerzona";
 import type { PracticeTask } from "@/data/topics";
 import type { ExamSheet } from "@/types/exam";
 
@@ -11,7 +13,7 @@ import type { ExamSheet } from "@/types/exam";
 // Pliki arkuszy importują z `@/data/topics` tylko typy – ten moduł może więc czytać `src/data/topics/index.ts`
 // (zadania CKE w zakładce „Zadania”) bez zapętlenia importów.
 
-export const CKE_SHEETS: ExamSheet[] = [CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R, CKE_2023_MAJ, CKE_2023_MAJ_R];
+export const CKE_SHEETS: ExamSheet[] = [CKE_2026_MAJ, CKE_2026_MAJ_R, CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R, CKE_2023_MAJ, CKE_2023_MAJ_R];
 
 /**
  * Dział każdego zadania (numer z arkusza → id działu). Zadania „wybór” i dowody też mają dział (porządek),
@@ -19,6 +21,23 @@ export const CKE_SHEETS: ExamSheet[] = [CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_M
  * Działy rozszerzenia (`rz-…`) tylko dla arkuszy rozszerzonych; zadanie z podstawy w arkuszu rozszerzonym – dział podstawy.
  */
 const TOPICS: Record<string, Record<string, string>> = {
+  "cke-2026-maj": {
+    "1": "potegi-i-pierwiastki", "2": "potegi-i-pierwiastki", "3": "potegi-i-pierwiastki", "4": "logarytmy",
+    "5": "potegi-i-pierwiastki", "6": "wzory-skroconego-mnozenia", "7": "wzory-skroconego-mnozenia", "8": "rownania-wymierne",
+    "9": "rownania-wymierne", "10": "nierownosci-kwadratowe", "11": "uklady-rownan", "12.1.1": "wykres-funkcji",
+    "12.1.2": "wykres-funkcji", "12.2.1": "wykres-funkcji", "12.2.2": "wykres-funkcji", "13.1": "funkcja-liniowa",
+    "13.2": "funkcja-liniowa", "14": "funkcja-kwadratowa", "15": "ciagi", "16": "ciagi", "17": "ciagi",
+    "18": "trygonometria", "19": "okrag-i-kolo", "20": "trojkaty-i-czworokaty", "21": "trojkaty-i-czworokaty",
+    "22": "okrag-i-kolo", "23": "trygonometria", "24.1": "punkty-i-proste", "24.2": "rownanie-okregu",
+    "25": "rownanie-okregu", "26": "punkty-i-proste", "27": "geometria-przestrzenna", "28": "geometria-przestrzenna",
+    "29": "kombinatoryka", "30": "prawdopodobienstwo", "31": "statystyka", "32": "statystyka", "33.1": "funkcja-kwadratowa",
+    "33.2": "optymalizacja",
+  },
+  "cke-2026-maj-r": {
+    "1": "rz-granice", "2": "rz-prawdopodobienstwo", "3": "rz-planimetria", "4": "rz-planimetria", "5": "rz-parametr",
+    "6": "ciagi", "7": "rz-trygonometria", "8": "rz-stereometria", "9": "rz-geometria-analityczna", "10": "rz-parametr",
+    "11": "rz-planimetria", "12.1": "rz-pochodna", "12.2": "rz-pochodna",
+  },
   "cke-2025-maj": {
     "1": "potegi-i-pierwiastki", "2": "potegi-i-pierwiastki", "3": "logarytmy", "4": "wzory-skroconego-mnozenia",
     "5": "wzory-skroconego-mnozenia", "6": "nierownosci-liniowe", "7": "rownania-wymierne", "8": "rownania-wymierne",
