@@ -1,6 +1,7 @@
 // Matura maj 2025 (arkusz CKE przepisany z PDF): punktacja jak w arkuszu, klucz przechodzi przez sprawdzanie aplikacji.
 import { describe, expect, it } from "vitest";
 import { CKE_2025_MAJ } from "@/data/cke/matura-2025-maj";
+import { CKE_2025_MAJ_R } from "@/data/cke/matura-2025-maj-rozszerzona";
 import { examMaxPoints, getExam } from "@/data/exams";
 import { matchesAnswer } from "@/lib/calc";
 import { scoreTask, taskNumber } from "@/lib/exam";
@@ -60,5 +61,48 @@ describe("matura maj 2025 – arkusz CKE", () => {
     expect(matchesAnswer("4,5", task("30.1"))).toBe(true);
     expect(matchesAnswer("64π", task("25"))).toBe(true);
     expect(matchesAnswer("735 000 zł", task("9"))).toBe(true);
+  });
+});
+
+describe("matura rozszerzona maj 2025 – arkusz CKE", () => {
+  const ext = CKE_2025_MAJ_R;
+
+  it("50 punktów, 13 zadań otwartych (1–12.2), poziom rozszerzony", () => {
+    expect(examMaxPoints(ext)).toBe(50);
+    expect(ext.level).toBe("rozszerzony");
+    expect(ext.tasks.every((t) => t.kind === "open")).toBe(true);
+    expect(ext.tasks.map((_, i) => taskNumber(ext, i))).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12.1", "12.2"]);
+    expect(ext.tasks.map((t) => t.points)).toEqual([2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 2, 4]);
+    expect(getExam("cke-2025-maj-r")).toBe(ext);
+  });
+
+  it("dowody (2, 7, 12.1) bez wyniku, reszta – wynik z klucza zaliczany automatycznie, kroki po 1 pkt", () => {
+    for (const [i, t] of ext.tasks.entries()) {
+      if (t.kind !== "open") continue;
+      const n = taskNumber(ext, i);
+      expect(t.task.solution.every((s) => s.points === 1), n).toBe(true);
+      if (["2", "7", "12.1"].includes(n)) {
+        expect(t.task.format, n).toBe("proof");
+        continue;
+      }
+      expect(scoreTask(t, { kind: "open", input: t.task.answers[0] }, i + 1).status, n).toBe("correct");
+    }
+  });
+
+  it("wyniki ucznia w typowych zapisach", () => {
+    const answers = (n: string) => {
+      const t = ext.tasks[ext.numbers!.indexOf(n)];
+      if (t.kind !== "open") throw new Error(n);
+      return t.task.answers;
+    };
+    expect(matchesAnswer("25%", answers("1"))).toBe(true);
+    expect(matchesAnswer("45°", answers("3"))).toBe(true);
+    expect(matchesAnswer("x ∈ (-∞; -10) ∪ (-2/3; ∞)", answers("5"))).toBe(true);
+    expect(matchesAnswer("(-∞, -10) ∪ [-2/3, ∞)", answers("5"))).toBe(false);
+    expect(matchesAnswer("27; 13,5", answers("6"))).toBe(true);
+    expect(matchesAnswer("27", answers("6"))).toBe(false); // trzeba rozważyć oba przypadki
+    expect(matchesAnswer("π/3; 5π/6; -π/6; -2π/3", answers("9"))).toBe(true);
+    expect(matchesAnswer("(1; 1,5] ∪ (-8; -3)", answers("11"))).toBe(true);
+    expect(matchesAnswer("5√3; 125√3π/2", answers("12.2"))).toBe(true);
   });
 });
