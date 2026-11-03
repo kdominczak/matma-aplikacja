@@ -11,6 +11,7 @@ import type { Grading } from "@/lib/ai-grading";
 import { applyAssessment, needsAssessment } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
 import type { ExamSheet, ExamTaskResult, StepAssessment } from "@/types/exam";
+import type { Level } from "@/types/topic";
 
 type OpenTask = PracticeTask & { kind: "open" };
 
@@ -64,6 +65,7 @@ export default function ExamAssessment({
             <AssessCard
               key={task.id}
               task={task}
+              level={exam.level}
               result={result}
               assessment={assessments[task.id]}
               onChange={(next) => setAssessments((all) => ({ ...all, [task.id]: next }))}
@@ -94,11 +96,14 @@ export default function ExamAssessment({
 
 function AssessCard({
   task,
+  level,
   result,
   assessment,
   onChange,
 }: {
   task: OpenTask;
+  /** Poziom arkusza – AI ocenia według zasad tego poziomu (w arkuszu rozszerzonym także zadania z podstawy). */
+  level: Level;
   result: ExamTaskResult;
   assessment: StepAssessment | undefined;
   onChange: (assessment: StepAssessment) => void;
@@ -138,7 +143,7 @@ function AssessCard({
         Twój wynik: <strong className="text-ink">{result.given ?? "– (brak)"}</strong> · poprawny:{" "}
         <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
       </p>
-      {AI_ENABLED && <PhotoGrading task={task.task} onGraded={graded} />}
+      {AI_ENABLED && <PhotoGrading task={task.task} level={level} onGraded={graded} />}
       <fieldset>
         <legend className="mb-2 text-xs font-extrabold uppercase tracking-widest text-faint">
           {byAi ? "Ocena korepetytora AI – możesz ją poprawić" : "Które kroki masz w rozwiązaniu?"}

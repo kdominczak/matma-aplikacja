@@ -5,6 +5,7 @@ import { MAX_IMAGES } from "@/lib/attachments";
 import { displayedOptions, displayKey } from "@/lib/options";
 import { AccountRequiredError, AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, GradingLimitError, noteAiRemaining, noteGradingRemaining, PremiumRequiredError } from "@/lib/premium";
 import type { OpenQuestion, OptionKey, QuizQuestion } from "@/types/quiz";
+import type { Level } from "@/types/topic";
 
 // AI idzie wyłącznie przez naszą funkcję serwerową `ai` (supabase/functions/ai): token ucznia → dzienny limit
 // w bazie → Groq kluczem z sekretów → strumień SSE z powrotem. Aplikacja nie zna żadnego klucza Groq.
@@ -32,7 +33,7 @@ export type AiRequest =
   | { mode: "tutor"; messages: ChatMessage[]; style?: TutorStyle }
   | { mode: "explain"; question: QuestionPayload }
   | { mode: "hint"; question: QuestionPayload; level: number; previousHints: string[] }
-  | { mode: "grade"; task: OpenQuestion; solution: string }
+  | { mode: "grade"; task: OpenQuestion; solution: string; level: Level }
   | { mode: "transcribe"; images: string[] };
 
 export function toAiQuestion(question: QuizQuestion, chosen?: OptionKey): QuestionPayload {
@@ -109,7 +110,7 @@ function buildRequest(request: AiRequest): BuiltRequest {
     case "hint":
       return { body: { purpose: "hint", question: request.question, level: request.level, previousHints: request.previousHints } };
     case "grade":
-      return { body: { purpose: "grade", messages: [{ role: "user", content: gradingUserMessage(request.task, request.solution) }] } };
+      return { body: { purpose: "grade", level: request.level, messages: [{ role: "user", content: gradingUserMessage(request.task, request.solution) }] } };
     case "transcribe":
       return {
         body: {
@@ -249,10 +250,15 @@ export async function transcribeSolution(images: string[], signal?: AbortSignal,
 /**
  * Ocena rozwiązania zadania otwartego przez AI według schematu (src/lib/ai-grading.ts; Premium, licznik ocen).
  * null = odpowiedź modelu nieczytelna (pokaż samoocenę). Punkty trzeba jeszcze przepuścić przez
- * applyAssessment (obcięcie do schematu). Trafność mierzy `npm run grading:eval`.
+ * applyAssessment (obcięcie do schematu). Trafność mierzy `npm run grading:eval`. `level` – poziom arkusza (na
+ * rozszerzeniu serwer dokłada zasady pełnego uzasadnienia i warunków zadania).
  */
-export async function gradeSolution(task: OpenQuestion, solution: string, signal?: AbortSignal, delays?: number[]): Promise<Grading | null> {
-  const text = await retryWhenBusy(() => streamAi({ mode: "grade", task, solution }, () => {}, signal), signal, delays);
+export async function gradeSolution(
+  task: OpenQuestion,
+  solution: string,
+  { level = "podstawowy", signal, delays }: { level?: Level; signal?: AbortSignal; delays?: number[] } = {},
+): Promise<Grading | null> {
+  const text = await retryWhenBusy(() => streamAi({ mode: "grade", task, solution, level }, () => {}, signal), signal, delays);
   return parseGrading(text, task);
 }
 

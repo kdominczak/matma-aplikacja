@@ -12,14 +12,18 @@
 
 import { readFileSync } from "node:fs";
 import { TEXT_MODEL } from "@/lib/ai-config";
-import { GRADING_SYSTEM, gradingUserMessage, parseGrading } from "@/lib/ai-grading";
+import { gradingSystem, gradingUserMessage, parseGrading, type GradingLevel } from "@/lib/ai-grading";
 import { allTopics, practiceTasks } from "@/data/topics";
 import type { OpenQuestion } from "@/types/quiz";
 import { GRADING_CASES } from "./cases";
 
-// podstawa i rozszerzenie (zadania działów rz-…)
+// podstawa i rozszerzenie (zadania działów rz-…); zadanie z działu rozszerzenia oceniamy promptem dla rozszerzenia
 const OPEN_TASKS = new Map(
-  allTopics.flatMap(practiceTasks).flatMap((t) => (t.kind === "open" ? [[t.id, t.task as OpenQuestion] as const] : [])),
+  allTopics.flatMap((topic) =>
+    practiceTasks(topic).flatMap((t) =>
+      t.kind === "open" ? [[t.id, { task: t.task as OpenQuestion, level: (topic.level ?? "podstawowy") as GradingLevel }] as const] : [],
+    ),
+  ),
 );
 
 const args = process.argv.slice(2);
@@ -60,11 +64,11 @@ function env(name: string): string | undefined {
   }
 }
 
-function body(task: OpenQuestion, solution: string) {
+function body(task: OpenQuestion, solution: string, level: GradingLevel) {
   return {
     model: TEXT_MODEL,
     messages: [
-      { role: "system", content: GRADING_SYSTEM },
+      { role: "system", content: gradingSystem(level) },
       { role: "user", content: gradingUserMessage(task, solution) },
     ],
     max_completion_tokens: 4096, // ukryte rozumowanie modelu też zużywa tokeny – za mało = ucięty JSON
@@ -74,7 +78,7 @@ function body(task: OpenQuestion, solution: string) {
   };
 }
 
-async function askGroq(task: OpenQuestion, solution: string): Promise<string> {
+async function askGroq(task: OpenQuestion, solution: string, level: GradingLevel): Promise<string> {
   const key = process.env.GROQ_API_KEY;
   if (!key) throw new Error("Brak GROQ_API_KEY w zmiennych środowiskowych (albo użyj --przez-funkcje z MATMA_TOKEN).");
   const res = await withRetry(
@@ -82,7 +86,7 @@ async function askGroq(task: OpenQuestion, solution: string): Promise<string> {
       fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify(body(task, solution)),
+        body: JSON.stringify(body(task, solution, level)),
       }),
     "Groq",
   );
@@ -90,7 +94,7 @@ async function askGroq(task: OpenQuestion, solution: string): Promise<string> {
   return (await res.json()).choices[0].message.content as string;
 }
 
-async function askFunction(task: OpenQuestion, solution: string): Promise<string> {
+async function askFunction(task: OpenQuestion, solution: string, level: GradingLevel): Promise<string> {
   const url = env("NEXT_PUBLIC_SUPABASE_URL");
   const anon = env("NEXT_PUBLIC_SUPABASE_ANON_KEY");
   const token = process.env.MATMA_TOKEN;
@@ -101,7 +105,7 @@ async function askFunction(task: OpenQuestion, solution: string): Promise<string
       fetch(`${url}/functions/v1/ai`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, apikey: anon, "Content-Type": "application/json" },
-        body: JSON.stringify({ purpose: "grade", messages: [{ role: "user", content: gradingUserMessage(task, solution) }], stream: true }),
+        body: JSON.stringify({ purpose: "grade", level, messages: [{ role: "user", content: gradingUserMessage(task, solution) }], stream: true }),
       }),
     "funkcja ai",
   );
@@ -128,9 +132,10 @@ async function main() {
 
   for (const [index, c] of cases.entries()) {
     if (index > 0) await sleep(pauseMs);
-    const task = OPEN_TASKS.get(c.taskId);
-    if (!task) throw new Error(`Brak zadania otwartego ${c.taskId}`);
-    const raw = await (viaFunction ? askFunction(task, c.solution) : askGroq(task, c.solution));
+    const found = OPEN_TASKS.get(c.taskId);
+    if (!found) throw new Error(`Brak zadania otwartego ${c.taskId}`);
+    const { task, level } = found;
+    const raw = await (viaFunction ? askFunction(task, c.solution, level) : askGroq(task, c.solution, level));
     const grading = parseGrading(raw, task);
     if (!grading) {
       unreadable++;

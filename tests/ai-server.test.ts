@@ -81,7 +81,7 @@ describe("ocena zdjęć (Premium)", () => {
       calls++;
       return responses.shift()!;
     });
-    expect((await gradeSolution(task, "x", undefined, [0, 0]))?.steps).toEqual([1, 1]);
+    expect((await gradeSolution(task, "x", { delays: [0, 0] }))?.steps).toEqual([1, 1]);
     expect(calls).toBe(3);
   });
 
@@ -91,7 +91,7 @@ describe("ocena zdjęć (Premium)", () => {
       calls++;
       return json(502, { error: "upstream", status: 429 });
     });
-    await expect(gradeSolution(task, "x", undefined, [0, 0])).rejects.toThrow(/obciążony/);
+    await expect(gradeSolution(task, "x", { delays: [0, 0] })).rejects.toThrow(/obciążony/);
     expect(calls).toBe(3);
   });
 

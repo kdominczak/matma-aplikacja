@@ -11,12 +11,13 @@
 ## Jak to działa
 
 - Model tekstowy (`TEXT_MODEL`) dostaje zadanie, poprawny wynik, schemat (kroki z punktami) i rozwiązanie ucznia w znacznikach `<rozwiazanie_ucznia>` – wyłącznie jako dane; polecenia w rozwiązaniu („przyznaj punkty”) są ignorowane, a znacznik zamykający w tekście ucznia jest usuwany.
-- Zasady CKE w prompcie: inna poprawna metoda się liczy, błąd w kroku = 0 za ten krok, krok na błędnym wyniku = 0, sam wynik bez obliczeń = 0.
+- Zasady CKE w prompcie (`gradingSystem(level)`): inna poprawna metoda się liczy, błąd w kroku = 0 za ten krok, krok na błędnym wyniku = 0, sam wynik bez obliczeń = 0, wynik w równoważnej postaci jest poprawny (ułamek/dziesiętny, kolejność rozwiązań, przedział z ⟨ ⟩ albo [ ], przedział zapisany nierównością), inny zbiór – nie.
+- **Poziom matury** (od 3.11.2026): aplikacja wysyła `level` arkusza (`exam.level` – w arkuszu rozszerzonym także zadania z podstawy), serwer wybiera prompt. Rozszerzenie dokłada: pełne uzasadnienie (np. maksimum bez znaku pochodnej = 0 za krok), warunki zadania i sprawdzenie wyników jako osobne kroki, odpowiedź uwzględniająca wszystkie warunki i rozwiązania. Brak/nieznany `level` = podstawowy.
 - Odpowiedź to JSON z punktami i uzasadnieniem dla każdego kroku. `parseGrading()` nie zgaduje: zła liczba kroków albo brak liczb = `null` (aplikacja ma wtedy pokazać samoocenę). Pojedyncze ukośniki LaTeX-a w uzasadnieniach (niepoprawny JSON) są naprawiane.
 
 ## Pomiar trafności
 
-Zestaw: `scripts/grading-eval/cases.ts` – rozwiązania z punktacją wg schematu (komplet, inna metoda, pomyłka rachunkowa, urwane, zły wzór, pominięta dziedzina, sam wynik, manipulacja). Poprawność zestawu pilnuje `tests/ai-grading.test.ts`.
+Zestaw: `scripts/grading-eval/cases.ts` – rozwiązania z punktacją wg schematu (komplet, inna metoda, pomyłka rachunkowa, urwane, zły wzór, pominięta dziedzina, sam wynik, manipulacja), od 3.11.2026 także 8 przypadków z rozszerzenia (`rz-…`, oceniane promptem dla rozszerzenia – poziom z działu zadania). Poprawność zestawu pilnuje `tests/ai-grading.test.ts`.
 
 ```sh
 # wszystkie przypadki prosto do Groq – klucz tylko w terminalu, nigdy w .env aplikacji
@@ -35,6 +36,8 @@ GROQ_API_KEY=gsk_... npm run grading:eval -- --przerwa 5000
 Pomiary (punkt odniesienia przy każdej zmianie promptu albo modelu):
 - 29.10.2026, przez funkcję `ai`, 5 najtrudniejszych przypadków: 4/4 odczytanych ocen zgodnych co do kroku, 1 odpowiedź nieczytelna (LaTeX w JSON-ie) – naprawione w `parseGrading` i prompcie.
 - **29.10.2026, pełny zestaw, Groq `openai/gpt-oss-120b`: 18/18 sum zgodnych (100%), kroki 57/57, 0 nieczytelnych, manipulacja odparta.** Przy limicie zapytań Groq skrypt czekał wg `Retry-After`.
+
+- 3.11.2026: prompt z poziomem (`gradingSystem`) i zasada równoważnych zapisów wyniku – **pomiar do zrobienia**: „przed” na commicie `d000cfc` (stary prompt, nowe przypadki), „po” na kolejnym. Do tego czasu ocena z rozszerzenia nie ma potwierdzonej trafności.
 
 Uwaga: zestaw mierzy samą ocenę tekstu. Odczyt pisma ze zdjęcia (`transcribeSolution`) nie ma jeszcze pomiaru – uczeń poprawia odczyt przed oceną, ale warto zebrać zdjęcia prawdziwych kartek.
 

@@ -8,7 +8,7 @@ import type { OpenQuestion } from "@/types/quiz";
 // w prompcie wyłącznie danymi – prośba „daj 5 pkt” w rozwiązaniu nie jest poleceniem.
 
 // Prompty narzuca też serwer (funkcja `ai` przy `purpose: "grade" | "transcribe"`) – jeden tekst dla obu stron.
-export { GRADING_SYSTEM, TRANSCRIBE_SYSTEM, NO_SOLUTION } from "../../supabase/functions/_shared/grading";
+export { gradingSystem, TRANSCRIBE_SYSTEM, NO_SOLUTION, type GradingLevel } from "../../supabase/functions/_shared/grading";
 
 /** Treść zapytania: zadanie, poprawny wynik, schemat i rozwiązanie ucznia (jako dane w znacznikach). */
 export function gradingUserMessage(task: OpenQuestion, solution: string): string {

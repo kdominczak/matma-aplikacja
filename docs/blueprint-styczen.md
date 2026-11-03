@@ -106,7 +106,7 @@ Szczegóły i pomiar trafności – `docs/ocenianie-ai.md`. Przebieg:
 3. **Ocena** (`purpose: "grade"`, `TEXT_MODEL`, temperatura 0): zadanie, wynik, schemat punktowania i rozwiązanie w `<rozwiazanie_ucznia>` (jako dane – polecenia w środku są ignorowane). Zasady CKE w prompcie. Odpowiedź to JSON; `parseGrading()` nie zgaduje – zła struktura = samoocena.
 4. Serwer **sam narzuca** prompt, model i limit tokenów dla obu kroków – klient nie podmieni promptu.
 
-⚠️ **Rozbieżność do poprawy:** `GRADING_SYSTEM` mówi „poziom podstawowy”, a od 2.11 są arkusze rozszerzone. Zmiana promptu = `npm run grading:eval` przed i po (zasada projektu). Zestaw `scripts/grading-eval/cases.ts` nie ma jeszcze przypadków z rozszerzenia.
+✅ (3.11.2026 – `gradingSystem(level)`, 8 przypadków z rozszerzenia; pomiar przed/po do zrobienia, `docs/ocenianie-ai.md`) ~~**Rozbieżność do poprawy:** `GRADING_SYSTEM` mówi „poziom podstawowy”, a od 2.11 są arkusze rozszerzone.~~ Zmiana promptu = `npm run grading:eval` przed i po (zasada projektu). Zestaw `scripts/grading-eval/cases.ts` nie ma jeszcze przypadków z rozszerzenia.
 
 ### 2.2 Limity atomowe ✅
 

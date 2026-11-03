@@ -96,6 +96,9 @@ describe("ocena rozwiązania (grade)", () => {
     expect(await gradeSolution(task, "moje rozwiązanie")).toEqual({ steps: [1, 0], reasons: ["a", "b"] });
     const body = bodies.at(-1)!;
     expect(body.purpose).toBe("grade");
+    expect((body as unknown as { level: string }).level).toBe("podstawowy");
+    await gradeSolution(task, "moje rozwiązanie", { level: "rozszerzony" });
+    expect((bodies.at(-1) as unknown as { level: string }).level).toBe("rozszerzony");
     expect(body.messages).toHaveLength(1);
     expect(String(body.messages[0].content)).toContain("<rozwiazanie_ucznia>\nmoje rozwiązanie");
   });

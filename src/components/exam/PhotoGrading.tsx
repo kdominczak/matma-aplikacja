@@ -10,6 +10,7 @@ import { MAX_IMAGES, prepareImage } from "@/lib/attachments";
 import { hapticSuccess, hapticTap } from "@/lib/haptics";
 import { isPremium, PremiumRequiredError, usePremium } from "@/lib/premium";
 import type { OpenQuestion } from "@/types/quiz";
+import type { Level } from "@/types/topic";
 
 type Phase =
   | { name: "idle" }
@@ -23,7 +24,7 @@ type Phase =
  * schematu → punkty i uzasadnienia przy krokach (`onGraded`). Bez Premium – zaproszenie do Premium.
  * Odczyt pisma bywa błędny, dlatego uczeń zawsze widzi i zatwierdza tekst, który oceniamy.
  */
-export default function PhotoGrading({ task, onGraded }: { task: OpenQuestion; onGraded: (grading: Grading) => void }) {
+export default function PhotoGrading({ task, level, onGraded }: { task: OpenQuestion; level: Level; onGraded: (grading: Grading) => void }) {
   const premium = usePremium();
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [error, setError] = useState<{ text: string; upsell?: boolean } | null>(null);
@@ -84,7 +85,7 @@ export default function PhotoGrading({ task, onGraded }: { task: OpenQuestion; o
     setPhase({ name: "grading", text });
     abort.current = new AbortController();
     try {
-      const grading = await gradeSolution(task, text, abort.current.signal);
+      const grading = await gradeSolution(task, text, { level, signal: abort.current.signal });
       if (!grading) {
         setError({ text: "Nie udało się odczytać oceny. Spróbuj jeszcze raz albo zaznacz kroki samodzielnie." });
         setPhase({ name: "edit", text });

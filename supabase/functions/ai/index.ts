@@ -16,12 +16,12 @@
 // (refund_ai_quota kluczem service_role). Przyczyny trafiają do logów funkcji (bez treści rozmów).
 //
 // Ocena zadań otwartych (Premium): `purpose: "transcribe"` (zdjęcie kartki → tekst) i `purpose: "grade"` (ocena wg
-// schematu, _shared/grading.ts). Osobny licznik consume_grading_quota(). 403 {error:"premium_required"},
+// schematu dla poziomu `level`, _shared/grading.ts). Osobny licznik consume_grading_quota(). 403 {error:"premium_required"},
 // 429 {error:"grading_limit"}.
 
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.117.3";
 import { chatRequest, isChatPurpose, type ChatRequest } from "../_shared/chat.ts";
-import { isGradingPurpose, PURPOSES, purposeMessages, type GradingPurpose } from "../_shared/grading.ts";
+import { isGradingLevel, isGradingPurpose, PURPOSES, purposeMessages, type GradingPurpose } from "../_shared/grading.ts";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MAX_BODY_BYTES = 4_000_000; // do 3 zdjęć JPEG ≤1280 px w base64
@@ -68,7 +68,10 @@ Deno.serve(async (request) => {
     auth: { persistSession: false },
   });
   if (isGradingPurpose(body.purpose)) {
-    return grading(body.purpose, Array.isArray(body.messages) ? body.messages : [], db, auth, groqKey);
+    // poziom matury wybiera prompt egzaminatora (zasady rozszerzenia); nieznany = podstawowy
+    const prepared = purposeMessages(body.purpose, Array.isArray(body.messages) ? body.messages : [], isGradingLevel(body.level) ? body.level : "podstawowy");
+    if (!prepared) return json(400, { error: "bad_messages" });
+    return grading(body.purpose, prepared, db, auth, groqKey);
   }
   // bez `purpose` (starsze wersje aplikacji wysyłały własny prompt) – odmowa, żadnego czatu „na wolno”
   if (!isChatPurpose(body.purpose)) return json(400, { error: "bad_purpose" });
@@ -124,10 +127,7 @@ function quotaError(fn: string, error: { code?: string; message: string }): Resp
 }
 
 /** Przepisanie zdjęcia albo ocena wg schematu – osobny licznik (tylko Premium), prompt i model z serwera. */
-async function grading(purpose: GradingPurpose, messages: unknown[], db: SupabaseClient, auth: string, groqKey: string): Promise<Response> {
-  const prepared = purposeMessages(purpose, messages);
-  if (!prepared) return json(400, { error: "bad_messages" });
-
+async function grading(purpose: GradingPurpose, prepared: unknown[], db: SupabaseClient, auth: string, groqKey: string): Promise<Response> {
   const { data, error } = await db.rpc("consume_grading_quota", { p_kind: purpose });
   if (error) return quotaError("consume_grading_quota", error);
   const quota = (Array.isArray(data) ? data[0] : data) as { allowed: boolean; remaining: number; premium: boolean };
