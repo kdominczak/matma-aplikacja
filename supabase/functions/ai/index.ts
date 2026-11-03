@@ -4,6 +4,8 @@
 // Wdrożenie:
 //   supabase secrets set GROQ_API_KEY=gsk_...
 //   supabase functions deploy ai
+//   (opcjonalnie) zapasowy dostawca przy awarii Groq – API zgodne z OpenAI, _shared/fallback.ts:
+//   supabase secrets set FALLBACK_API_URL=https://… FALLBACK_API_KEY=… FALLBACK_TEXT_MODEL=… FALLBACK_VISION_MODEL=…
 // Aplikacja woła ją zawsze (src/lib/ai.ts) z polem `purpose`; prompt systemowy, model i limit tokenów ustawia serwer,
 // od aplikacji bierze tylko dane (rozmowę ucznia, zadanie, zdjęcia) – funkcja nie posłuży do zwykłego czatu z LLM.
 //
@@ -21,6 +23,7 @@
 
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.117.3";
 import { chatRequest, isChatPurpose, type ChatRequest } from "../_shared/chat.ts";
+import { fallbackBody, fallbackConfig, shouldFallback } from "../_shared/fallback.ts";
 import { isGradingLevel, isGradingPurpose, PURPOSES, purposeMessages, type GradingPurpose } from "../_shared/grading.ts";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -84,35 +87,54 @@ Deno.serve(async (request) => {
   const quotaHeaders = { "x-ai-remaining": String(quota.remaining), "x-ai-premium": quota.premium ? "1" : "0" };
   if (!quota.allowed) return json(429, { error: "limit", premium: quota.premium }, quotaHeaders);
 
-  let upstream: Response;
-  try {
-    upstream = await callGroq(groqKey, prepared);
-  } catch (cause) {
-    console.error("ai: brak połączenia z Groq", body.purpose, String(cause));
-    await refund(db, auth, "refund_ai_quota");
-    return json(502, { error: "upstream", status: 0 }, { ...quotaHeaders, "x-ai-remaining": String(quota.remaining + 1) });
-  }
-
-  if (!upstream.ok || !upstream.body) {
+  const result = await callAi(groqKey, prepared, String(body.purpose));
+  if (!("body" in result)) {
     // nie przekazujemy statusu Groq wprost: jego 401/429 aplikacja wzięłaby za wygasłą sesję albo nasz limit
-    const detail = await upstream.json().catch(() => null);
-    const code = typeof detail?.error?.code === "string" ? detail.error.code : undefined;
-    console.error("ai: Groq odrzucił zapytanie", body.purpose, upstream.status, code ?? "", prepared.model);
     await refund(db, auth, "refund_ai_quota");
-    return json(502, { error: "upstream", status: upstream.status, code }, { ...quotaHeaders, "x-ai-remaining": String(quota.remaining + 1) });
+    return json(502, { error: "upstream", status: result.status, code: result.code }, { ...quotaHeaders, "x-ai-remaining": String(quota.remaining + 1) });
   }
-  return new Response(upstream.body, {
+  return new Response(result.body, {
     headers: { ...CORS, "Content-Type": "text/event-stream", "Cache-Control": "no-cache", ...quotaHeaders },
   });
 });
 
-/** Zapytanie do Groq w całości ustawione przez serwer (model, prompt, limit tokenów, sposób rozumowania). */
-function callGroq(groqKey: string, request: ChatRequest): Promise<Response> {
-  return fetch(GROQ_URL, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ ...request.extra, model: request.model, messages: request.messages, stream: true, max_completion_tokens: request.maxTokens }),
-  });
+type AiResult = { body: ReadableStream<Uint8Array> } | { status: number; code?: string };
+
+/**
+ * Zapytanie w całości ustawione przez serwer (model, prompt, limit tokenów, rozumowanie): najpierw Groq, a przy jego
+ * awarii (_shared/fallback.ts: brak połączenia, 429, 5xx, zły klucz, wycofany model) – zapasowy dostawca z sekretów
+ * FALLBACK_*, jeśli jest. Gdy oba zawiodą, aplikacja dostaje status Groq.
+ */
+async function callAi(groqKey: string, request: ChatRequest, label: string): Promise<AiResult> {
+  const groq = await send(
+    GROQ_URL,
+    groqKey,
+    { ...request.extra, model: request.model, messages: request.messages, stream: true, max_completion_tokens: request.maxTokens },
+  );
+  if ("body" in groq) return groq;
+  console.error("ai: Groq odrzucił zapytanie", label, groq.status, groq.code ?? "", request.model);
+  const config = fallbackConfig((name) => Deno.env.get(name));
+  const backupBody = config && shouldFallback(groq.status, groq.code) ? fallbackBody(request, config) : null;
+  if (!config || !backupBody) return groq;
+  const backup = await send(config.url, config.key, backupBody);
+  if ("body" in backup) {
+    console.warn("ai: odpowiedź od zapasowego dostawcy", label, backupBody.model);
+    return backup;
+  }
+  console.error("ai: zapasowy dostawca też odrzucił zapytanie", label, backup.status, backup.code ?? "", backupBody.model);
+  return groq;
+}
+
+async function send(url: string, key: string, payload: Record<string, unknown>): Promise<AiResult> {
+  try {
+    const response = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    if (response.ok && response.body) return { body: response.body };
+    const detail = await response.json().catch(() => null);
+    return { status: response.status, code: typeof detail?.error?.code === "string" ? detail.error.code : undefined };
+  } catch (cause) {
+    console.error("ai: brak połączenia", new URL(url).host, String(cause));
+    return { status: 0 };
+  }
 }
 
 /**
@@ -137,22 +159,12 @@ async function grading(purpose: GradingPurpose, prepared: unknown[], db: Supabas
 
   const config = PURPOSES[purpose];
   const refunded = { "x-grading-remaining": String(quota.remaining + 1) };
-  let upstream: Response;
-  try {
-    upstream = await callGroq(groqKey, { ...config, messages: prepared });
-  } catch (cause) {
-    console.error("ai: brak połączenia z Groq", purpose, String(cause));
+  const result = await callAi(groqKey, { ...config, messages: prepared }, purpose);
+  if (!("body" in result)) {
     await refund(db, auth, "refund_grading_quota", purpose);
-    return json(502, { error: "upstream", status: 0 }, refunded);
+    return json(502, { error: "upstream", status: result.status, code: result.code }, refunded);
   }
-  if (!upstream.ok || !upstream.body) {
-    const detail = await upstream.json().catch(() => null);
-    const code = typeof detail?.error?.code === "string" ? detail.error.code : undefined;
-    console.error("ai: Groq odrzucił zapytanie", purpose, upstream.status, code ?? "", config.model);
-    await refund(db, auth, "refund_grading_quota", purpose);
-    return json(502, { error: "upstream", status: upstream.status, code }, refunded);
-  }
-  return new Response(upstream.body, { headers: { ...CORS, "Content-Type": "text/event-stream", "Cache-Control": "no-cache", ...headers } });
+  return new Response(result.body, { headers: { ...CORS, "Content-Type": "text/event-stream", "Cache-Control": "no-cache", ...headers } });
 }
 
 /** Oddaje zużyte zapytanie (refund_ai_quota albo refund_grading_quota), gdy odpowiedź nie powstała. Błąd zwrotu tylko logujemy. */

@@ -32,7 +32,7 @@ npx supabase functions deploy ai
 npx supabase functions deploy revenuecat --no-verify-jwt
 ```
 
-Od 3.11.2026 funkcja `ai` przyjmuje tylko zapytania z `purpose` (prompty czatu po stronie serwera, `_shared/chat.ts`) – starsze buildy aplikacji dostaną 400 `bad_purpose`, więc **wdróż ją razem z nowym buildem**. `GROQ_API_KEY` jest już ustawiony. Po wdrożeniu sprawdź logi obu funkcji (Edge Functions → Logs).
+Od 3.11.2026 funkcja `ai` przyjmuje tylko zapytania z `purpose` (prompty czatu po stronie serwera, `_shared/chat.ts`) – starsze buildy aplikacji dostaną 400 `bad_purpose`, więc **wdróż ją razem z nowym buildem**. `GROQ_API_KEY` jest już ustawiony. **Zapasowy dostawca AI (zalecane przed premierą):** przy awarii Groq (brak połączenia, 429, 5xx, zły klucz, wycofany model) funkcja `ai` ponawia zapytanie u dowolnego API zgodnego z OpenAI – `npx supabase secrets set FALLBACK_API_URL=https://…/chat/completions FALLBACK_API_KEY=… FALLBACK_TEXT_MODEL=… FALLBACK_VISION_MODEL=…` (np. OpenRouter; modele dobierz tak, żeby nie wypisywały rozumowania w treści odpowiedzi, i przetestuj korepetytora oraz `grading:eval` na zapasowym modelu). Bez tych sekretów – tylko Groq. Po wdrożeniu sprawdź logi obu funkcji (Edge Functions → Logs).
 
 ## 3. Sklep i zakupy
 
