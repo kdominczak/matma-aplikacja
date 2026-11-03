@@ -4,7 +4,7 @@
 
 - **Serwer decyduje.** Premium (`entitlements`), dzienny licznik AI (`ai_usage`), polecenia (`referral_codes`, `referrals`) i zakupy (`purchase_events`) zapisują wyłącznie funkcje SQL. Aplikacja czyta stan przez `account_status()` (`src/lib/premium.ts`) i nie ma prawa zapisu do tych tabel.
 - **Limit AI:** 5 wiadomości dziennie za darmo (`ai_free_daily_limit()`), z Premium pułap techniczny 200 (`ai_premium_daily_limit()`). Dzień liczony według czasu polskiego. Zmieniasz liczbę w SQL i w `AI_FREE_DAILY_LIMIT` (`src/lib/premium.ts`) naraz. Limit obejmuje czat korepetytora, wyjaśnienia błędów i podpowiedzi AI.
-- **AI wyłącznie przez serwer:** aplikacja nie zna żadnego klucza Groq. Funkcja `supabase/functions/ai` sprawdza token ucznia, zużywa jedną wiadomość (`consume_ai_quota()`), woła Groq kluczem z sekretów i strumieniuje odpowiedź. Modele: `openai/gpt-oss-120b` (tekst) i `qwen/qwen3.8-27b` (zdjęcia) – `src/lib/ai-config.ts` i `ALLOWED_MODELS` w funkcji zmieniasz razem. Do Groq przechodzą tylko wybrane pola zapytania. Odpowiedzi:
+- **AI wyłącznie przez serwer:** aplikacja nie zna żadnego klucza Groq. Funkcja `supabase/functions/ai` sprawdza token ucznia, zużywa jedną wiadomość (`consume_ai_quota()`), woła Groq kluczem z sekretów i strumieniuje odpowiedź. Modele: `openai/gpt-oss-120b` (tekst) i `qwen/qwen3.8-27b` (zdjęcia) – jedno miejsce: `supabase/functions/_shared/models.ts`. Aplikacja wysyła tylko `purpose` i dane; prompt systemowy, model i limit tokenów ustawia funkcja (`_shared/chat.ts`, `_shared/grading.ts`). Odpowiedzi:
   - 401 – wyłącznie sesja ucznia (aplikacja raz odświeża token i ponawia),
   - 429 `{ "error": "limit" }` – wyczerpany limit; aplikacja pokazuje Premium (czat: `AiLimitCard`, podpowiedzi i wyjaśnienia: link do `/premium`),
   - 502 `{ "error": "upstream", "status", "code" }` – błąd Groq; wiadomość wraca do limitu (`refund_ai_quota()`, tylko kluczem `service_role`), a przyczyna trafia do logów funkcji,
@@ -35,7 +35,7 @@ Uruchamiaj w SQL Editorze tylko nowe pliki, po kolei. Każdy plik od `20261103�
      curl -s -o /dev/null -w "%{http_code}\n" https://api.groq.com/openai/v1/models -H "Authorization: Bearer gsk_..."
      ```
 
-   - `ai: Groq odrzucił zapytanie 404 model_not_found` – Groq wycofał model; zmień `TEXT_MODEL`/`VISION_MODEL` i `ALLOWED_MODELS` na dostępne (lista: `curl https://api.groq.com/openai/v1/models -H "Authorization: Bearer gsk_..."`).
+   - `ai: Groq odrzucił zapytanie 404 model_not_found` – Groq wycofał model; zmień `TEXT_MODEL`/`VISION_MODEL` w `_shared/models.ts` na dostępne (lista: `curl https://api.groq.com/openai/v1/models -H "Authorization: Bearer gsk_..."`).
 
 ## Ocena zadań ze zdjęcia (Premium)
 

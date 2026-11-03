@@ -2,10 +2,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { streamAi, type ChatMessage } from "@/lib/ai";
 import { TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
+import { chatRequest } from "../supabase/functions/_shared/chat";
 import { MAX_PDF_CHARS, parsePageRange, pdfContext, pdfHasContent, type PdfAttachment } from "@/lib/attachments";
 
 type Part = { type: string; text?: string; image_url?: { url: string } };
-type Body = { model: string; messages: { role: string; content: string | Part[] }[]; reasoning_format?: string; include_reasoning?: boolean; max_completion_tokens: number };
+type Body = { purpose: string; style?: string; model?: string; messages: { role: string; content: string | Part[] }[] };
 
 const bodies: Body[] = [];
 const img = (n: number) => `data:image/jpeg;base64,IMG${n}`;
@@ -27,23 +28,31 @@ beforeEach(() => {
 
 async function ask(messages: ChatMessage[]) {
   const reply = await streamAi({ mode: "tutor", messages }, () => {});
-  return { reply, body: bodies.at(-1)! };
+  const body = bodies.at(-1)!;
+  // to, co z tego zapytania zrobi serwer (funkcja `ai`)
+  return { reply, body, server: chatRequest("tutor", body)! };
 }
 
 describe("zapytania korepetytora", () => {
-  it("bez obrazów: model tekstowy z ukrytym rozumowaniem, treść jako tekst", async () => {
+  it("aplikacja wysyła tylko purpose i rozmowę – bez promptu systemowego i modelu", async () => {
     const { reply, body } = await ask([{ role: "user", content: "Ile to 2+2?" }]);
     expect(reply).toBe("OK");
-    expect(body.model).toBe(TEXT_MODEL);
-    expect(body.include_reasoning).toBe(false);
-    expect(typeof body.messages[1].content).toBe("string");
+    expect(body.purpose).toBe("tutor");
+    expect(body.model).toBeUndefined();
+    expect(body.messages).toEqual([{ role: "user", content: "Ile to 2+2?" }]);
   });
 
-  it("ze zdjęciem: model z obsługą obrazów, ukryte rozumowanie, obraz jako image_url", async () => {
-    const { body } = await ask([{ role: "user", content: "Pomóż", images: [img(1)], context: "[Plik PDF] Zadanie 3", files: [{ name: "a.pdf", detail: "str. 1" }] }]);
-    expect(body.model).toBe(VISION_MODEL);
-    expect(body.reasoning_format).toBe("hidden");
-    const parts = body.messages[1].content as Part[];
+  it("bez obrazów: serwer wybiera model tekstowy z ukrytym rozumowaniem", async () => {
+    const { server } = await ask([{ role: "user", content: "Ile to 2+2?" }]);
+    expect(server.model).toBe(TEXT_MODEL);
+    expect(server.extra.include_reasoning).toBe(false);
+  });
+
+  it("ze zdjęciem: serwer wybiera model z obsługą obrazów, obraz jako image_url", async () => {
+    const { body, server } = await ask([{ role: "user", content: "Pomóż", images: [img(1)], context: "[Plik PDF] Zadanie 3", files: [{ name: "a.pdf", detail: "str. 1" }] }]);
+    expect(server.model).toBe(VISION_MODEL);
+    expect(server.extra.reasoning_format).toBe("hidden");
+    const parts = body.messages[0].content as Part[];
     expect(parts[0].text).toContain("Zadanie 3");
     expect(parts[1].image_url?.url).toBe(img(1));
     expect(JSON.stringify(body)).not.toContain('"files"'); // opis plików jest tylko do dymka
@@ -56,16 +65,16 @@ describe("zapytania korepetytora", () => {
       { role: "user", content: "nowe", images: [img(3), img(4)] },
     ]);
     expect(JSON.stringify(body.messages).match(/IMG\d/g)).toEqual(["IMG1", "IMG3", "IMG4"]);
-    expect((body.messages[1].content as Part[])[0].text).toContain("1 wcześniej załączone");
+    expect((body.messages[0].content as Part[])[0].text).toContain("1 wcześniej załączone");
   });
 
   it("pytanie uzupełniające nadal widzi wcześniejsze zdjęcie", async () => {
-    const { body } = await ask([
+    const { body, server } = await ask([
       { role: "user", content: "zdjęcie", images: [img(7)] },
       { role: "assistant", content: "odp" },
       { role: "user", content: "a dlaczego?" },
     ]);
-    expect(body.model).toBe(VISION_MODEL);
+    expect(server.model).toBe(VISION_MODEL);
     expect(JSON.stringify(body.messages)).toContain("IMG7");
   });
 
@@ -86,8 +95,7 @@ describe("ocena rozwiązania (grade)", () => {
     const task = { id: "t", prompt: "x", points: 2, answers: ["1"], solution: [{ step: "a", points: 1 }, { step: "b", points: 1 }] };
     expect(await gradeSolution(task, "moje rozwiązanie")).toEqual({ steps: [1, 0], reasons: ["a", "b"] });
     const body = bodies.at(-1)!;
-    expect(body.model).toBe(TEXT_MODEL);
-    expect((body as unknown as { purpose: string }).purpose).toBe("grade");
+    expect(body.purpose).toBe("grade");
     expect(body.messages).toHaveLength(1);
     expect(String(body.messages[0].content)).toContain("<rozwiazanie_ucznia>\nmoje rozwiązanie");
   });
@@ -139,11 +147,11 @@ describe("PDF jako tekst", () => {
 });
 
 describe("tryb pomocy korepetytora", () => {
-  it("wybrany tryb trafia do promptu systemowego; domyślnie naprowadzanie", async () => {
-    const { streamAi } = await import("@/lib/ai");
+  it("wybrany tryb trafia do promptu systemowego na serwerze; domyślnie naprowadzanie", async () => {
     await streamAi({ mode: "tutor", messages: [{ role: "user", content: "x" }], style: "sprawdz" }, () => {});
-    expect(String(bodies.at(-1)!.messages[0].content)).toContain("SPRAWDZENIE ROZWIĄZANIA");
+    expect(bodies.at(-1)!.style).toBe("sprawdz");
+    expect((chatRequest("tutor", bodies.at(-1)!)!.messages[0] as { content: string }).content).toContain("SPRAWDZENIE ROZWIĄZANIA");
     await streamAi({ mode: "tutor", messages: [{ role: "user", content: "x" }] }, () => {});
-    expect(String(bodies.at(-1)!.messages[0].content)).toContain("NAPROWADZANIE");
+    expect((chatRequest("tutor", bodies.at(-1)!)!.messages[0] as { content: string }).content).toContain("NAPROWADZANIE");
   });
 });

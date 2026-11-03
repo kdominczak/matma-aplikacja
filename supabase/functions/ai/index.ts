@@ -4,31 +4,28 @@
 // Wdrożenie:
 //   supabase secrets set GROQ_API_KEY=gsk_...
 //   supabase functions deploy ai
-// Aplikacja woła ją zawsze (src/lib/ai.ts); modele wybiera według zapytania (src/lib/ai-config.ts).
+// Aplikacja woła ją zawsze (src/lib/ai.ts) z polem `purpose`; prompt systemowy, model i limit tokenów ustawia serwer,
+// od aplikacji bierze tylko dane (rozmowę ucznia, zadanie, zdjęcia) – funkcja nie posłuży do zwykłego czatu z LLM.
 //
-// Kolejność: 1) token ucznia (konto, także anonimowe), 2) consume_ai_quota() – limit liczy baza,
-// 3) zapytanie do Groq z ograniczeniami (dozwolone modele, maks. długość), 4) strumień odpowiedzi do aplikacji.
+// Kolejność: 1) token ucznia, 2) zapytanie z `purpose` i danych (400, gdy niepoprawne),
+// 3) licznik w bazie (odmawia kontom anonimowym), 4) zapytanie do Groq, 5) strumień odpowiedzi do aplikacji.
 //
-// Błędy: 401 = tylko sesja ucznia; 429 {error:"limit"} = dzienny limit; błąd Groq → 502 {error:"upstream", status, code}
-// i zwrot wiadomości (refund_ai_quota kluczem service_role). Przyczyny trafiają do logów funkcji (bez treści rozmów).
+// Korepetytor, wyjaśnienia i podpowiedzi (`purpose: "tutor" | "explain" | "hint"`, _shared/chat.ts) – licznik
+// consume_ai_quota(). Błędy: 401 = tylko sesja ucznia; 403 {error:"account_required"} = konto anonimowe;
+// 429 {error:"limit"} = dzienny limit; błąd Groq → 502 {error:"upstream", status, code} i zwrot wiadomości
+// (refund_ai_quota kluczem service_role). Przyczyny trafiają do logów funkcji (bez treści rozmów).
 //
 // Ocena zadań otwartych (Premium): `purpose: "transcribe"` (zdjęcie kartki → tekst) i `purpose: "grade"` (ocena wg
-// schematu). Osobny licznik consume_grading_quota(); prompt, model i limity ustawia serwer (_shared/grading.ts),
-// z zapytania aplikacji bierze tylko zdjęcia albo tekst. 403 {error:"premium_required"}, 429 {error:"grading_limit"}.
+// schematu, _shared/grading.ts). Osobny licznik consume_grading_quota(). 403 {error:"premium_required"},
+// 429 {error:"grading_limit"}.
 
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.117.3";
+import { chatRequest, isChatPurpose, type ChatRequest } from "../_shared/chat.ts";
 import { isGradingPurpose, PURPOSES, purposeMessages, type GradingPurpose } from "../_shared/grading.ts";
-import { TEXT_MODEL, VISION_MODEL } from "../_shared/models.ts";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-// tekst i obrazy (src/lib/ai-config.ts czyta te same stałe z _shared/models.ts); modele Llama Groq już wycofał
-const ALLOWED_MODELS = new Set([TEXT_MODEL, VISION_MODEL]);
-const DEFAULT_MODEL = TEXT_MODEL;
-const MAX_COMPLETION_TOKENS = 6144;
 const MAX_BODY_BYTES = 4_000_000; // do 3 zdjęć JPEG ≤1280 px w base64
 const MAX_MESSAGES = 40;
-// tylko te pola z zapytania aplikacji idą do Groq (bez n, tools itp. – koszt i zachowanie ustala serwer)
-const PASSED_FIELDS = ["messages", "temperature", "reasoning_effort", "include_reasoning", "reasoning_format"] as const;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -56,22 +53,27 @@ Deno.serve(async (request) => {
 
   const raw = await request.text();
   if (raw.length > MAX_BODY_BYTES) return json(413, { error: "too_large" });
-  let body: { model?: string; messages?: unknown[]; max_completion_tokens?: number; [key: string]: unknown };
+  let body: Record<string, unknown>;
   try {
     body = JSON.parse(raw);
   } catch {
     return json(400, { error: "bad_json" });
   }
-  if (!Array.isArray(body.messages) || body.messages.length === 0 || body.messages.length > MAX_MESSAGES) {
-    return json(400, { error: "bad_messages" });
-  }
+  if (!body || typeof body !== "object") return json(400, { error: "bad_json" });
+  if (Array.isArray(body.messages) && body.messages.length > MAX_MESSAGES) return json(400, { error: "bad_messages" });
 
   // Limit liczy baza z tożsamością ucznia z jego tokenu – tej samej co w aplikacji.
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
     global: { headers: { Authorization: auth } },
     auth: { persistSession: false },
   });
-  if (isGradingPurpose(body.purpose)) return grading(body.purpose, body.messages, db, auth, groqKey);
+  if (isGradingPurpose(body.purpose)) {
+    return grading(body.purpose, Array.isArray(body.messages) ? body.messages : [], db, auth, groqKey);
+  }
+  // bez `purpose` (starsze wersje aplikacji wysyłały własny prompt) – odmowa, żadnego czatu „na wolno”
+  if (!isChatPurpose(body.purpose)) return json(400, { error: "bad_purpose" });
+  const prepared = chatRequest(body.purpose, body);
+  if (!prepared) return json(400, { error: "bad_messages" });
 
   const { data, error } = await db.rpc("consume_ai_quota");
   if (error) return quotaError("consume_ai_quota", error);
@@ -79,21 +81,11 @@ Deno.serve(async (request) => {
   const quotaHeaders = { "x-ai-remaining": String(quota.remaining), "x-ai-premium": quota.premium ? "1" : "0" };
   if (!quota.allowed) return json(429, { error: "limit", premium: quota.premium }, quotaHeaders);
 
-  const model = typeof body.model === "string" && ALLOWED_MODELS.has(body.model) ? body.model : DEFAULT_MODEL;
   let upstream: Response;
   try {
-    upstream = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...pick(body, PASSED_FIELDS),
-        model,
-        stream: true,
-        max_completion_tokens: Math.min(Number(body.max_completion_tokens) || 2048, MAX_COMPLETION_TOKENS),
-      }),
-    });
+    upstream = await callGroq(groqKey, prepared);
   } catch (cause) {
-    console.error("ai: brak połączenia z Groq", String(cause));
+    console.error("ai: brak połączenia z Groq", body.purpose, String(cause));
     await refund(db, auth, "refund_ai_quota");
     return json(502, { error: "upstream", status: 0 }, { ...quotaHeaders, "x-ai-remaining": String(quota.remaining + 1) });
   }
@@ -102,7 +94,7 @@ Deno.serve(async (request) => {
     // nie przekazujemy statusu Groq wprost: jego 401/429 aplikacja wzięłaby za wygasłą sesję albo nasz limit
     const detail = await upstream.json().catch(() => null);
     const code = typeof detail?.error?.code === "string" ? detail.error.code : undefined;
-    console.error("ai: Groq odrzucił zapytanie", upstream.status, code ?? "", model);
+    console.error("ai: Groq odrzucił zapytanie", body.purpose, upstream.status, code ?? "", prepared.model);
     await refund(db, auth, "refund_ai_quota");
     return json(502, { error: "upstream", status: upstream.status, code }, { ...quotaHeaders, "x-ai-remaining": String(quota.remaining + 1) });
   }
@@ -111,8 +103,13 @@ Deno.serve(async (request) => {
   });
 });
 
-function pick(source: Record<string, unknown>, keys: readonly string[]) {
-  return Object.fromEntries(keys.filter((key) => key in source).map((key) => [key, source[key]]));
+/** Zapytanie do Groq w całości ustawione przez serwer (model, prompt, limit tokenów, sposób rozumowania). */
+function callGroq(groqKey: string, request: ChatRequest): Promise<Response> {
+  return fetch(GROQ_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...request.extra, model: request.model, messages: request.messages, stream: true, max_completion_tokens: request.maxTokens }),
+  });
 }
 
 /**
@@ -142,11 +139,7 @@ async function grading(purpose: GradingPurpose, messages: unknown[], db: Supabas
   const refunded = { "x-grading-remaining": String(quota.remaining + 1) };
   let upstream: Response;
   try {
-    upstream = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ ...config.extra, model: config.model, messages: prepared, stream: true, max_completion_tokens: config.maxTokens }),
-    });
+    upstream = await callGroq(groqKey, { ...config, messages: prepared });
   } catch (cause) {
     console.error("ai: brak połączenia z Groq", purpose, String(cause));
     await refund(db, auth, "refund_grading_quota", purpose);

@@ -25,7 +25,7 @@ npx supabase functions deploy ai
 npx supabase functions deploy revenuecat --no-verify-jwt
 ```
 
-`GROQ_API_KEY` jest już ustawiony. Po wdrożeniu sprawdź logi obu funkcji (Edge Functions → Logs).
+Od 3.11.2026 funkcja `ai` przyjmuje tylko zapytania z `purpose` (prompty czatu po stronie serwera, `_shared/chat.ts`) – starsze buildy aplikacji dostaną 400 `bad_purpose`, więc **wdróż ją razem z nowym buildem**. `GROQ_API_KEY` jest już ustawiony. Po wdrożeniu sprawdź logi obu funkcji (Edge Functions → Logs).
 
 ## 3. Sklep i zakupy
 

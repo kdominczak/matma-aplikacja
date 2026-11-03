@@ -1,6 +1,6 @@
-import { explainMessage, hintMessage, SYSTEM, TUTOR_STYLES, type QuestionPayload, type TutorStyle } from "@/lib/ai-prompts";
+import type { QuestionPayload, TutorStyle } from "@/lib/ai-prompts";
 import { gradingUserMessage, NO_SOLUTION, parseGrading, type Grading } from "@/lib/ai-grading";
-import { AI_ENABLED, TEXT_MODEL, VISION_MODEL } from "@/lib/ai-config";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { MAX_IMAGES } from "@/lib/attachments";
 import { displayedOptions, displayKey } from "@/lib/options";
 import { AccountRequiredError, AI_FUNCTION_URL, AiLimitError, aiRequestHeaders, GradingLimitError, noteAiRemaining, noteGradingRemaining, PremiumRequiredError } from "@/lib/premium";
@@ -8,6 +8,8 @@ import type { OpenQuestion, OptionKey, QuizQuestion } from "@/types/quiz";
 
 // AI idzie wyłącznie przez naszą funkcję serwerową `ai` (supabase/functions/ai): token ucznia → dzienny limit
 // w bazie → Groq kluczem z sekretów → strumień SSE z powrotem. Aplikacja nie zna żadnego klucza Groq.
+// Aplikacja wysyła tylko `purpose` i dane (rozmowę, zadanie, zdjęcia) – prompt systemowy, model i limit tokenów
+// dokłada serwer (supabase/functions/_shared/chat.ts i grading.ts).
 
 // Groq ma limit tokenów na minutę – historię czatu przycinamy do ok. 3–4K tokenów.
 const MAX_HISTORY_CHARS = 12_000;
@@ -25,8 +27,6 @@ export interface ChatMessage {
 
 type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
 type ApiMessage = { role: string; content: string | ContentPart[] };
-
-type Effort = "low" | "medium" | "high";
 
 export type AiRequest =
   | { mode: "tutor"; messages: ChatMessage[]; style?: TutorStyle }
@@ -91,55 +91,32 @@ ${m.context}` : m.content;
 }
 
 interface BuiltRequest {
-  messages: ApiMessage[];
-  effort: Effort;
-  maxTokens: number;
+  /** Treść zapytania do funkcji `ai` – `purpose` i dane, bez promptu i modelu. */
+  body: Record<string, unknown>;
+  /** Zapytanie ze zdjęciami – inny komunikat przy odrzuconych załącznikach. */
   vision?: boolean;
-  /** Ocena zdjęć (Premium): serwer sam ustawia prompt, model i osobny licznik. */
-  purpose?: "grade" | "transcribe";
 }
 
 function buildRequest(request: AiRequest): BuiltRequest {
   switch (request.mode) {
     case "tutor": {
       const { messages, images } = tutorMessages(trimHistory(request.messages));
-      return {
-        // tryb pomocy wybrany przez ucznia (naprowadź / pełne rozwiązanie / sprawdź) dopisany do promptu korepetytora
-        messages: [{ role: "system", content: `${SYSTEM.tutor}\n\n${TUTOR_STYLES[request.style ?? "naprowadz"].instruction}` }, ...messages],
-        effort: "medium",
-        // model z obrazami najpierw „myśli” – zapas na rozumowanie
-        maxTokens: images > 0 ? 6144 : 2048,
-        vision: images > 0,
-      };
+      // tryb pomocy wybrany przez ucznia (naprowadź / pełne rozwiązanie / sprawdź) – instrukcję dokłada serwer
+      return { body: { purpose: "tutor", style: request.style ?? "naprowadz", messages }, vision: images > 0 };
     }
     case "explain":
-      return {
-        messages: [
-          { role: "system", content: SYSTEM.explain },
-          { role: "user", content: explainMessage(request.question) },
-        ],
-        effort: "medium",
-        maxTokens: 1500,
-      };
+      return { body: { purpose: "explain", question: request.question } };
+    case "hint":
+      return { body: { purpose: "hint", question: request.question, level: request.level, previousHints: request.previousHints } };
     case "grade":
-      // prompt egzaminatora i model ustawia serwer (_shared/grading.ts) – wysyłamy tylko treść do oceny
-      return { messages: [{ role: "user", content: gradingUserMessage(request.task, request.solution) }], effort: "medium", maxTokens: 4096, purpose: "grade" };
+      return { body: { purpose: "grade", messages: [{ role: "user", content: gradingUserMessage(request.task, request.solution) }] } };
     case "transcribe":
       return {
-        messages: [{ role: "user", content: request.images.slice(0, MAX_IMAGES).map((url) => ({ type: "image_url" as const, image_url: { url } })) }],
-        effort: "low",
-        maxTokens: 3000,
+        body: {
+          purpose: "transcribe",
+          messages: [{ role: "user", content: request.images.slice(0, MAX_IMAGES).map((url) => ({ type: "image_url" as const, image_url: { url } })) }],
+        },
         vision: true,
-        purpose: "transcribe",
-      };
-    case "hint":
-      return {
-        messages: [
-          { role: "system", content: SYSTEM.hint },
-          { role: "user", content: hintMessage(request.question, request.level, request.previousHints) },
-        ],
-        effort: "low",
-        maxTokens: 600,
       };
   }
 }
@@ -181,18 +158,8 @@ export async function streamAi(
 ): Promise<string> {
   if (!AI_ENABLED) throw new Error("Korepetytor AI nie jest dostępny w tej wersji aplikacji.");
 
-  const { messages, effort, maxTokens, vision, purpose } = buildRequest(request);
-  // tekst – model najlepszy z matematyki; zdjęcia – model z obsługą obrazów
-  const model = vision ? VISION_MODEL : TEXT_MODEL;
-  const payload = JSON.stringify({
-    ...(purpose ? { purpose } : {}),
-    model,
-    messages,
-    stream: true,
-    max_completion_tokens: maxTokens,
-    // oba modele rozumują przed odpowiedzią – ukrywamy to i dobieramy wysiłek do zadania
-    ...(model === TEXT_MODEL ? { reasoning_effort: effort, include_reasoning: false } : { reasoning_effort: effort, reasoning_format: "hidden" }),
-  });
+  const { body: requestBody, vision } = buildRequest(request);
+  const payload = JSON.stringify(requestBody);
   const send = async (refreshSession: boolean) =>
     fetch(AI_FUNCTION_URL, { method: "POST", headers: await aiRequestHeaders(refreshSession), body: payload, signal });
 

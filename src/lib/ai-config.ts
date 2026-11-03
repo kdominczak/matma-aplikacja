@@ -8,7 +8,7 @@ import { SUPABASE_ENABLED } from "@/lib/supabase";
  */
 export const AI_ENABLED = SUPABASE_ENABLED;
 
-// Modele wybiera aplikacja według rodzaju zapytania; serwer i tak przepuszcza tylko te dwa (ALLOWED_MODELS).
+// Modele wybiera serwer według rodzaju zapytania (_shared/chat.ts, _shared/grading.ts); tu tylko do opisu w UI.
 export { TEXT_MODEL, VISION_MODEL, VISION_MODEL_LABEL } from "../../supabase/functions/_shared/models";
 
 /**

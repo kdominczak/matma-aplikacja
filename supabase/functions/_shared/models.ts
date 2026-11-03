@@ -1,4 +1,4 @@
-// Modele Groq – jedno źródło dla aplikacji (src/lib/ai-config.ts) i funkcji serwerowej `ai` (ALLOWED_MODELS).
+// Modele Groq – jedno źródło dla aplikacji (src/lib/ai-config.ts) i funkcji serwerowej `ai` (model wybiera serwer).
 // Groq wycofuje modele (Llamy już zniknęły): przy „model_not_found” w logach funkcji zmień tutaj.
 
 /** Tekst: najlepszy z matematyki model dostępny w Groq. */

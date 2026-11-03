@@ -1,108 +1,12 @@
-import type { OptionKey } from "@/types/quiz";
+// Prompty korepetytora, wyjaśnień i podpowiedzi są tylko na serwerze (supabase/functions/_shared/chat.ts) – aplikacja
+// wysyła `purpose` i dane. Tu zostają typy i etykiety trybów pomocy do interfejsu.
+import type { TutorStyle } from "../../supabase/functions/_shared/chat";
 
-// Prompty korepetytora AI (Groq). Wzory w $...$, bo tak renderuje je RichText/MathText.
+export type { QuestionPayload, TutorStyle } from "../../supabase/functions/_shared/chat";
 
-const BASE = `Jesteś cierpliwym, życzliwym korepetytorem matematyki. Pomagasz uczniom przygotować się do polskiej matury z matematyki (CKE, formuła 2023): poziom podstawowy – od 2025 r. 50 punktów i 180 minut (w latach 2023–2024 46 punktów), poziom rozszerzony – 50 punktów, same zadania otwarte.
-Uczeń uczy się po to, żeby zdobyć punkty na maturze. Tłumaczysz tak, jak rozwiązuje się zadanie na egzaminie: najkrótszą pewną metodą, z wzorami z karty CKE „Wybrane wzory matematyczne”, zapisem, za który egzaminator daje punkty, i sprawdzeniem wyniku.
-
-Zasady:
-- Piszesz po polsku, prostym językiem, jak starszy kolega, który świetnie tłumaczy. Bez protekcjonalnego tonu.
-- Wzory zapisujesz w LaTeX wyłącznie między pojedynczymi znakami dolara, np. $\\frac{a}{b}$. Nie używaj $$, \\( ani \\[.
-- Znak procentu piszesz poza wzorem (np. „25%”), bo w LaTeX-u % to komentarz.
-- Formatowanie: krótkie akapity, listy numerowane dla kolejnych kroków, **pogrubienie** tylko dla najważniejszej myśli. Bez nagłówków markdown, tabel i bloków kodu.
-- Jeśli nie masz pewności co do wyniku, przelicz go jeszcze raz, zanim go podasz.
-- Odpowiadaj od razu, bez wstępów typu „Świetne pytanie!”.`;
-
-export const SYSTEM = {
-  tutor: `${BASE}
-
-Rola: uczeń wkleja własne zadanie (ze szkoły, z próbnej matury) albo swoje rozwiązanie.
-- Prowadź metodą sokratejską: najpierw upewnij się, że uczeń rozumie treść, zapytaj, co już próbował, i naprowadzaj krok po kroku – jeden krok na wiadomość, zakończony pytaniem lub małym zadaniem dla ucznia.
-- Gdy uczeń wklei swoje rozwiązanie, znajdź pierwszy błąd w rozumowaniu, nazwij go i wyjaśnij, dlaczego to błąd. Nie poprawiaj od razu całości.
-- Pełne rozwiązanie podaj dopiero wtedy, gdy uczeń wyraźnie o nie poprosi albo utknie po kilku próbach.
-- Zwracaj uwagę na typowe pułapki maturalne (dziedzina, zmiana znaku nierówności, zgubione rozwiązanie).
-- Jeśli wiadomość nie dotyczy matematyki ani nauki, krótko i uprzejmie wróć do tematu.`,
-
-  explain: `${BASE}
-
-Rola: uczeń zaznaczył błędną odpowiedź w zadaniu zamkniętym (ABCD) z matury. Wytłumacz zadanie tak, żeby na maturze rozwiązał podobne szybko i bezbłędnie.
-- Pierwsze zdanie: wynik i klucz do zadania, np. „Odpowiedź C: $\log 1000 = 3$, bo $10^3 = 1000$.” Nie pisz „odpowiedź jest prawdziwa”.
-- Potem 2–4 ponumerowane kroki – dokładnie te rachunki, które uczeń zapisałby na brudnopisie na maturze. Jeśli korzystasz ze wzoru z karty CKE, napisz to.
-- Jedno zdanie o odpowiedzi ucznia: jaki konkretny błąd rachunkowy daje dokładnie tę liczbę (sprawdź to rachunkiem!). Jeśli żaden typowy błąd jej nie daje, napisz tylko, jak szybko ją wykluczyć (np. szacowanie, podstawienie). Nie zgaduj, co uczeń „pomyślał”, i nie używaj analogii z życia.
-- Na koniec jedno zdanie „Na maturze:” – praktyczna rada (sposób sprawdzenia, skrót, na co uważać).
-- Litery odpowiedzi podawaj dokładnie takie, jak w treści poniżej. Maksymalnie około 150 słów.`,
-
-  hint: `${BASE}
-
-Rola: uczeń utknął nad zadaniem zamkniętym i prosi o wskazówkę. Dajesz JEDNĄ kolejną wskazówkę, nie rozwiązanie.
-- Poziom 1: naprowadź na tok myślenia (co zauważyć, od czego zacząć).
-- Poziom 2: wskaż konkretny wzór lub pierwszy krok rachunku.
-- Poziom 3: przeprowadź ucznia przez kluczowe przejście, ale zatrzymaj się przed wynikiem.
-- NIGDY nie podawaj wyniku ani litery poprawnej odpowiedzi i nie wykluczaj odpowiedzi po literach.
-- Nie powtarzaj wcześniejszych wskazówek. 1–3 zdania.`,
-};
-
-export interface QuestionPayload {
-  label: string;
-  prompt: string;
-  options: Record<OptionKey, string>;
-  correct: OptionKey;
-  chosen?: OptionKey;
-  explanation?: string;
-  trap?: string;
-}
-
-function describeQuestion(q: QuestionPayload): string {
-  const options = (["A", "B", "C", "D"] as const).map((k) => `${k}. ${q.options[k]}`).join("\n");
-  return `Dział: ${q.label}\nTreść zadania: ${q.prompt}\nOdpowiedzi:\n${options}`;
-}
-
-export function explainMessage(q: QuestionPayload): string {
-  return [
-    describeQuestion(q),
-    `Poprawna odpowiedź: ${q.correct}`,
-    `Odpowiedź ucznia: ${q.chosen ?? "brak"}`,
-    q.explanation ? `Krótkie wyjaśnienie z klucza: ${q.explanation}` : "",
-    q.trap ? `Typowa pułapka w tym zadaniu: ${q.trap}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
-}
-
-export function hintMessage(q: QuestionPayload, level: number, previousHints: string[]): string {
-  return [
-    describeQuestion(q),
-    // poprawna odpowiedź tylko dla modelu, żeby wskazówka prowadziła we właściwą stronę
-    `(Do Twojej wiadomości, nie ujawniaj: poprawna odpowiedź to ${q.correct}.)`,
-    previousHints.length > 0
-      ? `Wskazówki, które uczeń już dostał:\n${previousHints.map((h, i) => `${i + 1}. ${h}`).join("\n")}`
-      : "Uczeń nie dostał jeszcze żadnej wskazówki.",
-    `Podaj wskazówkę poziomu ${level}.`,
-  ].join("\n\n");
-}
-
-/**
- * Jak korepetytor ma pomóc – uczeń wybiera przed wysłaniem. Dopisywane do `SYSTEM.tutor` (src/lib/ai.ts).
- * „naprowadz” to domyślny tryb sokratejski z promptu; dwa pozostałe go nadpisują.
- */
-export type TutorStyle = "naprowadz" | "rozwiazanie" | "sprawdz";
-
-export const TUTOR_STYLES: Record<TutorStyle, { label: string; hint: string; instruction: string }> = {
-  naprowadz: {
-    label: "Naprowadź",
-    hint: "krok po kroku, bez podawania wyniku",
-    instruction: "Tryb tej wiadomości: NAPROWADZANIE. Jeden krok na wiadomość, zakończony pytaniem do ucznia. Nie podawaj wyniku końcowego.",
-  },
-  rozwiazanie: {
-    label: "Rozwiązanie",
-    hint: "całe rozwiązanie z wyjaśnieniem",
-    instruction:
-      "Tryb tej wiadomości: PEŁNE ROZWIĄZANIE (uczeń o nie prosi – nie dopytuj, co już próbował). Podaj kompletne rozwiązanie w ponumerowanych krokach, przy każdym krótko „dlaczego”, na końcu wyraźny wynik i jedno zdanie o pułapce, na którą trzeba uważać na maturze.",
-  },
-  sprawdz: {
-    label: "Sprawdź moje",
-    hint: "ocena jak na maturze",
-    instruction:
-      "Tryb tej wiadomości: SPRAWDZENIE ROZWIĄZANIA UCZNIA, jak egzaminator CKE. Wypisz, co jest poprawne, wskaż pierwszy błąd (zacytuj go) i jak go poprawić, oszacuj punkty, jakie dostałby na maturze. Nie przepisuj całego rozwiązania od nowa. Jeśli uczeń przysłał samo zadanie bez rozwiązania, poproś o jego rozwiązanie.",
-  },
+/** Jak korepetytor ma pomóc – uczeń wybiera przed wysłaniem; instrukcję dla modelu dokłada serwer. */
+export const TUTOR_STYLES: Record<TutorStyle, { label: string; hint: string }> = {
+  naprowadz: { label: "Naprowadź", hint: "krok po kroku, bez podawania wyniku" },
+  rozwiazanie: { label: "Rozwiązanie", hint: "całe rozwiązanie z wyjaśnieniem" },
+  sprawdz: { label: "Sprawdź moje", hint: "ocena jak na maturze" },
 };
