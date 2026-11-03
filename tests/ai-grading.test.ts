@@ -1,13 +1,13 @@
 // Ocena AI według schematu: odczyt odpowiedzi modelu (bez zgadywania), prompt odporny na manipulację,
 // poprawność zestawu testowego scripts/grading-eval/cases.ts.
 import { describe, expect, it } from "vitest";
-import { practiceTasks, topics } from "@/data/topics";
+import { allTopics, practiceTasks } from "@/data/topics";
 import { GRADING_SYSTEM, gradingUserMessage, parseGrading, TRANSCRIBE_SYSTEM } from "@/lib/ai-grading";
 import { purposeMessages } from "../supabase/functions/_shared/grading";
 import type { OpenQuestion } from "@/types/quiz";
 import { GRADING_CASES } from "../scripts/grading-eval/cases";
 
-const OPEN = new Map(topics.flatMap(practiceTasks).flatMap((t) => (t.kind === "open" ? [[t.id, t.task as OpenQuestion] as const] : [])));
+const OPEN = new Map(allTopics.flatMap(practiceTasks).flatMap((t) => (t.kind === "open" ? [[t.id, t.task as OpenQuestion] as const] : [])));
 const task = OPEN.get("wsm-o2")!;
 
 describe("parseGrading", () => {

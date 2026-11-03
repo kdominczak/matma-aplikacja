@@ -13,12 +13,13 @@
 import { readFileSync } from "node:fs";
 import { TEXT_MODEL } from "@/lib/ai-config";
 import { GRADING_SYSTEM, gradingUserMessage, parseGrading } from "@/lib/ai-grading";
-import { practiceTasks, topics } from "@/data/topics";
+import { allTopics, practiceTasks } from "@/data/topics";
 import type { OpenQuestion } from "@/types/quiz";
 import { GRADING_CASES } from "./cases";
 
+// podstawa i rozszerzenie (zadania działów rz-…)
 const OPEN_TASKS = new Map(
-  topics.flatMap(practiceTasks).flatMap((t) => (t.kind === "open" ? [[t.id, t.task as OpenQuestion] as const] : [])),
+  allTopics.flatMap(practiceTasks).flatMap((t) => (t.kind === "open" ? [[t.id, t.task as OpenQuestion] as const] : [])),
 );
 
 const args = process.argv.slice(2);
