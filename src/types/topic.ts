@@ -34,7 +34,7 @@ export interface TheorySection {
   plot?: Plot;
   /**
    * Pytanie sprawdzające zaraz po tym kroku (zamknięte ABCD, z wyjaśnieniem) – uczeń od razu widzi, czy zrozumiał.
-   * Nowe pytanie = nowe id i `npm run db:keys` jak przy zadaniach testów.
+   * Nowe pytanie = nowe id (istniejących nie zmieniaj).
    */
   check?: Question;
 }

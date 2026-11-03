@@ -1,6 +1,5 @@
 // Rejestr szablonów: który dział dostaje które szablony i ile wariantów każdego.
-// Warianty są stałe (to samo id = ta sama treść i klucz), więc trafiają do kluczy na serwerze (npm run db:keys)
-// i działają w „Pudełku porażek”, powtórkach i statystykach jak zwykłe zadania.
+// Warianty są stałe (to samo id = ta sama treść i klucz) i działają w „Pudełku porażek”, powtórkach i statystykach jak zwykłe zadania.
 import { closedVariants, openVariants, type ClosedTemplate, type ClosedVariant, type OpenTemplate, type OpenVariant } from "@/data/templates/engine";
 import { chooseRoles, digitsNoZero, digitsWithZero, parityDigits } from "@/data/templates/kombinatoryka";
 import {

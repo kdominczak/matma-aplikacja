@@ -1,6 +1,6 @@
 // Postgres w pamięci (PGlite) z atrapą tego, co dokłada Supabase: schemat auth z auth.uid(),
 // role anon/authenticated z domyślnymi uprawnieniami jak w Supabase, Storage i publikacja Realtime.
-// Migracje idą w tej samej kolejności co na produkcji (seed kluczy po drugiej).
+// Migracje idą w tej samej kolejności co na produkcji.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -8,8 +8,6 @@ import { PGlite } from "@electric-sql/pglite";
 
 const ROOT = join(import.meta.dirname, "..", "..");
 const MIGRATIONS_DIR = join(ROOT, "supabase", "migrations");
-const SEED = join(ROOT, "supabase", "seed", "question_keys.sql");
-const SEED_AFTER = "20261028120000_learning_history.sql";
 
 export const MIGRATIONS = readdirSync(MIGRATIONS_DIR)
   .filter((f) => f.endsWith(".sql"))
@@ -47,7 +45,8 @@ export interface TestDb {
   /** Zapytanie jako właściciel bazy (z pominięciem RLS) – do przygotowania danych i sprawdzeń. */
   admin<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]>;
   /** Konto (jak po signInAnonymously) z profilem w rankingu. */
-  createMember(id: string, nick: string): Promise<void>;
+  /** Konto z e-mailem albo Google (is_anonymous = false). */
+  createUser(id: string): Promise<void>;
   applyMigration(file: string): Promise<void>;
 }
 
@@ -58,7 +57,6 @@ export async function createTestDb(until?: string): Promise<TestDb> {
 
   async function applyMigration(file: string) {
     await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
-    if (file === SEED_AFTER) await db.exec(readFileSync(SEED, "utf8"));
   }
 
   for (const file of MIGRATIONS) {
@@ -89,9 +87,8 @@ export async function createTestDb(until?: string): Promise<TestDb> {
     async admin<T>(sql: string, params: unknown[] = []) {
       return (await db.query<T>(sql, params)).rows;
     },
-    async createMember(id, nick) {
-      await db.query(`insert into auth.users (id) values ($1)`, [id]);
-      await as("authenticated", id, `insert into public.profiles (id, nick) values ($1, $2)`, [id, nick]);
+    async createUser(id) {
+      await db.query(`insert into auth.users (id, is_anonymous) values ($1, false)`, [id]);
     },
     applyMigration,
   };

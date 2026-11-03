@@ -3,7 +3,7 @@ import type { OptionKey, Question } from "@/types/quiz";
 
 // Kolejność odpowiedzi ABCD na ekranie. W danych poprawna odpowiedź to najczęściej A – bez mieszania uczeń
 // szybko by to zauważył. Mieszamy tylko WYŚWIETLANIE: litera w danych („kanoniczna”) zostaje ta sama
-// w kluczach serwera (question_keys), Pudełku porażek i zapisach arkuszy. Ekran pokazuje literę „wyświetlaną”.
+// w Pudełku porażek i zapisach arkuszy. Ekran pokazuje literę „wyświetlaną”.
 // Kolejność zależy wyłącznie od id zadania – to samo zadanie wygląda zawsze tak samo (też po powrocie do niego).
 
 export const OPTION_KEYS: readonly OptionKey[] = ["A", "B", "C", "D"];

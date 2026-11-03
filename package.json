@@ -12,7 +12,6 @@
     "mobile:sync": "next build && cap sync",
     "android": "npm run mobile:sync && cap open android",
     "ios": "npm run mobile:sync && cap open ios",
-    "db:keys": "tsx --tsconfig tsconfig.json scripts/generate-question-keys.ts",
     "db:status": "supabase migration list --remote",
     "db:push:test": "supabase db push --remote=hewatagpzhxhuoaqckih",
     "db:push:prod": "supabase db push --remote",

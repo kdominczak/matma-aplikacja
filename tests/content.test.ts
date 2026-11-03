@@ -1,12 +1,10 @@
 // Jakość treści: każde zadanie musi się poprawnie wyrenderować, mieć spójny klucz i punktację.
 // Błędny klucz w aplikacji maturalnej kosztuje zaufanie ucznia – ten test łapie błędy techniczne
 // (merytorykę i tak musi sprawdzić nauczyciel).
-import { readFileSync } from "node:fs";
 import katex from "katex";
 import { describe, expect, it } from "vitest";
 import { allQuestionRefs, allTopics, findQuestion, formulaGroup, practiceTasks, theoryChecks } from "@/data/topics";
 import { matchesAnswer } from "@/lib/calc";
-import { questionKeysSql } from "../scripts/question-keys";
 
 function texErrors(text: string, display = false): string[] {
   const parts = display ? [text] : (text.match(/\$[^$]+\$/g) ?? []).map((m) => m.slice(1, -1));
@@ -105,8 +103,4 @@ describe("treść zadań", () => {
     });
   }
 
-  it("seed kluczy w repo jest aktualny (inaczej uruchom npm run db:keys)", () => {
-    const file = readFileSync("supabase/seed/question_keys.sql", "utf8").replace(/\r\n/g, "\n");
-    expect(file).toBe(questionKeysSql());
-  });
 });

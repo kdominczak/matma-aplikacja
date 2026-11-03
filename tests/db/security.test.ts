@@ -30,7 +30,7 @@ describe("bezpieczeństwo bazy", () => {
     expect(names(rows)).toEqual([]);
   });
 
-  it("niezalogowany (anon) wywoła tylko stałe, sprawdzanie nicku i ranking", async () => {
+  it("niezalogowany (anon) wywoła tylko stałe (limity)", async () => {
     const rows = await t.admin<{ name: string }>(
       `select p.proname as name from pg_proc p join pg_namespace n on n.oid = p.pronamespace
        where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')`,
@@ -39,11 +39,6 @@ describe("bezpieczeństwo bazy", () => {
       "ai_free_daily_limit",
       "ai_grading_daily_limit",
       "ai_premium_daily_limit",
-      "check_nick",
-      "leaderboard",
-      "nick_allowed",
-      "normalize_nick",
-      "ranking_daily_cap",
     ]);
   });
 
@@ -57,20 +52,15 @@ describe("bezpieczeństwo bazy", () => {
       "consume_ai_quota",
       "consume_grading_quota",
       "delete_my_account",
-      "import_mistakes",
-      "leaderboard",
-      "my_ranking_summary",
       "my_referral_code",
-      "record_answers",
       "redeem_gift_code",
       "redeem_referral",
-      "reset_learning_data",
       "save_progress",
       "track_funnel",
     ]);
   });
 
-  it("bezpośredni dostęp do tabel: anon czyta tylko profile, uczeń – tylko swoje dane (dalej zawęża RLS)", async () => {
+  it("bezpośredni dostęp do tabel: anon – nic, uczeń – tylko swoje dane (dalej zawęża RLS)", async () => {
     const grants = (role: string) =>
       t.admin<{ name: string; privileges: string }>(
         `select table_name as name, string_agg(privilege_type, ',' order by privilege_type) as privileges
@@ -78,12 +68,9 @@ describe("bezpieczeństwo bazy", () => {
          where table_schema = 'public' and grantee = $1 group by table_name order by table_name`,
         [role],
       );
-    expect(await grants("anon")).toEqual([{ name: "profiles", privileges: "SELECT" }]);
+    expect(await grants("anon")).toEqual([]);
     expect(await grants("authenticated")).toEqual([
-      { name: "answers", privileges: "SELECT" },
       { name: "exam_attempts", privileges: "DELETE,INSERT,SELECT" },
-      { name: "mistakes", privileges: "SELECT" },
-      { name: "profiles", privileges: "DELETE,SELECT" },
       { name: "user_progress", privileges: "DELETE,SELECT" },
     ]);
   });

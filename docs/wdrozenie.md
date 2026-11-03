@@ -21,7 +21,7 @@ Zasady:
 
 Po migracjach uruchom `supabase/admin/kontrola-bezpieczenstwa.sql` – RLS, funkcje i uprawnienia klienta muszą zgadzać się z `tests/db/security.test.ts`.
 
-Stan 3.11.2026: obie bazy mają komplet migracji do `20261110120000_gift_codes.sql`. „Allow anonymous sign-ins” (Authentication → Sign In / Providers) – **wyłącz na produkcji** po wydaniu nowego builda (do potwierdzenia). Projekt testowy nie ma seeda `question_keys` (tylko ranking, do usunięcia).
+Stan 3.11.2026: obie bazy mają komplet migracji do `20261111120000_drop_ranking.sql` (ranking usunięty z bazy). „Allow anonymous sign-ins” (Authentication → Sign In / Providers) – **wyłącz na produkcji** po wydaniu nowego builda (do potwierdzenia).
 
 ## 2. Funkcje serwerowe
 

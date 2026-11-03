@@ -212,8 +212,10 @@ describe("zakupy (webhook RevenueCat → set_purchase_premium)", () => {
 
   it("migracje od zakupów wzwyż można powtórzyć po kolei – dane i nowsze funkcje zostają", async () => {
     await setPurchase(A, inDays(30), "INITIAL_PURCHASE");
-    // powtórka = ta migracja i wszystkie nowsze w kolejności (sama starsza cofnęłaby nowsze wersje funkcji)
-    for (const file of MIGRATIONS.filter((f) => f >= "20261103120000")) await t.applyMigration(file);
+    // powtórka = ta migracja i wszystkie nowsze w kolejności (sama starsza cofnęłaby nowsze wersje funkcji);
+    // bez 20261106 (ranking) – jej tabele usuwa 20261111120000_drop_ranking.sql
+    const replay = MIGRATIONS.filter((f) => f >= "20261103120000" && f !== "20261106120000_fair_ranking.sql");
+    for (const file of replay) await t.applyMigration(file);
     expect((await consume(A)).premium).toBe(true);
     expect(await status(A)).toHaveProperty("grading_limit");
     expect((await t.admin<{ n: number }>(`select count(*)::int as n from public.purchase_events`))[0].n).toBe(1);

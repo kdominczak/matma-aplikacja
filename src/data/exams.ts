@@ -15,7 +15,7 @@ import type { ExamSheet } from "@/types/exam";
 //    rozszerzonej zaczyna się od „r” (np. „r26k3f9a”).
 // 3. Oficjalne arkusze CKE – trafią do CKE_EXAMS po przepisaniu treści i klucza z PDF-ów CKE
 //    (src/data/cke-sheets.ts). Nie generujemy ich „z pamięci”: uczeń musi dostać dokładnie te zadania
-//    i ten klucz, które były na maturze. Id zadań muszą trafić do question_keys (npm run db:keys).
+//    i ten klucz, które były na maturze.
 
 const MOCK_COUNT = 3;
 const RANDOM_PREFIX = "los-";

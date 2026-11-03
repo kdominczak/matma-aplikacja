@@ -18,8 +18,7 @@ export async function deleteAccountAndData(): Promise<void> {
     const { data } = await db.auth.getSession();
     const userId = data.session?.user.id;
     if (userId) {
-      // zdjęcie najpierw – Supabase nie pozwala kasować plików Storage z poziomu SQL; brak pliku to nie błąd
-      await db.storage.from("avatars").remove([`${userId}.jpg`]);
+      // wszystkie dane ucznia na serwerze kasuje kaskada od auth.users (zdjęć w Storage już nie ma – ranking usunięty)
       const { error } = await db.rpc("delete_my_account");
       if (error) {
         throw new Error(

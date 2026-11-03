@@ -19,7 +19,7 @@ Jeden krok = jedna myśl. 5–8 kroków na dział, od intuicji do zadań matural
 - Dystraktory = **typowe błędy**: odwrócony znak, pomylone $p$ i $q$, wierzchołek spoza przedziału, zgubiony czynnik. Każda zła odpowiedź powinna wynikać z konkretnej pomyłki.
 - `explanation` – pełne rozwiązanie w 1–2 zdaniach. `trap` – nazwij błąd, który prowadzi do najpopularniejszej złej odpowiedzi.
 - Nie pisz „odpowiedź A” w treści – odpowiedzi są mieszane na ekranie.
-- Id: `<skrót działu>-t<n>` (np. `fk-t3`), nowe pytanie → `npm run db:keys`. Nie zmieniaj id istniejących.
+- Id: `<skrót działu>-t<n>` (np. `fk-t3`), Nie zmieniaj id istniejących.
 
 ## Telefon
 

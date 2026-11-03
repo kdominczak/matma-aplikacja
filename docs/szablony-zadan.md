@@ -13,8 +13,7 @@ merytorycznego jest **jeden szablon**, nie dziesiątki zadań.
 4. Dodaj sprawdzenie siłowe w `tests/templates.test.ts` – test odczytuje liczby z treści wariantu i liczy wynik
    niezależnie od szablonu (wyliczenie przypadków, podstawienie do równań).
 5. `npm test` – testy treści sprawdzą też KaTeX, 4 różne odpowiedzi, punktację i odpowiedzi otwarte.
-6. `npm run db:keys` i wklej `supabase/seed/question_keys.sql` w Supabase SQL Editor (klucze dla rankingu).
-7. Ponownie `npm run blueprint:coverage` – luka powinna zniknąć.
+6. Ponownie `npm run blueprint:coverage` – luka powinna zniknąć.
 
 ## Typy zadań
 

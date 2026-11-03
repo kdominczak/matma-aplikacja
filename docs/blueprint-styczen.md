@@ -134,7 +134,7 @@ Szczegóły i pomiar trafności – `docs/ocenianie-ai.md`. Przebieg:
 
 ### 3.1 Schemat ✅
 
-Migracje w `supabase/migrations` uruchamiane **po kolei** (seed `question_keys.sql` po drugiej). Każda testowana w PGlite (`tests/db/`).
+Migracje w `supabase/migrations` przez Supabase CLI z historią (`docs/wdrozenie.md`). Ranking i `record_answers()` usunięte z bazy 3.11.2026 (`20261111120000_drop_ranking.sql`) – dwa punkty niżej są historyczne. Każda testowana w PGlite (`tests/db/`).
 
 - **Odpowiedzi i ranking:** `record_answers()` – klient wysyła tylko id zadania i literę; poprawność ocenia serwer z `question_keys`. Każde zadanie liczy się raz dziennie, najwyżej `ranking_daily_cap()` (150) dziennie. Bez limitu tempa – zgubiłby kolejkę offline. Klient nie ma uprawnień do kolumn serii.
 - **Offline-first:** odpowiedzi trafiają do kolejki na urządzeniu i idą do `record_answers()` po odzyskaniu sieci (`src/lib/learning-sync.ts`).
