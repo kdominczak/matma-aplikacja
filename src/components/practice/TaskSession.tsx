@@ -173,7 +173,7 @@ export default function TaskSession({ title, exitHref, exitLabel, tasks: session
             {groups.length > 0 && (
             <button
               onClick={() => setPanel("formulas")}
-              className="press flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-brand/50 bg-brand-soft px-3.5 py-2 text-sm font-extrabold text-brand shadow-card transition-colors hover:border-brand"
+              className="press flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border-2 border-ink/20 bg-card px-3.5 py-2 text-sm font-extrabold text-ink shadow-card transition-colors hover:border-ink/40"
             >
               <Icon name="book" className="h-4 w-4" />
               Wzory

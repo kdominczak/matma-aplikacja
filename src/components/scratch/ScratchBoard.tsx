@@ -1003,9 +1003,12 @@ export default function ScratchBoard(props: Props) {
       </div>
 
       <footer
-        className={`border-t border-line bg-card ${full ? "px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] short:pt-1 short:pb-[max(0.25rem,env(safe-area-inset-bottom))] lg:px-8" : "px-2 py-2"}`}
+        // pełny ekran: pasek narzędzi jako „wyspa” (zaokrąglony, z marginesem) zamiast stopki na całą szerokość
+        className={full ? "bg-surface px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] short:pt-1 short:pb-[max(0.25rem,env(safe-area-inset-bottom))] lg:px-8" : "border-t border-line bg-card px-2 py-2"}
       >
-        <div className={`mx-auto flex flex-col gap-2 ${full ? "max-w-5xl short:flex-row short:items-center short:gap-1 lg:flex-row lg:items-center lg:justify-between" : ""}`}>
+        <div
+          className={`mx-auto flex flex-col gap-2 ${full ? "max-w-5xl rounded-2xl border border-line bg-card p-2 shadow-float short:flex-row short:items-center short:gap-1 short:p-1 lg:flex-row lg:items-center lg:justify-between" : ""}`}
+        >
           {/* jeden rząd: narzędzia przewijane w poziomie (na telefonie zawijane zajmowały 3 rzędy), cofnij/ponów/wyczyść stale po prawej */}
           <div className={`flex min-w-0 items-center gap-0.5 ${full ? "short:flex-1" : ""}`}>
             <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto pr-4 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] [&::-webkit-scrollbar]:hidden">

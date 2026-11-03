@@ -418,34 +418,28 @@ function StatTiles({ progress }: { progress: Progress }) {
     const record = progress.practice[id];
     return record && record.verifiedPoints === record.maxPoints;
   }).length;
+  // jedna karta z wierszami zamiast czterech kafelków „ikona → liczba → podpis” (audyt wyglądu z 2.11)
+  const rows = [
+    { value: practiceSolved, label: plural(practiceSolved, "zadanie rozwiązane", "zadania rozwiązane", "zadań rozwiązanych"), note: "w zakładce Zadania", href: "/zadania" },
+    { value: openSolved, label: plural(openSolved, "zadanie otwarte", "zadania otwarte", "zadań otwartych"), note: "rozwiązane w całości", href: "/zadania" },
+    { value: mastered, label: plural(mastered, "dział opanowany", "działy opanowane", "działów opanowanych"), note: "wszystkie 3 poziomy", href: "/opanowane" },
+    { value: planBest, label: plural(planBest, "dzień z planem", "dni z planem", "dni z planem"), note: "najdłuższa seria planu", href: "/plan" },
+  ];
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <Tile icon="tasks" tone="bg-brand-soft text-brand" value={practiceSolved} label={plural(practiceSolved, "zadanie rozwiązane", "zadania rozwiązane", "zadań rozwiązanych")} note="w zakładce Zadania" href="/zadania" />
-      <Tile icon="checkCircle" tone="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" value={mastered} label={plural(mastered, "dział opanowany", "działy opanowane", "działów opanowanych")} note="wszystkie 3 poziomy" href="/opanowane" />
-      <Tile icon="layers" tone="bg-violet-500/15 text-violet-500" value={openSolved} label={plural(openSolved, "zadanie otwarte", "zadania otwarte", "zadań otwartych")} note="rozwiązane w całości" href="/zadania" />
-      <Tile icon="calendar" tone="bg-teal-500/15 text-teal-500" value={planBest} label={plural(planBest, "dzień z planem", "dni z planem", "dni z planem")} note="najdłuższa seria planu" href="/plan" />
-    </div>
-  );
-}
-
-function Tile({ icon, tone, value, label, note, href }: { icon: IconName; tone: string; value: number; label: string; note: string; href: string }) {
-  return (
-    <Link
-      href={href}
-      className="card group flex min-w-0 flex-col gap-2 p-4 card-hover hover:border-brand/60 dark:hover:border-brand/40 active:scale-[0.98]"
-    >
-      <span className="flex items-center justify-between">
-        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}>
-          <Icon name={icon} className="h-[18px] w-[18px]" />
-        </span>
-        <Icon name="chevron" className="h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5" />
-      </span>
-      <span>
-        <span className="block text-3xl font-extrabold tracking-tight text-ink tabular-nums">{value}</span>
-        <span className="line-clamp-2 block text-sm leading-snug font-bold text-body">{label}</span>
-        <span className="block text-xs leading-snug text-muted">{note}</span>
-      </span>
-    </Link>
+    <ul className="card flex flex-col divide-y divide-line overflow-hidden">
+      {rows.map((row) => (
+        <li key={row.label}>
+          <Link href={row.href} className="group flex min-h-14 items-center gap-3 px-5 py-3 transition-colors hover:bg-subtle/60 active:bg-subtle">
+            <span className="w-12 shrink-0 font-display text-2xl font-extrabold text-ink tabular-nums">{row.value}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-ink">{row.label}</span>
+              <span className="block text-xs text-muted">{row.note}</span>
+            </span>
+            <Icon name="chevron" className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

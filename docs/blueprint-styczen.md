@@ -207,9 +207,9 @@ Zasady sprawdzone ręcznie według listy z `enmerasoftware/ai-design-check` (sam
 
 ### Do zrobienia (projekt, nie kosmetyka)
 
-1. **Karty statystyk w profilu** (ikona → liczba → podpis ×3) to wzorzec „stat card” z listy AI-looku. Lepiej jedna linia z najważniejszą liczbą (szacowany wynik) i dwie drugorzędne w tekście.
-2. **Złota jest za dużo** – po zmianach z 2.11 także przycisk „Wzory”. Zasada: złoto tylko na głównej akcji ekranu i na liczbie, która jest wynikiem. Reszta – grafit i biel.
-3. **Brudnopis na pełnym ekranie:** pływający pasek narzędzi („wyspa”) zamiast pełnej stopki – największy zysk jakości tam, gdzie uczeń spędza najwięcej czasu.
+1. ✅ (3.11.2026 – jedna karta z wierszami) **Karty statystyk w profilu** (ikona → liczba → podpis ×3) to wzorzec „stat card” z listy AI-looku. Lepiej jedna linia z najważniejszą liczbą (szacowany wynik) i dwie drugorzędne w tekście.
+2. ✅ (3.11.2026 – „Wzory” i „Karta wzorów” neutralne, złoto zostaje dla głównej akcji i wyniku) **Złota jest za dużo** – po zmianach z 2.11 także przycisk „Wzory”. Zasada: złoto tylko na głównej akcji ekranu i na liczbie, która jest wynikiem. Reszta – grafit i biel.
+3. ✅ (3.11.2026 – pasek narzędzi jako zaokrąglona wyspa z marginesem; w układzie, nie nad kartką) **Brudnopis na pełnym ekranie:** pływający pasek narzędzi („wyspa”) zamiast pełnej stopki – największy zysk jakości tam, gdzie uczeń spędza najwięcej czasu.
 
 ---
 

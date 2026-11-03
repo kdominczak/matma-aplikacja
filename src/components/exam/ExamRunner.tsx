@@ -347,7 +347,7 @@ function ExamInProgress({
               <Icon name="flag" className="h-4 w-4" />
               {flagged ? "Oznaczone – wrócę" : "Wrócę do tego"}
             </button>
-            <button onClick={() => setPanel("formulas")} className="press ml-auto flex min-h-11 items-center gap-1.5 rounded-full border-2 border-brand/50 bg-brand-soft px-3.5 normal-case tracking-normal font-extrabold text-brand">
+            <button onClick={() => setPanel("formulas")} className="press ml-auto flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink/20 bg-card px-3.5 normal-case tracking-normal font-extrabold text-ink hover:border-ink/40">
               <Icon name="book" className="h-4 w-4" />
               Karta wzorów
             </button>
