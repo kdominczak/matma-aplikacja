@@ -159,7 +159,7 @@ const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
 
 /** Jednostki i dopiski po wyniku, które nie zmieniają wartości. */
 const UNIT =
-  /\s*(?:cm|mm|dm|km|m|kg|dag|g|zł|gr|min|h|s|l|ml|j|jednost(?:ek|ki|ka)|stopni(?:e|a)?|°|rad|szt\.?|osób|osoby|lat|dni)(?:\^?[23])?\.?$/;
+  /\s*(?:cm|mm|dm|km|m|kg|dag|g|zł|gr|min|h|s|l|ml|j|jednost(?:ek|ki|ka)|stopni(?:e|a)?(?:\s*celsjusza)?|°\s*c|℃|°|rad|szt\.?|osób|osoby|lat|dni)(?:\^?[23])?\.?$/;
 
 function normalize(answer: string): string {
   let s = answer.toLowerCase().trim();
@@ -244,6 +244,12 @@ function sameSet(parts: string[], expected: number[]): boolean {
 /** Czy odpowiedź ucznia odpowiada jednej z akceptowanych (porównanie wartości, kolejność rozwiązań dowolna). */
 export function matchesAnswer(given: string, accepted: string[]): boolean {
   if (!given.trim()) return false;
+  // granica nieskończona („-∞”, „+∞”): porównujemy znak nieskończoności
+  const infinite = accepted.map(infinityValue);
+  if (infinite.some((v) => v !== null)) {
+    const mine = infinityValue(given);
+    return mine !== null && infinite.includes(mine);
+  }
   // klucz-przedział (np. „[-4, 4)”) porównujemy jako zbiór: krańce i ich domknięcie, zapis dowolny
   const keyIntervals = accepted.map(readIntervals);
   if (keyIntervals.some(Boolean)) {
@@ -290,6 +296,12 @@ export interface Interval {
 
 const LEFT = "[(⟨<";
 const RIGHT = "])⟩>";
+
+/** Odpowiedź „−∞” / „+∞” (np. granica) – ±Infinity, inna – null. Bez znaku: +∞. */
+function infinityValue(answer: string): number | null {
+  const t = stripName(normalize(answer).replace(/\s+/g, "").replace(/^lim[^=]*=/, ""));
+  return /^[+-]?(∞|inf|oo|nieskończoność)$/.test(t) ? (t.startsWith("-") ? -Infinity : Infinity) : null;
+}
 
 /** Kraniec: liczba albo nieskończoność („∞”, „+∞”, „inf”, „oo”). */
 function boundValue(text: string): number | null {

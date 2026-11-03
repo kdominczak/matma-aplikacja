@@ -90,3 +90,14 @@ describe("przedziały w odpowiedziach (zadania typu „zbiór rozwiązań”)", 
     expect(formatIntervals(readIntervals("x ≥ -9")!)).toBe("[-9; +∞)");
   });
 });
+
+describe("granica nieskończona jako wynik", () => {
+  it("„-∞” zgadza się tylko z minus nieskończonością", () => {
+    expect(matchesAnswer("-∞", ["-∞"])).toBe(true);
+    expect(matchesAnswer("−∞", ["-∞"])).toBe(true);
+    expect(matchesAnswer("lim = -inf", ["-∞"])).toBe(true);
+    expect(matchesAnswer("+∞", ["-∞"])).toBe(false);
+    expect(matchesAnswer("∞", ["+∞"])).toBe(true);
+    expect(matchesAnswer("12", ["-∞"])).toBe(false);
+  });
+});
