@@ -12,6 +12,7 @@ import BottomSheet from "@/components/ui/BottomSheet";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
+import { isCkeTask } from "@/data/cke";
 import { getDifficulty, type PracticeTask } from "@/data/topics";
 import { matchesAnswer } from "@/lib/calc";
 import { hapticError, hapticSuccess } from "@/lib/haptics";
@@ -229,7 +230,12 @@ export default function TaskSession({ title, exitHref, exitLabel, tasks: session
             >
               {task.kind === "closed" ? "Zamknięte" : "Otwarte"} · {task.points} pkt
             </span>
-            <span className="rounded-full bg-subtle px-2.5 py-1 text-muted">{level.label}</span>
+            {isCkeTask(task) ? (
+              // zadanie z prawdziwego arkusza – źródło zamiast poziomu trudności (etykieta: „Matura CKE · maj 2024”)
+              <span className="rounded-full bg-navy px-2.5 py-1 text-white">{(task.kind === "closed" ? task.question.label : task.task.label).replace("Matura CKE · ", "CKE · ")}</span>
+            ) : (
+              <span className="rounded-full bg-subtle px-2.5 py-1 text-muted">{level.label}</span>
+            )}
             {entry.note && <span className="normal-case tracking-normal text-muted">{entry.note}</span>}
             {status(progress?.practice[task.id]) === "solved" && (
               <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">

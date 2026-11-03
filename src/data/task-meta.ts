@@ -1,3 +1,4 @@
+import { isCkeTask } from "@/data/cke";
 import { extendedTopics, placementQuestions, practiceTasks, topics, type PracticeTask } from "@/data/topics";
 import type { BlueprintSlot, Section, TaskFormat } from "@/types/blueprint";
 import type { Difficulty, Level, Topic } from "@/types/topic";
@@ -79,7 +80,8 @@ export function examPool(level: Level = "podstawowy"): PoolTask[] {
   const from = (list: Topic[], keep: (task: PracticeTask) => boolean) =>
     list.flatMap((topic) =>
       practiceTasks(topic)
-        .filter((task) => !placement.has(task.id) && keep(task))
+        // arkusz losowy to zadania autorskie – bez zadań z arkuszy CKE
+        .filter((task) => !placement.has(task.id) && !isCkeTask(task) && keep(task))
         .map((task) => ({ task, topic, meta: taskMeta(task, topic) })),
     );
   const pool =

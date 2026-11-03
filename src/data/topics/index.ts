@@ -2,6 +2,7 @@ import type { Difficulty, FormulaGroup, Level, Topic } from "@/types/topic";
 import type { OpenQuestion, QuizQuestion } from "@/types/quiz";
 import { PLACEMENT } from "@/data/placement";
 import { generatedTasks } from "@/data/templates";
+import { ckeTasksOfTopic } from "@/data/cke";
 import ciagi from "./ciagi";
 import funkcjaKwadratowa from "./funkcja-kwadratowa";
 import funkcjaLiniowa from "./funkcja-liniowa";
@@ -170,13 +171,19 @@ export function theoryChecks(topic: Topic): QuizQuestion[] {
   return (topic.content?.theory ?? []).flatMap((section) => (section.check ? [{ ...section.check, label }] : []));
 }
 
-/** Wszystkie zadania zamknięte aplikacji: zadania działów, pytania przy teorii, zestawy z „Zadań” i test na start. */
+/**
+ * Wszystkie zadania zamknięte aplikacji: zadania działów, pytania przy teorii, zestawy z „Zadań”, test na start
+ * i zamknięte zadania z arkuszy CKE przypisane do działów (Pudełko porażek, plan dnia).
+ */
 export function allQuestionRefs(): QuestionRef[] {
   return [
     ...allTopics.flatMap((topic) => DIFFICULTIES.flatMap((d) => testQuestions(topic, d.id).map((question) => ({ question, topic, difficulty: d.id })))),
     ...allTopics.flatMap((topic) => theoryChecks(topic).map((question) => ({ question, topic, difficulty: "podstawowy" as const }))),
     ...allTopics.flatMap(practiceClosedRefs),
     ...placementQuestions(),
+    ...allTopics.flatMap((topic) =>
+      ckeTasksOfTopic(topic.id).flatMap((task) => (task.kind === "closed" ? [{ question: task.question, topic, difficulty: task.difficulty }] : [])),
+    ),
   ];
 }
 
@@ -218,7 +225,8 @@ export function practiceTasks(topic: Topic): PracticeTask[] {
       points: task.points,
       task: { ...task, label: `${topic.title} · ${getDifficulty(difficulty).label}` },
     }));
-  return [...closed, ...open];
+  // na końcu – zadania z prawdziwych arkuszy CKE przypisane do działu (src/data/cke/index.ts)
+  return [...closed, ...open, ...ckeTasksOfTopic(topic.id)];
 }
 
 // Indeks wszystkich zadań (zamkniętych i otwartych) po id – np. do przypisania wyniku z arkusza do działu.

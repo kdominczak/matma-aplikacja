@@ -1,10 +1,5 @@
 import { CURRENT_BLUEPRINTS } from "@/data/blueprints";
-import { CKE_2025_MAJ } from "@/data/cke/matura-2025-maj";
-import { CKE_2025_MAJ_R } from "@/data/cke/matura-2025-maj-rozszerzona";
-import { CKE_2024_MAJ } from "@/data/cke/matura-2024-maj";
-import { CKE_2024_MAJ_R } from "@/data/cke/matura-2024-maj-rozszerzona";
-import { CKE_2023_MAJ } from "@/data/cke/matura-2023-maj";
-import { CKE_2023_MAJ_R } from "@/data/cke/matura-2023-maj-rozszerzona";
+import { CKE_SHEETS } from "@/data/cke";
 import { MOCK_EXAMS, type FrozenExam } from "@/data/mock-exams";
 import { practiceTaskById } from "@/data/topics";
 import { blueprintLevel, DIFFICULTY_TOLERANCE, generateExam, parseExamCode, referenceExpected, type GeneratedExam } from "@/lib/exam-generator";
@@ -19,7 +14,7 @@ import type { ExamSheet } from "@/types/exam";
 // 2. Arkusze losowe – z generatora, odtwarzane z kodu (id „los-<kod>”); nie są zapisane na stałe,
 //    więc każdy kod daje inny arkusz, a ten sam kod – zawsze ten sam. Na obu poziomach: kod matury
 //    rozszerzonej zaczyna się od „r” (np. „r26k3f9a”).
-// 3. Oficjalne arkusze CKE – trafią do CKE_EXAMS po przepisaniu treści i klucza z PDF-ów CKE
+// 3. Oficjalne arkusze CKE (src/data/cke/) – przepisane z PDF-ów CKE razem z kluczem
 //    (src/data/cke-sheets.ts). Nie generujemy ich „z pamięci”: uczeń musi dostać dokładnie te zadania
 //    i ten klucz, które były na maturze.
 
@@ -83,7 +78,7 @@ function mockExams(): ExamSheet[] {
  * Przykład wpisu: { id: "cke-2024-maj", kind: "cke", year: 2024, session: "maj", title: "Matura maj 2024", … , pdf: { … } }.
  * `year` i `session` są obowiązkowe – z nich powstaje oznaczenie źródła (examSource, taskSource; pilnuje tego test).
  */
-const CKE_EXAMS: ExamSheet[] = [CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R, CKE_2023_MAJ, CKE_2023_MAJ_R];
+const CKE_EXAMS: ExamSheet[] = CKE_SHEETS;
 
 export const EXAMS: ExamSheet[] = [...CKE_EXAMS, ...mockExams()];
 
