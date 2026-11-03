@@ -6,6 +6,7 @@ import { CKE_2025_MAJ } from "@/data/cke/matura-2025-maj";
 import { CKE_2025_MAJ_R } from "@/data/cke/matura-2025-maj-rozszerzona";
 import { CKE_2026_MAJ } from "@/data/cke/matura-2026-maj";
 import { CKE_2026_MAJ_R } from "@/data/cke/matura-2026-maj-rozszerzona";
+import { CKE_HELP } from "@/data/cke/podpowiedzi";
 import type { PracticeTask } from "@/data/topics";
 import type { ExamSheet } from "@/types/exam";
 
@@ -104,11 +105,20 @@ export function ckeTasksOfTopic(topicId: string): PracticeTask[] {
       sheet.tasks.forEach((task, i) => {
         const topic = ckeTopicOf(sheet, i);
         if (!topic || task.kind === "choice" || (task.kind === "open" && task.task.format === "proof")) return;
-        byTopic!.set(topic, [...(byTopic!.get(topic) ?? []), task]);
+        byTopic!.set(topic, [...(byTopic!.get(topic) ?? []), withHelp(task)]);
       });
     }
   }
   return byTopic.get(topicId) ?? [];
+}
+
+/** Podpowiedzi i pułapka (src/data/cke/podpowiedzi.ts) – kopia zadania, arkusz zostaje bez pomocy jak na maturze. */
+function withHelp(task: PracticeTask): PracticeTask {
+  const help = CKE_HELP[task.id];
+  if (!help) return task;
+  return task.kind === "closed"
+    ? { ...task, question: { ...task.question, hints: help.hints, ...(help.trap ? { trap: help.trap } : {}) } }
+    : { ...task, task: { ...task.task, hints: help.hints } };
 }
 
 /** Czy zadanie pochodzi z arkusza CKE (generator arkuszy losowych bierze tylko zadania autorskie). */

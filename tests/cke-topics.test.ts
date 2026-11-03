@@ -35,3 +35,19 @@ describe("zadania CKE w działach", () => {
     for (const level of ["podstawowy", "rozszerzony"] as const) expect(examPool(level).some((p) => isCkeTask(p.task))).toBe(false);
   });
 });
+
+describe("podpowiedzi do zadań CKE w „Zadaniach”", () => {
+  it("każde zadanie CKE w działach ma co najmniej dwie podpowiedzi; arkusz zostaje bez pomocy", () => {
+    const all = allTopics.flatMap((t) => ckeTasksOfTopic(t.id));
+    const missing = all.filter((t) => ((t.kind === "closed" ? t.question.hints : t.task.hints) ?? []).length < 2).map((t) => t.id);
+    expect(missing).toEqual([]);
+    const original = CKE_SHEETS.flatMap((s) => s.tasks).filter((t) => t.kind === "closed" || t.kind === "open");
+    expect(original.some((t) => (t.kind === "closed" ? t.question.hints : t.kind === "open" ? t.task.hints : undefined)?.length)).toBe(false);
+  });
+
+  it("w pliku podpowiedzi nie ma wpisów dla nieistniejących zadań", async () => {
+    const { CKE_HELP } = await import("@/data/cke/podpowiedzi");
+    const ids = new Set(allTopics.flatMap((t) => ckeTasksOfTopic(t.id)).map((t) => t.id));
+    expect(Object.keys(CKE_HELP).filter((id) => !ids.has(id))).toEqual([]);
+  });
+});
