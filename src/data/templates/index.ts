@@ -1,6 +1,47 @@
 // Rejestr szablonów: który dział dostaje które szablony i ile wariantów każdego.
 // Warianty są stałe (to samo id = ta sama treść i klucz) i działają w „Pudełku porażek”, powtórkach i statystykach jak zwykłe zadania.
 import { closedVariants, openVariants, type ClosedTemplate, type ClosedVariant, type OpenTemplate, type OpenVariant } from "@/data/templates/engine";
+import {
+  absEquation,
+  absInequality,
+  linearInequality,
+  logDifference,
+  logSum,
+  quadraticInequality,
+  quadraticIntegers,
+  rationalEquation,
+  rationalRootCount,
+  rootIdentity,
+  smallestInteger,
+  squareOfSum,
+} from "@/data/templates/algebra";
+import {
+  circleCenter,
+  circleRadius,
+  exponentialBase,
+  exponentialValue,
+  isoscelesAngles,
+  lawOfCosines,
+  pythagoras,
+  rhombusSide,
+  shiftedValue,
+  shiftVector,
+  similarArea,
+  triangleAreaSine,
+} from "@/data/templates/funkcje-geometria";
+import {
+  binomialCoefficient,
+  conditionalDice,
+  derivativeValue,
+  doubleAngle,
+  localMinimum,
+  pointLineDistance,
+  polyRemainder,
+  polyRootParameter,
+  quadraticParameter,
+  sequenceLimit,
+  sineLaw,
+} from "@/data/templates/rozszerzenie";
 import { chooseRoles, digitsNoZero, digitsWithZero, parityDigits } from "@/data/templates/kombinatoryka";
 import {
   arithmeticSum,
@@ -28,6 +69,41 @@ const OPEN = 6;
 
 const SETS: Record<string, { closed?: [ClosedTemplate, number][]; open?: [OpenTemplate, number][] }> = {
   "potegi-i-pierwiastki": { closed: [[powersTrueFalse, TF]] },
+  logarytmy: { closed: [[logDifference, ABCD]], open: [[logSum, OPEN]] },
+  "wartosc-bezwzgledna": {
+    closed: [
+      [absEquation, ABCD],
+      [absInequality, ABCD],
+    ],
+  },
+  "wzory-skroconego-mnozenia": { closed: [[squareOfSum, ABCD]], open: [[rootIdentity, OPEN]] },
+  "nierownosci-liniowe": { closed: [[linearInequality, ABCD]], open: [[smallestInteger, OPEN]] },
+  "nierownosci-kwadratowe": { closed: [[quadraticInequality, ABCD]], open: [[quadraticIntegers, OPEN]] },
+  "rownania-wymierne": { closed: [[rationalRootCount, ABCD]], open: [[rationalEquation, OPEN]] },
+  "przeksztalcenia-wykresow": { closed: [[shiftVector, ABCD]], open: [[shiftedValue, OPEN]] },
+  "funkcja-wykladnicza-i-logarytmiczna": {
+    closed: [
+      [exponentialValue, ABCD],
+      [exponentialBase, ABCD],
+    ],
+  },
+  "rownanie-okregu": { closed: [[circleCenter, ABCD]], open: [[circleRadius, OPEN]] },
+  "twierdzenie-cosinusow": {
+    open: [
+      [triangleAreaSine, OPEN],
+      [lawOfCosines, OPEN],
+    ],
+  },
+  "trojkaty-i-czworokaty": {
+    closed: [
+      [pythagoras, ABCD],
+      [isoscelesAngles, ABCD],
+    ],
+    open: [
+      [similarArea, OPEN],
+      [rhombusSide, OPEN],
+    ],
+  },
   "funkcja-liniowa": { closed: [[linearTrueFalse, TF]], open: [[linearZero, OPEN]] },
   "uklady-rownan": {
     closed: [
@@ -74,6 +150,26 @@ const SETS: Record<string, { closed?: [ClosedTemplate, number][]; open?: [OpenTe
     ],
     open: [[divisibleOrOpen, OPEN]],
   },
+  // ── matura rozszerzona ──
+  "rz-wielomiany": {
+    open: [
+      [polyRemainder, OPEN],
+      [polyRootParameter, OPEN],
+    ],
+  },
+  "rz-parametr": { open: [[quadraticParameter, OPEN]] },
+  "rz-granice": { open: [[sequenceLimit, OPEN]] },
+  "rz-pochodna": {
+    open: [
+      [derivativeValue, OPEN],
+      [localMinimum, OPEN],
+    ],
+  },
+  "rz-trygonometria": { open: [[doubleAngle, OPEN]] },
+  "rz-planimetria": { open: [[sineLaw, OPEN]] },
+  "rz-geometria-analityczna": { open: [[pointLineDistance, OPEN]] },
+  "rz-kombinatoryka": { open: [[binomialCoefficient, OPEN]] },
+  "rz-prawdopodobienstwo": { open: [[conditionalDice, OPEN]] },
 };
 
 const cache = new Map<string, GeneratedTasks>();

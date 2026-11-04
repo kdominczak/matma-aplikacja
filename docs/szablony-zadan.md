@@ -8,10 +8,12 @@ merytorycznego jest **jeden szablon**, nie dziesiątki zadań.
 
 1. `npm run blueprint:coverage` – raport pokazuje pozycje prawdziwych arkuszy (2025–2026), dla których brakuje zadań
    (`BRAK`), jest ich za mało (`mało`) albo są zastępowane innym typem (`zastępstwo typu`).
-2. Napisz szablon w `src/data/templates/<dział>.ts` (wzory: `uklady-rownan.ts`, `prawda-falsz.ts`, `otwarte.ts`).
+2. Napisz szablon w `src/data/templates/<dział>.ts` (wzory: `uklady-rownan.ts`, `prawda-falsz.ts`, `otwarte.ts`, `algebra.ts`, `funkcje-geometria.ts`).
 3. Dopisz go do działu w `src/data/templates/index.ts` (liczba wariantów: ABCD 8, P/F 6, otwarte 6).
-4. Dodaj sprawdzenie siłowe w `tests/templates.test.ts` – test odczytuje liczby z treści wariantu i liczy wynik
-   niezależnie od szablonu (wyliczenie przypadków, podstawienie do równań).
+4. Dodaj sprawdzenie siłowe w `tests/templates.test.ts` albo `tests/templates-dzialy.test.ts` – test odczytuje liczby
+   z treści wariantu i liczy wynik niezależnie od szablonu (wyliczenie przypadków, podstawienie do równań). W
+   `templates-dzialy.test.ts` są pomocniki: `jsFn` (wyrażenie z treści → funkcja), `intervalSet` (przedział w zapisie
+   szkolnym → przynależność, porównanie na siatce co 1/4) – test sprawdza też, że **każdy dystraktor jest błędny**.
 5. `npm test` – testy treści sprawdzą też KaTeX, 4 różne odpowiedzi, punktację i odpowiedzi otwarte.
 6. Ponownie `npm run blueprint:coverage` – luka powinna zniknąć.
 
@@ -41,3 +43,9 @@ merytorycznego jest **jeden szablon**, nie dziesiątki zadań.
 Dla każdego szablonu: czy treść jest jednoznaczna dla każdych dopuszczalnych liczb, czy poziom pasuje do matury
 podstawowej, czy schemat punktowania odpowiada zasadom oceniania CKE, czy dystraktory są wiarygodne.
 Najprościej przejrzeć 3–4 warianty w zakładce „Zadania” (dział → filtr poziomu).
+
+## Stan (4.11.2026)
+
+Szablony ma 24 z 25 działów podstawy (brak: „Odczytywanie informacji z wykresu funkcji” – potrzebny generowany
+wykres `Plot`). Rozszerzenie (`rozszerzenie.ts`): 11 szablonów krótkiej odpowiedzi w 9 działach (bez stereometrii –
+potrzebny rysunek). Razem 4.11.2026 doszło ok. 240 wariantów.
