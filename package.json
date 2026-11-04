@@ -18,7 +18,8 @@
     "blueprint:coverage": "tsx --tsconfig tsconfig.json scripts/blueprint-coverage.ts",
     "screens": "playwright test e2e/screens.spec.ts",
     "exams:freeze": "tsx --tsconfig tsconfig.json scripts/freeze-mock-exams.ts",
-    "grading:eval": "tsx --tsconfig tsconfig.json scripts/grading-eval/run.ts"
+    "grading:eval": "tsx --tsconfig tsconfig.json scripts/grading-eval/run.ts",
+    "auth:emails": "tsx --env-file-if-exists=.env.smtp.local --tsconfig tsconfig.json scripts/auth-emails/run.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",

@@ -20,7 +20,7 @@ Kod: `src/lib/account.ts` (logika), `src/components/settings/AccountCard.tsx` (e
 
 ### 1. Supabase → Authentication
 
-1. **Sign In / Providers → Email:** włączony, „Confirm email” włączony. Szablony „Confirm signup”, „Magic Link” i „Change Email Address” muszą zawierać kod `{{ .Token }}` (już tak jest – logowanie kodem działa).
+1. **Sign In / Providers → Email:** włączony, „Confirm email” włączony. Szablony maili („Confirm signup”, „Magic Link”, „Change Email Address”) i SMTP **nie wklejamy ręcznie** – wgrywa je `npm run auth:emails` (sekcja „Maile z kodem” niżej).
 2. **Password requirements:** minimalna długość **8**, wymagane litery i cyfry – te same zasady co `passwordProblem()` w aplikacji.
 3. **Allow manual linking: włączone** (Authentication → Settings) – bez tego `linkIdentity` (Google do konta anonimowego) zwróci błąd.
 4. **Providers → Google:** włączony.
@@ -28,6 +28,32 @@ Kod: `src/lib/account.ts` (logika), `src/components/settings/AccountCard.tsx` (e
    - *Client Secret:* sekret klienta Web (potrzebny do logowania w przeglądarce).
    - „Skip nonce check” – **wyłączone** (aplikacja wysyła nonce).
 5. **URL Configuration:** Site URL = domena strony; Redirect URLs: `https://<domena>/**`, `http://localhost:3000/**`.
+
+### 1a. Maile z kodem: wygląd i wysyłka (SMTP)
+
+**Dlaczego:** wbudowana poczta Supabase jest tylko do testów – wysyła kilka maili na godzinę i **wyłącznie na adresy członków zespołu projektu**. Każdy inny uczeń dostaje błąd przy zakładaniu konta (`email_address_not_authorized` albo 500 „Error sending confirmation email”). Do wydania potrzebny jest własny SMTP i domena.
+
+**Wygląd:** treść i tematy trzech maili (nowe konto, logowanie/reset hasła kodem, dopięcie e-maila) są w `scripts/auth-emails/templates.ts` – grafit i złoto jak w aplikacji, duży 6-cyfrowy kod, bez linków. Nazwa aplikacji z `LEGAL.appName` (`src/data/legal.ts`). `npm run auth:emails` zapisuje podgląd do `supabase/templates/*.html` (otwórz w przeglądarce); test pilnuje, żeby podgląd był aktualny.
+
+**Raz, po zakupie domeny (np. `matmapro.pl`):**
+
+1. Konto w serwisie do maili transakcyjnych – np. **Resend** (3000 maili/mies. za darmo, 100/dzień) albo **Brevo** (300/dzień za darmo) – limity sprawdź na ich stronach, mogły się zmienić. Region UE, jeśli jest do wyboru (polityka prywatności – dopisać dostawcę do odbiorców danych w `src/data/legal.ts`).
+2. W serwisie: dodaj domenę i przepisz podane rekordy DNS u rejestratora (SPF, DKIM, zwykle też MX dla zwrotów). Dodaj **DMARC**: rekord TXT `_dmarc` = `v=DMARC1; p=none; rua=mailto:<twój e-mail>`. Poczekaj na „Verified”. Bez tego Gmail wrzuca maile do Spamu albo je odrzuca. Nie wysyłaj z adresu `@gmail.com` – nie przejdzie DMARC.
+3. W serwisie: dane SMTP (host, port 465 albo 587, użytkownik, hasło/klucz API).
+4. W katalogu projektu plik **`.env.smtp.local`** (jest w `.gitignore`, nie commituj):
+   ```
+   SUPABASE_ACCESS_TOKEN=sbp_…          # supabase.com/dashboard/account/tokens
+   SMTP_HOST=smtp.resend.com
+   SMTP_PORT=465
+   SMTP_USER=resend
+   SMTP_PASS=re_…
+   SMTP_FROM=kod@matmapro.pl            # adres w zweryfikowanej domenie
+   SMTP_RATE_PER_HOUR=100               # opcjonalnie, limit maili na godzinę
+   ```
+5. `npm run auth:emails -- --push test` → w aplikacji podpiętej do projektu testowego załóż konto na zwykły adres (np. drugi Gmail) → mail przychodzi, wygląda dobrze, nie ląduje w Spamie.
+6. `npm run auth:emails -- --push prod` (pyta o potwierdzenie).
+
+Skrypt zmienia przez API zarządzania Supabase **tylko** pola maili, ważność kodu (60 min) i SMTP – Google, adresy przekierowań i reguły haseł zostają. Bez `SMTP_HOST` wgrywa same szablony (można to zrobić już teraz, przed domeną). Zmiana nazwy aplikacji albo treści maila = edycja, `npm run auth:emails`, ponowne `--push` na oba projekty.
 
 ### 2. Google Cloud Console (projekt dla Matmy)
 

@@ -97,6 +97,9 @@ function describe(error: AuthError | null | undefined): string {
       return "Za dużo prób. Odczekaj kilka minut i spróbuj ponownie.";
     case "email_address_invalid":
       return "Ten adres e-mail jest nieprawidłowy.";
+    // poczta Supabase bez własnego SMTP wysyła tylko na adresy zespołu projektu (docs/konto.md)
+    case "email_address_not_authorized":
+      return "Nie udało się wysłać kodu na ten adres. Spróbuj za chwilę albo zaloguj się przez Google.";
     case "otp_expired":
       return "Kod jest nieprawidłowy albo wygasł. Wyślij nowy.";
     case "signup_disabled":
@@ -120,6 +123,12 @@ function describe(error: AuthError | null | undefined): string {
   return "Coś poszło nie tak. Spróbuj ponownie za chwilę.";
 }
 
+/** Błąd wysyłki kodu: awaria poczty (SMTP) Supabase zgłasza jako 500 „Error sending … email”. */
+function describeSend(error: AuthError): string {
+  if (error.status === 500 || /error sending/i.test(error.message)) return "Nie udało się wysłać maila z kodem. Spróbuj za chwilę albo zaloguj się przez Google.";
+  return describe(error);
+}
+
 /**
  * Wysyła 6-cyfrowy kod. Konto anonimowe → kod potwierdza dopięcie e-maila (to samo konto).
  * Gdy e-mail ma już konto (np. z innego telefonu) → logujemy na nie, a postęp z tego telefonu dołączy się do kopii.
@@ -134,12 +143,12 @@ export async function sendCode(rawEmail: string): Promise<{ mode: CodeMode; exis
   if (data.session?.user.is_anonymous) {
     const { error } = await db.auth.updateUser({ email });
     if (!error) return { mode: "link" };
-    if (error.code !== "email_exists") return { error: describe(error) };
+    if (error.code !== "email_exists") return { error: describeSend(error) };
     const login = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
-    return login.error ? { error: describe(login.error) } : { mode: "login", existing: true };
+    return login.error ? { error: describeSend(login.error) } : { mode: "login", existing: true };
   }
   const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-  return error ? { error: describe(error) } : { mode: "login" };
+  return error ? { error: describeSend(error) } : { mode: "login" };
 }
 
 export async function verifyCode(rawEmail: string, code: string, mode: CodeMode): Promise<string | null> {
