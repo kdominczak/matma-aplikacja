@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
 import ExamCard from "@/components/exam/ExamCard";
 import { EXAM_YEARS } from "@/data/cke-sheets";
@@ -24,7 +24,7 @@ function attemptLevel(attempt: ExamAttempt): Level | undefined {
 }
 
 /** „Rozwiąż arkusz w aplikacji”: arkusze do symulacji z ostatnim wynikiem i arkuszem w toku. */
-export default function ExamPicker({ level }: { level: Level }) {
+export default function ExamPicker({ level, children }: { level: Level; children?: ReactNode }) {
   const attempts = useExamAttempts();
   const [sessions, setSessions] = useState<Record<string, ExamSession>>({});
   // statystyki tylko z arkuszy wybranego poziomu – 45% z rozszerzenia i z podstawy to nie to samo
@@ -47,6 +47,10 @@ export default function ExamPicker({ level }: { level: Level }) {
   const exams = EXAMS.filter((exam) => exam.level === level && (exam.kind !== "probny" || sessions[exam.id])).sort(
     (a, b) => Number(Boolean(sessions[b.id])) - Number(Boolean(sessions[a.id])),
   );
+  // arkusze formuły 2015 (do 2022) osobno – inny czas i zakres, uczeń nie powinien ich mylić z dzisiejszą maturą
+  const isOlder = (exam: (typeof exams)[number]) => exam.kind === "cke" && (exam.year ?? 9999) <= 2022 && !sessions[exam.id];
+  const current = exams.filter((exam) => !isOlder(exam));
+  const older = exams.filter(isOlder);
   // roczniki CKE (formuła 2023), których jeszcze nie ma w aplikacji – na razie tylko jako PDF niżej
   const pendingYears = EXAM_YEARS.filter((y) => y.formula === "2023" && !EXAMS.some((e) => e.level === level && e.year === y.year)).map((y) => y.year);
 
@@ -78,10 +82,31 @@ export default function ExamPicker({ level }: { level: Level }) {
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <RandomExamCard level={level} />
-        {exams.map((exam) => (
+        {current.map((exam) => (
           <ExamCard key={exam.id} exam={exam} session={sessions[exam.id]} attempts={attempts?.filter((a) => a.examId === exam.id) ?? []} />
         ))}
       </div>
+
+      {children}
+
+      {older.length > 0 && (
+        <section className="mt-2 flex flex-col gap-3" aria-labelledby="older-exams-title">
+          <div>
+            <h3 id="older-exams-title" className="text-lg font-extrabold text-ink">
+              Starsze matury · formuła 2015
+            </h3>
+            <p className="text-sm text-muted">
+              Dla absolwentów starszej podstawy programowej: 170 minut, wszystkie zamknięte to ABCD, nieco inny zakres. Świetny trening – ale wynik nie przekłada się
+              1:1 na dzisiejszą maturę.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {older.map((exam) => (
+              <ExamCard key={exam.id} exam={exam} session={sessions[exam.id]} attempts={attempts?.filter((a) => a.examId === exam.id) ?? []} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {pendingYears.length > 0 && (
         <p className="flex gap-2 rounded-2xl bg-subtle/70 p-3 text-sm text-muted">

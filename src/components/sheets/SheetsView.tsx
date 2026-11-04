@@ -72,9 +72,10 @@ export default function SheetsView() {
           ))}
         </div>
 
-        <ExamPicker level={level} />
-
-        <MistakeSheetCard />
+        {/* arkusz poprawek zaraz pod aktualnymi arkuszami – nad starszymi maturami, żeby nie ginął na dole listy */}
+        <ExamPicker level={level}>
+          <MistakeSheetCard />
+        </ExamPicker>
 
         <h2 className="-mb-2 text-xl font-extrabold text-ink">Oficjalne arkusze CKE (PDF) · {level === "podstawowy" ? "poziom podstawowy" : "poziom rozszerzony"}</h2>
 
@@ -225,7 +226,7 @@ function MistakeSheetCard() {
       onClick={() => hapticTap()}
       className="card card-hover press flex items-center gap-4 p-5 hover:border-brand/60 dark:hover:border-brand/40"
     >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-300">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-bad-soft text-bad">
         <Icon name="archive" className="h-6 w-6" />
       </span>
       <span className="min-w-0 flex-1">
