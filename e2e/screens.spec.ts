@@ -2,7 +2,7 @@
 // Wynik: screenshots/<stan>-<urządzenie>-<motyw>/<ekran>.png – do przeglądu wyglądu (także przez Claude).
 // Sieć do Supabase i Groq jest zablokowana: zrzuty nie dotykają prawdziwej bazy ani AI.
 import { test, type Page } from "@playwright/test";
-import { activeProgress, freshProgress, storageInit, type Theme } from "./fixtures";
+import { activeProgress, examAttempts, freshProgress, storageInit, type Theme } from "./fixtures";
 
 const SCREENS: [string, string][] = [
   ["glowna", "/"],
@@ -42,13 +42,14 @@ const DEVICES = {
 /** Ekrany, na których stan „nowy uczeń” wygląda inaczej (puste stany). */
 const FRESH_SCREENS = new Set(["glowna", "lekcje", "plan", "bledy", "profil", "opanowane", "arkusze"]);
 
-async function prepare(page: Page, progress: object, theme: Theme) {
+async function prepare(page: Page, progress: object, theme: Theme, attempts: object[] = []) {
   await page.route(/supabase\.co|groq\.com/, (route) => route.abort());
-  const init = storageInit(progress, theme);
+  const init = { ...storageInit(progress, theme), attempts: attempts.length ? JSON.stringify(attempts) : null };
   await page.addInitScript((data) => {
     localStorage.setItem("CapacitorStorage.progress.v2", data.progress!);
     localStorage.setItem("CapacitorStorage.settings.v1", data.settings);
     localStorage.setItem("theme", data.theme);
+    if (data.attempts) localStorage.setItem("CapacitorStorage.exam-attempts.v1", data.attempts);
   }, init);
   await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
 }
@@ -78,7 +79,7 @@ for (const [deviceName, viewport] of Object.entries(DEVICES)) {
 
       for (const [name, path] of SCREENS) {
         test(`aktywny · ${name}`, async ({ page }) => {
-          await prepare(page, activeProgress(), theme);
+          await prepare(page, activeProgress(), theme, examAttempts());
           await shoot(page, path, `screenshots/aktywny-${deviceName}-${theme}/${name}.png`);
         });
         if (FRESH_SCREENS.has(name)) {

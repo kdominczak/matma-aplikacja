@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Icon from "@/components/ui/Icon";
+import ExamCard from "@/components/exam/ExamCard";
 import { EXAM_YEARS } from "@/data/cke-sheets";
 import RandomExamCard from "@/components/exam/RandomExamCard";
-import { EXAMS, examHref, examKindLabel, examMaxPoints, examSource } from "@/data/exams";
+import { EXAMS } from "@/data/exams";
 import { examStats, formatDuration, loadSession, useExamAttempts } from "@/lib/exam";
-import { hapticTap } from "@/lib/haptics";
 import type { ExamSession } from "@/types/exam";
 import type { Level } from "@/types/topic";
 
@@ -40,7 +39,7 @@ export default function ExamPicker({ level }: { level: Level }) {
         <h2 id="exam-picker-title" className="text-xl font-extrabold text-ink">
           Rozwiąż arkusz w aplikacji
         </h2>
-        <p className="text-sm text-muted">Tryb egzaminu: 180 minut, przechodzenie między zadaniami, wynik i omówienie na końcu.</p>
+        <p className="text-sm text-muted">Tryb egzaminu: pełny czas matury, przechodzenie między zadaniami, wynik i omówienie na końcu.</p>
       </div>
 
       {stats && (
@@ -61,41 +60,9 @@ export default function ExamPicker({ level }: { level: Level }) {
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <RandomExamCard level={level} />
-        {exams.map((exam) => {
-          const session = sessions[exam.id];
-          const last = attempts?.find((a) => a.examId === exam.id);
-          const answered = session ? Object.keys(session.answers).length : 0;
-          return (
-            <Link
-              key={exam.id}
-              href={examHref(exam)}
-              onClick={() => hapticTap()}
-              className="card group flex flex-col gap-3 p-5 card-hover hover:border-brand/60 dark:hover:border-brand/40"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-extrabold uppercase tracking-widest text-brand">{examKindLabel(exam)}</p>
-                  <p className="mt-0.5 text-lg font-extrabold text-ink">{exam.title}</p>
-                </div>
-                {session ? (
-                  <span className="shrink-0 rounded-full bg-amber-400/20 px-2.5 py-1 text-xs font-extrabold uppercase text-amber-700 dark:text-amber-300">
-                    W toku
-                  </span>
-                ) : last ? (
-                  <span className="shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-extrabold text-brand">{last.percent}%</span>
-                ) : null}
-              </div>
-              <p className="text-sm text-muted">
-                {exam.tasks.length} zadań · {examMaxPoints(exam)} pkt · {exam.durationMin} min
-              </p>
-              <p className="-mt-2 text-xs text-muted">{examSource(exam)}</p>
-              <span className="mt-auto flex min-h-11 items-center gap-2 text-sm font-bold text-brand">
-                {session ? `Wróć do arkusza (${answered}/${exam.tasks.length})` : last ? "Rozwiąż ponownie" : "Rozpocznij"}
-                <Icon name="arrow" className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-          );
-        })}
+        {exams.map((exam) => (
+          <ExamCard key={exam.id} exam={exam} session={sessions[exam.id]} attempts={attempts?.filter((a) => a.examId === exam.id) ?? []} />
+        ))}
       </div>
 
       {pendingYears.length > 0 && (

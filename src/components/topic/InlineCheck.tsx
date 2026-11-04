@@ -102,9 +102,9 @@ export default function InlineCheck({
               }}
               className={`flex min-h-12 items-center gap-3 rounded-2xl border-2 px-3 py-2 text-left transition-colors ${
                 isRight
-                  ? "border-emerald-500 bg-emerald-500/10"
+                  ? "border-good bg-good-soft"
                   : isWrong
-                    ? "border-rose-500 bg-rose-500/10"
+                    ? "border-bad bg-bad-soft"
                     : isChosen
                       ? "border-brand bg-brand-soft"
                       : "border-line bg-card hover:border-brand/60 dark:hover:border-brand/40"
@@ -118,8 +118,8 @@ export default function InlineCheck({
       </div>
 
       {checked && (
-        <div className={`rounded-2xl p-4 text-sm ${correct ? "bg-emerald-500/10" : "bg-rose-500/10"}`} role="status">
-          <p className={`font-extrabold ${correct ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
+        <div className={`rounded-2xl p-4 text-sm ${correct ? "bg-good-soft" : "bg-bad-soft"}`} role="status">
+          <p className={`font-extrabold ${correct ? "text-good" : "text-bad"}`}>
             {correct ? "Dobrze!" : `Poprawna odpowiedź: ${displayKey(question, question.correct)}`}
           </p>
           <p className="mt-1 leading-relaxed text-body">

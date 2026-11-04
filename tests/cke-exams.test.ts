@@ -1,7 +1,7 @@
 // Wszystkie arkusze CKE: punktacja jak w arkuszu, numery bez powtórzeń, wynik z klucza zaliczany, dowód bez wyniku.
 import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { EXAMS, examMaxPoints } from "@/data/exams";
+import { EXAMS, examCode, examMaxPoints } from "@/data/exams";
 import { matchesAnswer } from "@/lib/calc";
 import { scoreTask, taskNumber } from "@/lib/exam";
 
@@ -135,5 +135,15 @@ describe("matura podstawowa maj 2022 (formuła 2015) – klucz wersji A", () => 
     expect(accepts("33", "72")).toBe("correct");
     expect(accepts("34", "4/81")).toBe("correct");
     expect(accepts("35", "-0,375; -0,75; 5,625")).toBe("correct");
+  });
+});
+
+describe("kod arkusza CKE na karcie", () => {
+  it("z nazwy PDF, bez dopisku „-arkusz”; arkusze aplikacji bez kodu", () => {
+    const code = (id: string) => examCode(EXAMS.find((e) => e.id === id)!);
+    expect(code("cke-2022-maj")).toBe("EMAP-P0-100-2205");
+    expect(code("cke-2025-maj")).toBe("MMAP-P0-100-A-2505");
+    expect(code("cke-2026-maj-r")).toBe("MMAP-R0-100-A-2605");
+    for (const exam of EXAMS.filter((e) => e.kind !== "cke")) expect(examCode(exam)).toBeNull();
   });
 });

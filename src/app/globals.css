@@ -42,6 +42,15 @@
   --color-on-cta: #0b0f19;
   --color-navy: #111827;
 
+  /* wynik odpowiedzi: szałwia i przygaszona cegła zamiast jaskrawej zieleni i czerwieni – nadal czytelne od razu
+     (kontrast tekstu ≥ 4.5:1 na karcie); złoto zostaje akcentem (zaznaczenie, przyciski), nie oznacza „dobrze” */
+  --color-good: #2f7a57;
+  --color-good-soft: #e4efe7;
+  --color-on-good: #ffffff;
+  --color-bad: #b03e39;
+  --color-bad-soft: #f6e5e2;
+  --color-on-bad: #ffffff;
+
   /* lżejsza typografia: „extrabold” i „bold” w całej aplikacji to półgrube odmiany Inter/Outfit */
   --font-weight-extrabold: 650;
   --font-weight-bold: 600;
@@ -54,15 +63,31 @@
 
   --animate-drift: drift 24s ease-in-out infinite alternate;
   --animate-float: float 16s ease-in-out infinite;
-  --animate-shake: shake 0.4s ease-in-out;
+  --animate-shake: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  --animate-settle: settle 0.7s ease-out;
+  --animate-gold-glow: gold-glow 1.6s ease-out;
   --animate-slide-up: slide-up 0.25s ease-out;
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-pop: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 
+  /* błąd: krótkie, wygasające drgnięcie (jak przy złym PIN-ie), bez szarpania */
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    75% { transform: translateX(6px); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-2.5px); }
+    80% { transform: translateX(1px); }
+  }
+  /* rzadkie chwile (nowy rekord): złota poświata, która powoli gaśnie */
+  @keyframes gold-glow {
+    0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand) 55%, transparent); }
+    60% { box-shadow: 0 0 22px 6px color-mix(in oklab, var(--color-brand) 25%, transparent); }
+    100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand) 0%, transparent); }
+  }
+  /* dobra odpowiedź: miękka fala wokół karty, która gaśnie */
+  @keyframes settle {
+    from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-good) 40%, transparent); }
+    to { box-shadow: 0 0 0 10px color-mix(in oklab, var(--color-good) 0%, transparent); }
   }
   @keyframes slide-up {
     from { transform: translateY(100%); }
@@ -108,6 +133,13 @@
   --color-cta-dark: #b8962c;
   --color-on-cta: #0b0f19;
   --color-navy: #131a29;
+
+  --color-good: #7cc6a1;
+  --color-good-soft: #13251d;
+  --color-on-good: #0b0f19;
+  --color-bad: #ec948c;
+  --color-bad-soft: #2b1816;
+  --color-on-bad: #0b0f19;
 
   /* głębia: krótki cień przy krawędzi + długi, miękki pod kartą (warstwa nad tłem, nie płaska plama) */
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.45), 0 10px 28px -14px rgb(0 0 0 / 0.7), 0 28px 56px -36px rgb(0 0 0 / 0.85);
@@ -379,6 +411,7 @@ a.hero-tile:active {
 
 @media (prefers-reduced-motion: reduce) {
   .scroll-parallax { animation: none; }
+  .animate-shake, .animate-settle, .animate-gold-glow { animation: none; }
 }
 
 /* nagłówki i duże liczby – Outfit (geometryczny krój, lekki przy dużych rozmiarach) */

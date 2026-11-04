@@ -179,15 +179,15 @@ export default function QuizScreen(props: Props) {
         : `${base} border-line bg-card text-ink hover:-translate-y-0.5 hover:border-brand/60 dark:hover:border-brand/40 hover:shadow-card`;
     }
     if (key === question.correct)
-      return `${base} border-emerald-500 bg-emerald-500/10 text-emerald-700 ring-4 ring-emerald-500/15 dark:text-emerald-300`;
-    if (key === selected) return `${base} animate-shake border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300`;
+      return `${base} border-good bg-good-soft text-good ${key === selected ? "animate-settle" : ""}`;
+    if (key === selected) return `${base} animate-shake border-bad bg-bad-soft text-bad`;
     return `${base} border-line bg-card text-faint opacity-60`;
   }
 
   function badgeClasses(key: OptionKey) {
     const base = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold";
-    if (checked && key === question.correct) return `${base} animate-pop bg-emerald-500 text-white`;
-    if (checked && key === selected) return `${base} bg-rose-500 text-white`;
+    if (checked && key === question.correct) return `${base} animate-pop bg-good text-on-good`;
+    if (checked && key === selected) return `${base} bg-bad text-on-bad`;
     if (!checked && key === selected) return `${base} bg-brand text-on-brand`;
     return `${base} bg-subtle text-muted`;
   }
@@ -208,7 +208,7 @@ export default function QuizScreen(props: Props) {
             <span
               key={hearts}
               className={`flex items-center gap-1 text-sm font-bold ${hearts < MAX_HEARTS ? "animate-shake" : ""} ${
-                hearts === 0 ? "text-faint" : "text-rose-500"
+                hearts === 0 ? "text-faint" : "text-bad"
               }`}
               aria-label={`Serca: ${hearts} z ${MAX_HEARTS}`}
             >
@@ -289,7 +289,7 @@ export default function QuizScreen(props: Props) {
               </ol>
             )}
             {hintError === "error" && (
-              <p className="mt-2 text-xs font-semibold text-rose-500">Nie udało się pobrać podpowiedzi – spróbuj ponownie.</p>
+              <p className="mt-2 text-xs font-semibold text-bad">Nie udało się pobrać podpowiedzi – spróbuj ponownie.</p>
             )}
             {hintError === "account" && (
               <p className="mt-2 text-xs font-semibold text-muted">
@@ -347,8 +347,8 @@ export default function QuizScreen(props: Props) {
           !checked
             ? "border-line bg-card/90"
             : isCorrect
-              ? "animate-slide-up border-emerald-500/30 bg-emerald-50/95 dark:bg-emerald-950/90"
-              : "animate-slide-up border-rose-500/30 bg-rose-50/95 dark:bg-rose-950/90"
+              ? "animate-slide-up border-good/30 bg-good-soft"
+              : "animate-slide-up border-bad/30 bg-bad-soft"
         }`}
       >
         <div className="mx-auto flex max-h-[60dvh] max-w-6xl flex-col gap-3 overflow-y-auto lg:max-h-none lg:flex-row lg:items-center lg:justify-between lg:gap-10">
@@ -358,17 +358,17 @@ export default function QuizScreen(props: Props) {
                 <div>
                 <p
                   className={`flex items-center gap-2 text-lg font-extrabold ${
-                    isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                    isCorrect ? "text-good" : "text-bad"
                   }`}
                 >
                   <Icon name={isCorrect ? "checkCircle" : "close"} className="h-5 w-5" />
                   {isCorrect ? "Dobrze!" : `Poprawna odpowiedź: ${displayKey(question, question.correct)}`}
                 </p>
-                <p className={`mt-1 text-sm ${isCorrect ? "text-emerald-800 dark:text-emerald-200" : "text-rose-800 dark:text-rose-200"}`}>
+                <p className={`mt-1 text-sm ${isCorrect ? "text-body" : "text-body"}`}>
                   <MathText text={question.explanation} />
                 </p>
                 {hearts === 0 && (
-                  <p className="mt-2 text-sm font-bold text-rose-600 dark:text-rose-400">Skończyły się serca – spróbuj jeszcze raz.</p>
+                  <p className="mt-2 text-sm font-bold text-bad">Skończyły się serca – spróbuj jeszcze raz.</p>
                 )}
                 </div>
                 {!isCorrect && question.trap && <TrapCard text={question.trap} compact />}
@@ -377,7 +377,7 @@ export default function QuizScreen(props: Props) {
                 {!isCorrect && (
                   <button
                     onClick={() => setPanel("explain")}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-rose-500/30 bg-card py-3 text-sm font-bold text-rose-600 transition-colors hover:border-rose-500/60 dark:text-rose-300"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-bad/30 bg-card py-3 text-sm font-bold text-bad transition-colors hover:border-bad/60"
                   >
                     <Icon name="sparkles" className="h-4 w-4" />
                     Wyjaśnij mi to zadanie
@@ -385,9 +385,8 @@ export default function QuizScreen(props: Props) {
                 )}
                 <button
                   onClick={handleNext}
-                  className={`w-full rounded-2xl py-4 text-base font-bold text-white ${
-                    isCorrect ? "bg-emerald-500 active:bg-emerald-600" : "bg-rose-500 active:bg-rose-600"
-                  }`}
+                  // wynik pokazuje już panel – „Dalej” to zwykły główny przycisk, bez czerwieni po błędzie
+                  className="btn-shine press w-full rounded-2xl bg-cta py-4 text-base font-bold text-on-cta active:bg-cta-dark"
                 >
                   {isLast || hearts === 0 ? "Zobacz wynik" : "Dalej"}
                 </button>

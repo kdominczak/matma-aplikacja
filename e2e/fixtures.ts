@@ -90,6 +90,22 @@ export function freshProgress() {
 export type Theme = "light" | "dark";
 
 /** Skrypt uruchamiany przed aplikacją: postęp, ustawienia i motyw w localStorage. */
+/** Próby arkuszy aktywnego ucznia (zakładka „Arkusze”: najlepszy wynik, liczba podejść, próg 30%). */
+export function examAttempts() {
+  const attempt = (examId: string, points: number, maxPoints: number, daysAgo: number) => ({
+    id: `${examId}-${daysAgo}`,
+    examId,
+    startedAt: `${day(daysAgo)}T09:00:00.000Z`,
+    finishedAt: `${day(daysAgo)}T11:40:00.000Z`,
+    durationSec: 9600,
+    points,
+    maxPoints,
+    percent: Math.round((points / maxPoints) * 100),
+    results: [],
+  });
+  return [attempt("cke-2025-maj", 31, 50, 2), attempt("cke-2025-maj", 24, 50, 9), attempt("cke-2024-maj", 12, 46, 12)];
+}
+
 export function storageInit(progress: object | null, theme: Theme, name = "Ola") {
   return {
     progress: progress ? JSON.stringify(progress) : null,

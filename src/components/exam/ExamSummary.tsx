@@ -83,13 +83,16 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
               </div>
             ))}
           </dl>
-          {best && (
-            <p className="relative mt-4 text-sm text-white/70">
-              {attempt.percent > best.percent
-                ? `Nowy rekord! Poprzednio najlepiej: ${best.percent}%.`
-                : `Twój najlepszy wynik w tym arkuszu: ${best.percent}%.`}
-            </p>
-          )}
+          {best &&
+            (attempt.percent > best.percent ? (
+              // rzadka chwila – jedyne miejsce ze złotym rozbłyskiem (zwykłe odpowiedzi: szałwia i cegła)
+              <p className="relative mt-4 inline-flex animate-gold-glow items-center gap-2 self-start rounded-full border border-brand/50 bg-brand/15 px-3 py-1.5 text-sm font-bold text-brand">
+                <Icon name="trophy" className="h-4 w-4" />
+                Nowy rekord · poprzednio {best.percent}%
+              </p>
+            ) : (
+              <p className="relative mt-4 text-sm text-white/70">Twój najlepszy wynik w tym arkuszu: {best.percent}%.</p>
+            ))}
         </section>
 
         {boxable.length > 0 && (

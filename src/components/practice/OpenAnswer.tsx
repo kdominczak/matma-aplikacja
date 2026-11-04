@@ -72,18 +72,18 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
           <p className="text-xs text-muted">Wpisz sam wynik liczbowy (ułamek jako 3/2), kilka rozwiązań oddziel średnikiem. Tok rozwiązania zapisz w brudnopisie.</p>
 
           {state.verdict === "wrong" ? (
-            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
-              <p className="flex items-center gap-2 font-extrabold text-rose-600 dark:text-rose-400">
+            <div className="rounded-2xl border border-bad/30 bg-bad-soft p-4">
+              <p className="flex items-center gap-2 font-extrabold text-bad">
                 <Icon name="close" className="h-5 w-5" />
                 To nie jest poprawny wynik
               </p>
-              <p className="mt-1 text-sm text-rose-800 dark:text-rose-200">
+              <p className="mt-1 text-sm text-body">
                 Spróbuj jeszcze raz albo porównaj swoje rozwiązanie ze schematem – na maturze dostałbyś punkty za poprawne kroki.
               </p>
               <button
                 type="button"
                 onClick={() => onChange({ ...state, verdict: undefined, steps: [] })}
-                className="mt-3 rounded-xl bg-card px-4 py-2 text-sm font-bold text-rose-600 dark:text-rose-300"
+                className="mt-3 rounded-xl bg-card px-4 py-2 text-sm font-bold text-bad"
               >
                 Spróbuj jeszcze raz
               </button>
@@ -106,12 +106,12 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
       )}
 
       {state.verdict === "correct" && (
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-          <p className="flex items-center gap-2 font-extrabold text-emerald-600 dark:text-emerald-400">
+        <div className="rounded-2xl border border-good/30 bg-good-soft p-4">
+          <p className="flex items-center gap-2 font-extrabold text-good">
             <Icon name="checkCircle" className="h-5 w-5" />
             Dobrze! {task.points}/{task.points} pkt
           </p>
-          <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-200">
+          <p className="mt-1 text-sm text-body">
             Twój wynik: <strong>{state.input}</strong>. Sprawdź, czy Twoje rozwiązanie ma wszystkie kroki ze schematu.
           </p>
         </div>
@@ -135,7 +135,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
                   <label
                     className={`flex gap-3 rounded-2xl border p-3 text-sm ${
                       canSelfAssess ? "cursor-pointer hover:border-brand/60 dark:hover:border-brand/40" : ""
-                    } ${checked && state.verdict !== "revealed" ? "border-emerald-500/40 bg-emerald-500/5" : "border-line"}`}
+                    } ${checked && state.verdict !== "revealed" ? "border-good/40 bg-good-soft/50" : "border-line"}`}
                   >
                     {canSelfAssess ? (
                       <input

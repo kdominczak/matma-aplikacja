@@ -124,6 +124,16 @@ export function examSource(exam: Pick<ExamSheet, "kind" | "year" | "session" | "
   return `Zadania autorskie aplikacji ${LEGAL.appName}${layout} – nie pochodzą z arkuszy CKE`;
 }
 
+/**
+ * Kod arkusza CKE jak na okładce (np. „EMAP-P0-100-2205”) – z nazwy oficjalnego PDF-u; null dla arkuszy aplikacji.
+ * Pomaga porównać zadania z oryginałem. Bez logo i układu graficznego CKE – tylko oznaczenie źródła.
+ */
+export function examCode(exam: Pick<ExamSheet, "kind" | "pdf">): string | null {
+  if (exam.kind !== "cke" || !exam.pdf) return null;
+  // nazwy plików od 2024: „MMAP-P0-100-A-2405-arkusz.pdf” – dopisek „-arkusz” to nie część kodu (A = wersja arkusza)
+  return exam.pdf.exam.split("/").pop()?.replace(/\.pdf$/i, "").replace(/-arkusz$/i, "") ?? null;
+}
+
 /** Krótkie źródło przy pojedynczym zadaniu arkusza CKE (null – zadanie autorskie, bez dopisku). */
 export function taskSource(exam: Pick<ExamSheet, "kind" | "year" | "session">): string | null {
   return exam.kind === "cke" ? `Zadanie z arkusza CKE, ${exam.session ?? "maj"} ${exam.year ?? ""}`.trimEnd() : null;
