@@ -5,6 +5,7 @@ import CategoryTile from "@/components/topic/CategoryTile";
 import Icon from "@/components/ui/Icon";
 import { hapticTap } from "@/lib/haptics";
 import { topicTaskProgress } from "@/lib/topic-progress";
+import { formatExamPoints, topicExamPoints } from "@/lib/exam-weights";
 import type { Progress } from "@/types/progress";
 import type { Topic } from "@/types/topic";
 
@@ -20,7 +21,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
       <CategoryTile topic={topic} muted={!ready && !tasksOnly} />
       <div className="min-w-0 flex-1">
         <p className="text-xs font-bold uppercase tracking-wide text-muted">
-          {topic.lesson} · Priorytet {topic.priority}
+          {topic.category} · {formatExamPoints(topicExamPoints(topic, topic.level ?? "podstawowy"))} na maturze
         </p>
         <p className={`leading-snug font-extrabold ${ready ? "text-ink" : "text-muted"}`}>{topic.title}</p>
         {ready ? (

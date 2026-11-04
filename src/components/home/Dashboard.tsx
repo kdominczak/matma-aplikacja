@@ -17,6 +17,7 @@ import { goalPoints } from "@/lib/goal";
 import { levelTarget } from "@/lib/level";
 import { buildPlan, type DailyPlan, type PlanFocus } from "@/lib/planner";
 import { plural } from "@/lib/plural";
+import { formatExamPoints } from "@/lib/exam-weights";
 import { needsPlacement } from "@/lib/placement";
 import CkeNotice from "@/components/legal/CkeNotice";
 import { hapticTap } from "@/lib/haptics";
@@ -72,7 +73,7 @@ export default function Dashboard() {
 
 /** Skuteczność w dziale dnia: przy kilku odpowiedziach liczby („Ostatnio 1/3”), a nie zniechęcający procent. */
 function focusLine(focus: PlanFocus): string {
-  const points = `średnio ${formatPoints(focus.examPoints)} na maturze`;
+  const points = `średnio ${formatExamPoints(focus.examPoints)} na maturze`;
   if (focus.accuracy === null) return `Nowy dział – ${points}. Zaczynamy od podstaw.`;
   if (focus.answered < 5) {
     const comeback = focus.correct / focus.answered < 0.5 ? " – dziś to nadrobimy." : ".";
@@ -154,6 +155,3 @@ function PlanCard({ progress, plan }: { progress: Progress | null; plan: DailyPl
   );
 }
 
-function formatPoints(points: number): string {
-  return `${points.toLocaleString("pl-PL", { maximumFractionDigits: 1 })} pkt`;
-}

@@ -22,17 +22,15 @@ export default function MathText({ text, className, display = false }: Props) {
           const html = katex.renderToString(display ? `\\displaystyle ${tex}` : tex, {
             throwOnError: false,
           });
-          // przecinek albo kropka tuż po wzorze nie może spaść sama do nowej linii
+          // przecinek albo kropka tuż po wzorze nie może spaść sama do nowej linii – łączy je niełamliwy
+          // znak U+2060 (word joiner). Bez `whitespace-nowrap` na całym wzorze: długi wzór dalej łamie się po „=” i „⇒”.
           const glued = parts[i + 1]?.match(PUNCTUATION)?.[0];
-          if (glued) {
-            return (
-              <span key={i} className="whitespace-nowrap">
-                <span dangerouslySetInnerHTML={{ __html: html }} />
-                {glued}
-              </span>
-            );
-          }
-          return <span key={i} dangerouslySetInnerHTML={{ __html: html }} />;
+          return (
+            <span key={i}>
+              <span dangerouslySetInnerHTML={{ __html: html }} />
+              {glued ? `\u2060${glued}` : null}
+            </span>
+          );
         }
         const glued = isMath(parts[i - 1] ?? "") ? part.match(PUNCTUATION)?.[0] : undefined;
         return <span key={i}>{glued ? part.slice(glued.length) : part}</span>;

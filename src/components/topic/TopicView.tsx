@@ -14,6 +14,7 @@ import { hapticTap } from "@/lib/haptics";
 import { plural } from "@/lib/plural";
 import { saveLessonCheck, useProgress } from "@/lib/progress";
 import { topicTaskProgress } from "@/lib/topic-progress";
+import { formatExamPoints, topicExamPoints } from "@/lib/exam-weights";
 import type { Progress } from "@/types/progress";
 import type { QuizQuestion } from "@/types/quiz";
 import type { Topic } from "@/types/topic";
@@ -157,8 +158,9 @@ export default function TopicView({ topicId }: { topicId: string }) {
 function TopicHero({ topic }: { topic: Topic }) {
   const chips = [
     { icon: "clock" as const, text: `~${topic.studyHours} h nauki` },
-    { icon: "target" as const, text: `${topic.examShare}% matur` },
-    { icon: "bolt" as const, text: `Priorytet ${topic.priority}` },
+    // zamiast „Priorytet S+” – to, co uczeń rozumie: ile punktów dział daje na maturze i jak często się pojawia
+    { icon: "target" as const, text: `średnio ${formatExamPoints(topicExamPoints(topic, topic.level ?? "podstawowy"))} na maturze` },
+    { icon: "calendar" as const, text: topic.examShare >= 100 ? "na każdej maturze" : `na ${topic.examShare}% matur` },
   ];
   return (
     <section className="relative overflow-hidden rounded-3xl bg-navy p-5 text-white shadow-card lg:p-6">
@@ -167,7 +169,7 @@ function TopicHero({ topic }: { topic: Topic }) {
         <CategoryTile topic={topic} />
         <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-widest text-white/60">
-            {topic.lesson} · {topic.category}
+            {topic.category}
           </p>
           <h1 className="text-xl leading-tight font-extrabold text-white lg:text-2xl">{topic.title}</h1>
           <div className="mt-3 flex flex-wrap gap-1.5">

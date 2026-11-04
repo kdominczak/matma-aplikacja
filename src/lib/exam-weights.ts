@@ -60,6 +60,11 @@ const weights: Record<Level, Map<string, number>> = {
 };
 
 /** Średnio tyle punktów na maturze danego poziomu przypada na dział aplikacji (dział rozszerzenia na podstawowej – 0). */
+/** Punkty na maturze do pokazania uczniowi: „4 pkt”, „5,5 pkt”. */
+export function formatExamPoints(points: number): string {
+  return `${points.toLocaleString("pl-PL", { maximumFractionDigits: 1 })} pkt`;
+}
+
 export function topicExamPoints(topic: Topic, level: Level = "podstawowy"): number {
   if (level === "podstawowy" && topicLevel(topic) === "rozszerzony") return 0;
   return weights[level].get(topic.id) ?? 0;
