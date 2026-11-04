@@ -1,3 +1,4 @@
+import { CKE_2020_CZERWIEC } from "@/data/cke/matura-2020-czerwiec";
 import { CKE_2021_MAJ } from "@/data/cke/matura-2021-maj";
 import { CKE_2022_MAJ } from "@/data/cke/matura-2022-maj";
 import { CKE_2023_MAJ } from "@/data/cke/matura-2023-maj";
@@ -16,7 +17,7 @@ import type { ExamSheet } from "@/types/exam";
 // Pliki arkuszy importują z `@/data/topics` tylko typy – ten moduł może więc czytać `src/data/topics/index.ts`
 // (zadania CKE w zakładce „Zadania”) bez zapętlenia importów.
 
-export const CKE_SHEETS: ExamSheet[] = [CKE_2026_MAJ, CKE_2026_MAJ_R, CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R, CKE_2023_MAJ, CKE_2023_MAJ_R, CKE_2022_MAJ, CKE_2021_MAJ];
+export const CKE_SHEETS: ExamSheet[] = [CKE_2026_MAJ, CKE_2026_MAJ_R, CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R, CKE_2023_MAJ, CKE_2023_MAJ_R, CKE_2022_MAJ, CKE_2021_MAJ, CKE_2020_CZERWIEC];
 
 /**
  * Dział każdego zadania (numer z arkusza → id działu). Zadania „wybór” i dowody też mają dział (porządek),
@@ -104,6 +105,16 @@ const TOPICS: Record<string, Record<string, string>> = {
     "27": "kombinatoryka", "28": "statystyka", "29": "nierownosci-kwadratowe", "30": "wzory-skroconego-mnozenia",
     "31": "funkcja-liniowa", "32": "rownania-wymierne", "33": "trojkaty-i-czworokaty", "34": "prawdopodobienstwo",
     "35": "punkty-i-proste",
+  },
+  "cke-2020-czerwiec": {
+    "1": "wzory-skroconego-mnozenia", "2": "potegi-i-pierwiastki", "3": "logarytmy", "4": "potegi-i-pierwiastki",
+    "5": "nierownosci-liniowe", "6": "rownania-wymierne", "7": "funkcja-kwadratowa", "8": "funkcja-kwadratowa",
+    "9": "funkcja-kwadratowa", "10": "rownania-wymierne", "11": "funkcja-liniowa", "12": "funkcja-wykladnicza-i-logarytmiczna",
+    "13": "funkcja-liniowa", "14": "ciagi", "15": "ciagi", "16": "funkcja-liniowa", "17": "okrag-i-kolo", "18": "punkty-i-proste",
+    "19": "trygonometria", "20": "punkty-i-proste", "21": "kombinatoryka", "22": "trojkaty-i-czworokaty", "23": "statystyka",
+    "24": "geometria-przestrzenna", "25": "geometria-przestrzenna", "26": "nierownosci-kwadratowe", "27": "rownania-wymierne",
+    "28": "wzory-skroconego-mnozenia", "29": "trojkaty-i-czworokaty", "30": "prawdopodobienstwo", "31": "trygonometria",
+    "32": "punkty-i-proste", "33": "ciagi", "34": "geometria-przestrzenna",
   },
   "cke-2023-maj-r": {
     "1": "funkcja-wykladnicza-i-logarytmiczna", "2": "rz-prawdopodobienstwo", "3": "rz-pochodna", "4": "rz-wielomiany",

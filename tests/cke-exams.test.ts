@@ -6,8 +6,12 @@ import { matchesAnswer } from "@/lib/calc";
 import { scoreTask, taskNumber } from "@/lib/exam";
 
 const CKE = EXAMS.filter((e) => e.kind === "cke");
-/** Matura podstawowa: formuła 2015 w 2022 – 45 pkt (okrojone wymagania), 46 pkt w latach 2023–2024, od 2025 – 50; rozszerzona – 50. */
-const maxPoints = (level: string, year: number) => (level === "podstawowy" && year <= 2022 ? 45 : level === "podstawowy" && year < 2025 ? 46 : 50);
+/**
+ * Matura podstawowa: formuła 2015 do 2020 – 50 pkt, w 2021–2022 – 45 pkt (okrojone wymagania), 46 pkt w latach 2023–2024,
+ * od 2025 – 50; rozszerzona – 50.
+ */
+const maxPoints = (level: string, year: number) =>
+  level !== "podstawowy" || year <= 2020 || year >= 2025 ? 50 : year <= 2022 ? 45 : 46;
 /** Formuła 2015 (do 2022): 170 min na poziomie podstawowym; od 2023 – 180. */
 const duration = (level: string, year: number) => (level === "podstawowy" && year <= 2022 ? 170 : 180);
 
@@ -158,6 +162,32 @@ describe("matura podstawowa maj 2021 (formuła 2015) – klucz wersji A", () => 
     expect(accepts("34", "12/36")).toBe("correct");
     expect(accepts("35", "27; 9√10+50")).toBe("correct");
     expect(accepts("35", "27; 50")).not.toBe("correct");
+  });
+});
+
+describe("matura podstawowa czerwiec 2020 (formuła 2015) – klucz wersji X", () => {
+  const exam = EXAMS.find((e) => e.id === "cke-2020-czerwiec")!;
+
+  it("zadania zamknięte 1–25 i wyniki otwartych", () => {
+    const key = Object.fromEntries(exam.tasks.flatMap((t, i) => (t.kind === "closed" ? [[taskNumber(exam, i), t.question.correct]] : [])));
+    expect(key).toEqual({
+      "1": "B", "2": "C", "3": "D", "4": "A", "5": "A", "6": "B", "7": "D", "8": "C", "9": "B", "10": "B", "11": "D", "12": "B",
+      "13": "C", "14": "D", "15": "C", "16": "D", "17": "D", "18": "A", "19": "B", "20": "A", "21": "C", "22": "C", "23": "A",
+      "24": "A", "25": "B",
+    });
+    const open = (n: string) => exam.tasks[exam.numbers!.indexOf(n)];
+    const accepts = (n: string, input: string) => scoreTask(open(n), { kind: "open", input }, exam.numbers!.indexOf(n) + 1).status;
+    expect(accepts("26", "x < -2,5 lub x > 1")).toBe("correct");
+    expect(accepts("27", "0; 2; -1; 1")).toBe("correct");
+    expect(accepts("30", "11/36")).toBe("correct");
+    expect(accepts("31", "0,5")).toBe("correct");
+    expect(accepts("32", "1; 4/3; 50")).toBe("correct");
+    expect(accepts("33", "3")).toBe("correct");
+    expect(accepts("34", "32√7/3")).toBe("correct");
+  });
+
+  it("kod z nazwy PDF", () => {
+    expect(examCode(exam)).toBe("MMA-P1_1P-202");
   });
 });
 

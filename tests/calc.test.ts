@@ -89,6 +89,12 @@ describe("przedziały w odpowiedziach (zadania typu „zbiór rozwiązań”)", 
     expect(formatIntervals(readIntervals("⟨-4;4)")!)).toBe("[-4; 4)");
     expect(formatIntervals(readIntervals("x ≥ -9")!)).toBe("[-9; +∞)");
   });
+
+  it("dwie nierówności połączone „lub” / „∨” to suma przedziałów", () => {
+    expect(matchesAnswer("x < -2,5 lub x > 1", ["(-∞, -5/2) ∪ (1, +∞)"])).toBe(true);
+    expect(matchesAnswer("x ≤ -2 ∨ x ≥ 8/3", ["(-∞, -2] ∪ [8/3, +∞)"])).toBe(true);
+    expect(matchesAnswer("x < -2,5 lub x > 2", ["(-∞, -5/2) ∪ (1, +∞)"])).toBe(false);
+  });
 });
 
 describe("granica nieskończona jako wynik", () => {

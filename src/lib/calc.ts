@@ -384,7 +384,8 @@ export function readIntervals(answer: string): Interval[] | null {
     .replace(/^(?:[a-z]∈|[a-z]należydo)/, "")
     .replace(/\.$/, "");
   if (!text) return null;
-  const parts = text.split(/∪|(?<=[\])⟩>])u(?=[[(⟨<])/); // „U” z klawiatury tylko między przedziałami
+  // „U” z klawiatury tylko między przedziałami; „lub” / „∨” – między nierównościami („x < −2 lub x > 1”)
+  const parts = text.split(/∪|lub|∨|(?<=[\])⟩>])u(?=[[(⟨<])/);
   const out: Interval[] = [];
   for (const part of parts) {
     const found = bracketInterval(part) ?? inequalityInterval(part);
