@@ -486,7 +486,7 @@ function CkeProgressCard({ progress }: { progress: Progress }) {
   return (
     <section className="card overflow-hidden">
       <div className="p-5">
-        <p className="text-sm text-muted">Prawdziwe zadania z matur CKE z lat 2023–2026, rozwiązane w „Zadaniach” albo w arkuszu.</p>
+        <p className="text-sm text-muted">Prawdziwe zadania z matur CKE z lat 2022–2026, rozwiązane w „Zadaniach” albo w arkuszu.</p>
         <p className="mt-2 font-display text-3xl font-extrabold text-ink tabular-nums">
           {solved} <span className="text-lg font-bold text-muted">z {total}</span>
         </p>

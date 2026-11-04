@@ -6,13 +6,15 @@ import { matchesAnswer } from "@/lib/calc";
 import { scoreTask, taskNumber } from "@/lib/exam";
 
 const CKE = EXAMS.filter((e) => e.kind === "cke");
-/** Matura podstawowa: 46 pkt w latach 2023–2024, od 2025 – 50; rozszerzona – zawsze 50. */
-const maxPoints = (level: string, year: number) => (level === "podstawowy" && year < 2025 ? 46 : 50);
+/** Matura podstawowa: formuła 2015 w 2022 – 45 pkt (okrojone wymagania), 46 pkt w latach 2023–2024, od 2025 – 50; rozszerzona – 50. */
+const maxPoints = (level: string, year: number) => (level === "podstawowy" && year <= 2022 ? 45 : level === "podstawowy" && year < 2025 ? 46 : 50);
+/** Formuła 2015 (do 2022): 170 min na poziomie podstawowym; od 2023 – 180. */
+const duration = (level: string, year: number) => (level === "podstawowy" && year <= 2022 ? 170 : 180);
 
 describe.each(CKE.map((e) => [e.id, e] as const))("arkusz CKE %s", (_, exam) => {
   it("punkty, czas, numery i id jak w arkuszu", () => {
     expect(examMaxPoints(exam)).toBe(maxPoints(exam.level, exam.year!));
-    expect(exam.durationMin).toBe(180);
+    expect(exam.durationMin).toBe(duration(exam.level, exam.year!));
     const numbers = exam.tasks.map((_, i) => taskNumber(exam, i));
     expect(new Set(numbers).size).toBe(numbers.length);
     expect(exam.numbers).toHaveLength(exam.tasks.length);
@@ -112,5 +114,26 @@ describe("matura podstawowa maj 2026 – klucz wersji A", () => {
       "18": "C", "19": "C", "20": "B", "23": "D", "24.1": "B", "24.2": "D", "25": "B", "26": "D", "28": "D", "29": "A",
       "31": "A", "32": "C", "33.1": "D", "33.2": "A",
     });
+  });
+});
+
+describe("matura podstawowa maj 2022 (formuła 2015) – klucz wersji A", () => {
+  const exam = EXAMS.find((e) => e.id === "cke-2022-maj")!;
+
+  it("zadania zamknięte 1–28 i wyniki otwartych", () => {
+    const key = Object.fromEntries(exam.tasks.flatMap((t, i) => (t.kind === "closed" ? [[taskNumber(exam, i), t.question.correct]] : [])));
+    expect(key).toEqual({
+      "1": "A", "2": "B", "3": "C", "4": "B", "5": "A", "6": "B", "7": "C", "8": "C", "9": "B", "10": "D", "11": "D", "12": "B",
+      "13": "D", "14": "A", "15": "A", "16": "D", "17": "B", "18": "D", "19": "D", "20": "A", "21": "B", "22": "C", "23": "A",
+      "24": "A", "25": "B", "26": "D", "27": "B", "28": "C",
+    });
+    const open = (n: string) => exam.tasks[exam.numbers!.indexOf(n)];
+    const accepts = (n: string, input: string) => scoreTask(open(n), { kind: "open", input }, exam.numbers!.indexOf(n) + 1).status;
+    expect(accepts("29", "(-inf; -2> u <8/3; inf)")).toBe("correct");
+    expect(accepts("30", "14750")).toBe("correct");
+    expect(accepts("32", "0,8")).toBe("correct");
+    expect(accepts("33", "72")).toBe("correct");
+    expect(accepts("34", "4/81")).toBe("correct");
+    expect(accepts("35", "-0,375; -0,75; 5,625")).toBe("correct");
   });
 });

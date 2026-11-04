@@ -1,3 +1,4 @@
+import { CKE_2022_MAJ } from "@/data/cke/matura-2022-maj";
 import { CKE_2023_MAJ } from "@/data/cke/matura-2023-maj";
 import { CKE_2023_MAJ_R } from "@/data/cke/matura-2023-maj-rozszerzona";
 import { CKE_2024_MAJ } from "@/data/cke/matura-2024-maj";
@@ -14,7 +15,7 @@ import type { ExamSheet } from "@/types/exam";
 // Pliki arkuszy importują z `@/data/topics` tylko typy – ten moduł może więc czytać `src/data/topics/index.ts`
 // (zadania CKE w zakładce „Zadania”) bez zapętlenia importów.
 
-export const CKE_SHEETS: ExamSheet[] = [CKE_2026_MAJ, CKE_2026_MAJ_R, CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R, CKE_2023_MAJ, CKE_2023_MAJ_R];
+export const CKE_SHEETS: ExamSheet[] = [CKE_2026_MAJ, CKE_2026_MAJ_R, CKE_2025_MAJ, CKE_2025_MAJ_R, CKE_2024_MAJ, CKE_2024_MAJ_R, CKE_2023_MAJ, CKE_2023_MAJ_R, CKE_2022_MAJ];
 
 /**
  * Dział każdego zadania (numer z arkusza → id działu). Zadania „wybór” i dowody też mają dział (porządek),
@@ -79,6 +80,18 @@ const TOPICS: Record<string, Record<string, string>> = {
     "22": "trojkaty-i-czworokaty", "23": "punkty-i-proste", "24": "punkty-i-proste", "25": "geometria-przestrzenna",
     "26": "geometria-przestrzenna", "27": "geometria-przestrzenna", "28": "kombinatoryka", "29": "statystyka",
     "30": "prawdopodobienstwo", "31.1": "funkcja-kwadratowa", "31.2": "optymalizacja",
+  },
+  // formuła 2015 (45 pkt, 170 min)
+  "cke-2022-maj": {
+    "1": "potegi-i-pierwiastki", "2": "wzory-skroconego-mnozenia", "3": "logarytmy", "4": "potegi-i-pierwiastki",
+    "5": "potegi-i-pierwiastki", "6": "uklady-rownan", "7": "nierownosci-liniowe", "8": "rownania-wymierne",
+    "9": "wykres-funkcji", "10": "przeksztalcenia-wykresow", "11": "funkcja-liniowa", "12": "funkcja-kwadratowa",
+    "13": "ciagi", "14": "ciagi", "15": "ciagi", "16": "trygonometria", "17": "okrag-i-kolo", "18": "okrag-i-kolo",
+    "19": "trojkaty-i-czworokaty", "20": "twierdzenie-cosinusow", "21": "punkty-i-proste", "22": "punkty-i-proste",
+    "23": "punkty-i-proste", "24": "punkty-i-proste", "25": "geometria-przestrzenna", "26": "geometria-przestrzenna",
+    "27": "kombinatoryka", "28": "statystyka", "29": "nierownosci-kwadratowe", "30": "ciagi",
+    "31": "wzory-skroconego-mnozenia", "32": "trygonometria", "33": "trojkaty-i-czworokaty", "34": "prawdopodobienstwo",
+    "35": "funkcja-kwadratowa",
   },
   "cke-2023-maj-r": {
     "1": "funkcja-wykladnicza-i-logarytmiczna", "2": "rz-prawdopodobienstwo", "3": "rz-pochodna", "4": "rz-wielomiany",
