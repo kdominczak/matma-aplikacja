@@ -20,8 +20,11 @@ export default function FunctionPlot({ plot }: { plot: Plot }) {
   const unit = Math.max(UNIT, MIN_WIDTH / (xMax - xMin));
   const width = (xMax - xMin) * unit + left + PAD;
   const height = (yMax - yMin) * unit + PAD * 2;
-  const px = (x: number) => left + (x - xMin) * unit;
-  const py = (y: number) => PAD + (yMax - y) * unit;
+  // współrzędne zaokrąglone do setnych piksela: ostatnie bity Math.cos/sqrt bywają różne na serwerze (prerender)
+  // i w przeglądarce, co psuło hydratację; przy okazji krótszy HTML
+  const round = (v: number) => Math.round(v * 100) / 100;
+  const px = (x: number) => round(left + (x - xMin) * unit);
+  const py = (y: number) => round(PAD + (yMax - y) * unit);
   // id z wymiarów: kilka wykresów na stronie nie nadpisze sobie obszaru przycięcia
   const clipId = `plot-${xMin}-${xMax}-${yMin}-${yMax}`;
 

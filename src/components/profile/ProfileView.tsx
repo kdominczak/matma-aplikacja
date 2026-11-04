@@ -29,6 +29,13 @@ import { MasteryRows } from "@/components/progress/MasteredTopics";
 import { goalPoints } from "@/lib/goal";
 import type { Progress } from "@/types/progress";
 import type { Level } from "@/types/topic";
+import { CKE_SHEETS } from "@/data/cke";
+
+/** Roczniki arkuszy CKE w aplikacji, np. „2021–2026”. */
+const CKE_YEARS = (() => {
+  const years = CKE_SHEETS.map((sheet) => sheet.year ?? 0).filter(Boolean);
+  return `${Math.min(...years)}–${Math.max(...years)}`;
+})();
 
 export default function ProfileView() {
   const progress = useProgress();
@@ -491,7 +498,7 @@ function CkeProgressCard({ progress }: { progress: Progress }) {
   return (
     <section className="card overflow-hidden">
       <div className="p-5">
-        <p className="text-sm text-muted">Prawdziwe zadania z matur CKE z lat 2022–2026, rozwiązane w „Zadaniach” albo w arkuszu.</p>
+        <p className="text-sm text-muted">Prawdziwe zadania z matur CKE z lat {CKE_YEARS}, rozwiązane w „Zadaniach” albo w arkuszu.</p>
         <p className="mt-2 font-display text-3xl font-extrabold text-ink tabular-nums">
           {solved} <span className="text-lg font-bold text-muted">z {total}</span>
         </p>

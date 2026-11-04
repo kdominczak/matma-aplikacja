@@ -59,7 +59,8 @@ describe("zakładka „Zadania”", () => {
   });
 
   it("dział bez lekcji ma zadania od najłatwiejszych", () => {
-    const tasks = practiceTasks(getTopic("ciagi")!);
+    // zadania aplikacji: zamknięte od najłatwiejszych, otwarte na końcu; potem zadania z arkuszy CKE (kolejność arkusza)
+    const tasks = practiceTasks(getTopic("ciagi")!).filter((t) => !t.id.startsWith("cke-"));
     expect(tasks[0].difficulty).toBe("podstawowy");
     expect(tasks.at(-1)?.kind).toBe("open");
   });

@@ -138,6 +138,29 @@ describe("matura podstawowa maj 2022 (formuła 2015) – klucz wersji A", () => 
   });
 });
 
+describe("matura podstawowa maj 2021 (formuła 2015) – klucz wersji A", () => {
+  const exam = EXAMS.find((e) => e.id === "cke-2021-maj")!;
+
+  it("zadania zamknięte 1–28 i wyniki otwartych", () => {
+    const key = Object.fromEntries(exam.tasks.flatMap((t, i) => (t.kind === "closed" ? [[taskNumber(exam, i), t.question.correct]] : [])));
+    expect(key).toEqual({
+      "1": "B", "2": "B", "3": "A", "4": "C", "5": "D", "6": "B", "7": "A", "8": "A", "9": "D", "10": "B", "11": "C", "12": "A",
+      "13": "D", "14": "D", "15": "B", "16": "B", "17": "C", "18": "D", "19": "A", "20": "A", "21": "D", "22": "B", "23": "B",
+      "24": "C", "25": "B", "26": "A", "27": "B", "28": "C",
+    });
+    const open = (n: string) => exam.tasks[exam.numbers!.indexOf(n)];
+    const accepts = (n: string, input: string) => scoreTask(open(n), { kind: "open", input }, exam.numbers!.indexOf(n) + 1).status;
+    expect(accepts("29", "<-2; 7>")).toBe("correct");
+    expect(accepts("29", "-2 <= x <= 7")).toBe("correct");
+    expect(accepts("31", "3; 2")).toBe("correct");
+    expect(accepts("32", "2; 5/3")).toBe("correct");
+    expect(accepts("33", "4")).toBe("correct");
+    expect(accepts("34", "12/36")).toBe("correct");
+    expect(accepts("35", "27; 9√10+50")).toBe("correct");
+    expect(accepts("35", "27; 50")).not.toBe("correct");
+  });
+});
+
 describe("kod arkusza CKE na karcie", () => {
   it("z nazwy PDF, bez dopisku „-arkusz”; arkusze aplikacji bez kodu", () => {
     const code = (id: string) => examCode(EXAMS.find((e) => e.id === id)!);
