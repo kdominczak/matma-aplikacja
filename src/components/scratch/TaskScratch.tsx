@@ -46,11 +46,26 @@ function useBottomBarHeight() {
       const bars = [...document.querySelectorAll<HTMLElement>(`[${BOTTOM_BAR_ATTR}]`)];
       setHeight(Math.max(0, ...bars.map((b) => b.getBoundingClientRect().height)));
     };
-    // paski są częścią ekranu zadania (montują się razem z nim) – obserwujemy tylko zmianę ich wysokości
+    // paski pojawiają się i znikają razem ze stanem zadania („Sprawdź” → „Następne”) – obserwujemy wysokość
+    // obecnych i co klatkę po zmianie drzewa szukamy nowych
     const resize = new ResizeObserver(measure);
-    document.querySelectorAll(`[${BOTTOM_BAR_ATTR}]`).forEach((b) => resize.observe(b));
+    const observeAll = () => document.querySelectorAll(`[${BOTTOM_BAR_ATTR}]`).forEach((b) => resize.observe(b));
+    let frame = 0;
+    const mutations = new MutationObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        observeAll();
+        measure();
+      });
+    });
+    mutations.observe(document.body, { childList: true, subtree: true });
+    observeAll();
     measure();
-    return () => resize.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      mutations.disconnect();
+      resize.disconnect();
+    };
   }, []);
   return height;
 }

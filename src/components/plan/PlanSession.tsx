@@ -126,7 +126,7 @@ function PlanSummary({ result, outcome }: SummaryProps) {
           )}
           {reviewsPassed > 0 && (
             <p className="flex items-start gap-2 text-body">
-              <Icon name="checkCircle" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+              <Icon name="checkCircle" className="mt-0.5 h-4 w-4 shrink-0 text-good" />
               <span>
                 {reviewsPassed} {plural(reviewsPassed, "powtórka zaliczona", "powtórki zaliczone", "powtórek zaliczonych")} – wrócą za dłuższą przerwę, aż zostaną na stałe.
               </span>

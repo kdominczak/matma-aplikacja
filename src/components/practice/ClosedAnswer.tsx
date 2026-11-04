@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import TrapCard from "@/components/quiz/TrapCard";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
@@ -7,6 +8,12 @@ import { displayedOptions, displayKey } from "@/lib/options";
 import { soundSelect } from "@/lib/sounds";
 import type { OptionKey, QuizQuestion } from "@/types/quiz";
 
+/**
+ * Na telefonie przycisk akcji („Sprawdź”, „Następne”) przykleja się do dołu ekranu – uczeń nie przewija, żeby go znaleźć.
+ * `data-bottom-bar`: pływający przycisk brudnopisu staje nad nim.
+ */
+const STICKY_ACTION =
+  "max-lg:sticky max-lg:bottom-0 max-lg:z-10 max-lg:-mx-4 max-lg:bg-surface/90 max-lg:px-4 max-lg:pt-2 max-lg:pb-[calc(env(safe-area-inset-bottom)+0.75rem)] max-lg:backdrop-blur-lg";
 
 export interface ClosedState {
   selected?: OptionKey;
@@ -26,6 +33,14 @@ type Props = {
 export default function ClosedAnswer({ question, state, onChange, onCheck, onExplain, onNext }: Props) {
   const { selected, checked } = state;
   const isCorrect = selected === question.correct;
+  const feedback = useRef<HTMLDivElement>(null);
+
+  // po sprawdzeniu wyjaśnienie bywa pod krawędzią ekranu (za przyklejonym „Następne”) – pokazujemy je
+  useEffect(() => {
+    if (!checked) return;
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    feedback.current?.scrollIntoView({ block: "nearest", behavior: smooth ? "smooth" : "auto" });
+  }, [checked]);
 
   function optionClasses(key: OptionKey) {
     const base = "flex w-full items-center gap-3 rounded-2xl border-2 p-4 text-left text-base font-semibold transition-all duration-150";
@@ -66,17 +81,20 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
       </div>
 
       {!checked ? (
-        <button
-          onClick={onCheck}
-          disabled={!selected}
-          className="rounded-2xl bg-cta py-3.5 font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
-        >
-          Sprawdź odpowiedź
-        </button>
+        <div data-bottom-bar className={STICKY_ACTION}>
+          <button
+            onClick={onCheck}
+            disabled={!selected}
+            className="w-full rounded-2xl bg-cta py-3.5 font-bold text-on-cta shadow-float btn-hover active:bg-cta-dark disabled:bg-subtle disabled:text-faint disabled:shadow-none"
+          >
+            Sprawdź odpowiedź
+          </button>
+        </div>
       ) : (
         <div
+          ref={feedback}
           aria-live="polite"
-          className={`flex animate-fade-in flex-col gap-3 rounded-2xl border p-4 ${
+          className={`flex animate-fade-in scroll-mt-40 scroll-mb-28 flex-col gap-3 rounded-2xl border p-4 ${
             isCorrect ? "border-good/30 bg-good-soft" : "border-bad/30 bg-bad-soft"
           }`}
         >
@@ -102,9 +120,14 @@ export default function ClosedAnswer({ question, state, onChange, onCheck, onExp
       )}
 
       {checked && onNext && (
-        <button onClick={onNext} className="flex items-center justify-center gap-2 rounded-2xl border border-line bg-card py-3.5 font-bold text-brand hover:border-brand/60 dark:hover:border-brand/40">
-          Następne zadanie <Icon name="arrow" className="h-4 w-4" />
-        </button>
+        <div data-bottom-bar className={STICKY_ACTION}>
+          <button
+            onClick={onNext}
+            className="btn-shine press flex w-full items-center justify-center gap-2 rounded-2xl bg-cta py-3.5 font-bold text-on-cta active:bg-cta-dark"
+          >
+            Następne zadanie <Icon name="arrow" className="h-4 w-4" />
+          </button>
+        </div>
       )}
     </section>
   );

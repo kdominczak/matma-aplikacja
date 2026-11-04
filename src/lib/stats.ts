@@ -30,6 +30,13 @@ export function formatDay(key: string): string {
   return parseDay(key).toLocaleDateString("pl-PL", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** Krótka data w UI („31 paź”) – rok tylko, gdy inny niż bieżący. Tylko po stronie klienta (zależy od dzisiejszej daty). */
+export function formatDayShort(key: string): string {
+  const date = parseDay(key);
+  const year = date.getFullYear() === new Date().getFullYear() ? undefined : "numeric";
+  return date.toLocaleDateString("pl-PL", { day: "numeric", month: "short", year });
+}
+
 // ── Testy ──
 
 export function testKey(topicId: string, difficulty: Difficulty) {

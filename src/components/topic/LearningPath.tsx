@@ -41,7 +41,7 @@ export default function LearningPath({ progress, level = "podstawowy" }: { progr
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-subtle">
-        <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${total ? (passed / total) * 100 : 0}%` }} />
+        <div className="h-full rounded-full bg-good transition-all duration-500" style={{ width: `${total ? (passed / total) * 100 : 0}%` }} />
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">

@@ -39,7 +39,8 @@ export default function ExamCard({ exam, attempts, session }: { exam: ExamSheet;
               {LEVEL_LONG[exam.level]}
               {formula ? ` · ${formula}` : ""}
             </p>
-            <p className="mt-1 text-xs text-muted">{examSource(exam)}</p>
+            {/* przy CKE źródło mówią już nagłówek i tytuł („Oficjalny arkusz CKE · Matura maj 2025”) */}
+            {!official && <p className="mt-1 text-xs text-muted">{examSource(exam)}</p>}
           </div>
           {session && (
             <span className="shrink-0 rounded-full border border-amber-500/40 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">W toku</span>
@@ -79,9 +80,7 @@ export default function ExamCard({ exam, attempts, session }: { exam: ExamSheet;
               <p className="mt-1 text-xs text-muted">{best.percent >= THRESHOLD ? "Powyżej progu zdania (30%)" : "Poniżej progu zdania (30%)"}</p>
             )}
           </div>
-        ) : (
-          <p className="text-sm text-muted">Jeszcze nie rozwiązany.</p>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 border-t border-line px-5 py-3">

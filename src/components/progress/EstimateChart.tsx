@@ -13,6 +13,8 @@ import {
 import { estimateHistory } from "@/lib/estimate";
 import { useTheme } from "@/lib/theme";
 import { levelTarget } from "@/lib/level";
+import { LEVEL_POINTS } from "@/lib/exam-weights";
+import { goalPoints } from "@/lib/goal";
 import type { Progress } from "@/types/progress";
 import type { Level } from "@/types/topic";
 
@@ -22,17 +24,19 @@ const CHART_COLORS = {
   dark: { line: "#d4af37", grid: "#232b3b", axis: "#8b94a7", surface: "#111827", target: "#5b6476" },
 };
 
-/** Szacowany wynik matury dzień po dniu, z linią celu. */
+/** Szacowany wynik matury dzień po dniu, z linią celu – w punktach, tak jak cel i wynik na ekranie głównym. */
 export default function EstimateChart({ progress, level = "podstawowy" }: { progress: Progress; level?: Level }) {
   const { isDark } = useTheme();
   const colors = isDark ? CHART_COLORS.dark : CHART_COLORS.light;
-  const data = estimateHistory(progress, level);
-  const target = levelTarget(progress, level);
+  const max = LEVEL_POINTS[level];
+  const data = estimateHistory(progress, level).map((point) => ({ ...point, percent: point.value, value: Math.round((point.value / 100) * max) }));
+  const target = goalPoints(levelTarget(progress, level), level);
+  const ticks = Array.from({ length: Math.floor(max / 10) + 1 }, (_, i) => i * 10);
   const lastIndex = data.length - 1;
 
   return (
     <figure>
-      <div className="h-64 w-full sm:h-72" role="img" aria-label={`Szacowany wynik: obecnie ${data[lastIndex].value}%`}>
+      <div className="h-64 w-full sm:h-72" role="img" aria-label={`Szacowany wynik: obecnie ${data[lastIndex].value} z ${max} pkt`}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 24, right: 44, bottom: 0, left: -12 }}>
             <defs>
@@ -51,9 +55,8 @@ export default function EstimateChart({ progress, level = "podstawowy" }: { prog
               minTickGap={24}
             />
             <YAxis
-              domain={[0, 100]}
-              ticks={[0, 25, 50, 75, 100]}
-              tickFormatter={(v: number) => `${v}%`}
+              domain={[0, max]}
+              ticks={ticks}
               tick={{ fill: colors.axis, fontSize: 11 }}
               tickLine={false}
               axisLine={false}
@@ -62,7 +65,7 @@ export default function EstimateChart({ progress, level = "podstawowy" }: { prog
               y={target}
               stroke={colors.target}
               strokeDasharray="4 4"
-              label={{ value: `Cel ${target}%`, position: "insideTopLeft", fill: colors.axis, fontSize: 11, fontWeight: 700 }}
+              label={{ value: `Cel ${target} pkt`, position: "insideTopLeft", fill: colors.axis, fontSize: 11, fontWeight: 700 }}
             />
             <Tooltip
               cursor={{ stroke: colors.axis, strokeWidth: 1, strokeDasharray: "3 3" }}
@@ -72,7 +75,9 @@ export default function EstimateChart({ progress, level = "podstawowy" }: { prog
                 return (
                   <div className="rounded-xl border border-line bg-card px-3 py-2 text-sm shadow-card">
                     <p className="text-xs font-semibold text-muted">{point.label}</p>
-                    <p className="font-extrabold text-ink">{point.value}% szacowanego wyniku</p>
+                    <p className="font-extrabold text-ink">
+                      {point.value}/{max} pkt · {point.percent}%
+                    </p>
                   </div>
                 );
               }}
@@ -94,7 +99,7 @@ export default function EstimateChart({ progress, level = "podstawowy" }: { prog
                   <g key="last">
                     <circle cx={props.cx} cy={props.cy} r={5} fill={colors.line} stroke={colors.surface} strokeWidth={2} />
                     <text x={props.cx + 9} y={props.cy + 4} fill={colors.axis} fontSize={12} fontWeight={800}>
-                      {data[lastIndex].value}%
+                      {data[lastIndex].value} pkt
                     </text>
                   </g>
                 );
@@ -116,7 +121,9 @@ export default function EstimateChart({ progress, level = "podstawowy" }: { prog
             {data.map((point) => (
               <tr key={point.day} className="border-t border-line">
                 <td className="py-1">{point.label}</td>
-                <td className="py-1 text-right font-semibold text-ink">{point.value}%</td>
+                <td className="py-1 text-right font-semibold text-ink">
+                  {point.value}/{max} pkt · {point.percent}%
+                </td>
               </tr>
             ))}
           </tbody>

@@ -15,7 +15,7 @@ import { getDifficulty } from "@/data/topics";
 import { DAILY_QUESTION_COUNT } from "@/lib/daily";
 import { goalPoints } from "@/lib/goal";
 import { levelTarget } from "@/lib/level";
-import { buildPlan, planStreak, type DailyPlan, type PlanFocus } from "@/lib/planner";
+import { buildPlan, type DailyPlan, type PlanFocus } from "@/lib/planner";
 import { plural } from "@/lib/plural";
 import { needsPlacement } from "@/lib/placement";
 import CkeNotice from "@/components/legal/CkeNotice";
@@ -90,7 +90,6 @@ function focusLine(focus: PlanFocus): string {
  */
 function PlanCard({ progress, plan }: { progress: Progress | null; plan: DailyPlan | null }) {
   const done = plan ? plan.round > 0 : false;
-  const days = progress ? planStreak(progress) : 0;
   const focusCount = plan?.items.filter((i) => i.kind === "focus").length ?? 0;
   const mixCount = plan?.items.filter((i) => i.kind === "mix").length ?? 0;
   const dailyDone = progress?.dailyDone === dayKey();
@@ -101,15 +100,8 @@ function PlanCard({ progress, plan }: { progress: Progress | null; plan: DailyPl
       <span aria-hidden className="pointer-events-none absolute top-3 right-6 text-6xl text-brand/15 lg:text-7xl">
         <MathText text="$x^2$" />
       </span>
-      <p className="relative flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-extrabold uppercase tracking-widest text-muted">
-        <span>Plan na dziś{plan ? ` · ~${plan.minutes} min` : ""}</span>
-        {days > 0 && (
-          <span className="flex items-center gap-1 text-orange-700 dark:text-orange-300">
-            <Icon name="flame" className="h-3.5 w-3.5" />
-            {days} {plural(days, "dzień", "dni", "dni")} z planem
-          </span>
-        )}
-      </p>
+      {/* seria dni jest jedna – na karcie passy niżej; tu bez drugiego licznika „dni z planem” */}
+      <p className="relative text-xs font-extrabold uppercase tracking-widest text-muted">Plan na dziś{plan ? ` · ~${plan.minutes} min` : ""}</p>
       <h2 className="relative mt-1 text-2xl font-extrabold text-ink lg:text-3xl">
         {!plan ? "Układamy Twój plan…" : done ? "Plan na dziś wykonany!" : (plan.focus?.topic.title ?? "Zrób dziś postęp.")}
       </h2>
@@ -154,7 +146,7 @@ function PlanCard({ progress, plan }: { progress: Progress | null; plan: DailyPl
           onClick={() => hapticTap()}
           className="flex min-h-11 items-center justify-center gap-1.5 text-sm font-bold text-muted hover:text-ink"
         >
-          <Icon name={dailyDone ? "checkCircle" : "bolt"} className={`h-4 w-4 ${dailyDone ? "text-emerald-500" : ""}`} />
+          <Icon name={dailyDone ? "checkCircle" : "bolt"} className={`h-4 w-4 ${dailyDone ? "text-good" : ""}`} />
           Dzienne wyzwanie · {DAILY_QUESTION_COUNT} losowych zadań
         </Link>
       </div>

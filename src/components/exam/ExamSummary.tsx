@@ -23,9 +23,9 @@ const ExplainSheet = dynamic(() => import("@/components/quiz/ExplainSheet"), { s
 type Filter = "all" | "wrong" | "skipped";
 
 const STATUS = {
-  correct: { icon: "checkCircle", label: "Dobrze", style: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
+  correct: { icon: "checkCircle", label: "Dobrze", style: "bg-good-soft text-good" },
   partial: { icon: "check", label: "Częściowo", style: "bg-amber-500/15 text-amber-700 dark:text-amber-400" },
-  wrong: { icon: "close", label: "Źle", style: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
+  wrong: { icon: "close", label: "Źle", style: "bg-bad-soft text-bad" },
   skipped: { icon: "more", label: "Bez odpowiedzi", style: "bg-subtle text-muted" },
 } as const;
 
@@ -96,7 +96,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
         </section>
 
         {boxable.length > 0 && (
-          <section className="flex flex-col gap-3 rounded-3xl border border-rose-500/30 bg-rose-500/5 p-5 sm:flex-row sm:items-center">
+          <section className="flex flex-col gap-3 rounded-3xl border border-bad/30 bg-bad-soft/60 p-5 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
               <p className="font-extrabold text-ink">Błędy do powtórki: {boxable.length}</p>
               <p className="text-sm text-muted">
@@ -111,7 +111,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                   hapticTap();
                   setAdded(await addMistakes(boxable.map((r) => ({ questionId: r.taskId, chosen: r.given as OptionKey }))));
                 }}
-                className="flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-rose-500 px-4 font-bold text-white active:bg-rose-600"
+                className="flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-bad px-4 font-bold text-on-bad active:opacity-90"
               >
                 <Icon name="archive" className="h-4 w-4" /> Dodaj do Pudełka porażek
               </button>
@@ -195,7 +195,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                         <>
                           <p className="text-body">
                             Twoja odpowiedź: <strong className="text-ink">{result.given ? displayKey(task.question, result.given as OptionKey) : "–"}</strong> · Poprawna:{" "}
-                            <strong className="text-emerald-600 dark:text-emerald-400">{displayKey(task.question, task.question.correct)}</strong>{" "}
+                            <strong className="text-good">{displayKey(task.question, task.question.correct)}</strong>{" "}
                             <MathText text={`(${task.question.options[task.question.correct]})`} />
                           </p>
                           <p className="leading-relaxed text-body">
@@ -214,7 +214,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                         <>
                           <p className="text-body">
                             Twoja odpowiedź: <strong className="text-ink">{result.given ?? "–"}</strong> · Poprawna:{" "}
-                            <strong className="text-emerald-600 dark:text-emerald-400">{formatPicks(task.choice, task.choice.blanks.map((b) => b.answer))}</strong>
+                            <strong className="text-good">{formatPicks(task.choice, task.choice.blanks.map((b) => b.answer))}</strong>
                           </p>
                           <p className="leading-relaxed text-body">
                             <MathText text={task.choice.explanation} />
@@ -225,7 +225,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                           {task.task.answers.length > 0 && (
                             <p className="text-body">
                               Twój wynik: <strong className="text-ink">{result.given ?? "–"}</strong> · Poprawny:{" "}
-                              <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
+                              <strong className="text-good">{task.task.answers[0].replace(";", "; ")}</strong>
                             </p>
                           )}
                           {result.assessment && (
@@ -244,7 +244,7 @@ export default function ExamSummary({ exam, attempt, onRetry }: { exam: ExamShee
                                 return (
                                   <li
                                     key={i}
-                                    className={`flex gap-3 rounded-xl p-3 ${awarded ? "border border-emerald-500/30 bg-emerald-500/5" : "bg-subtle/60"}`}
+                                    className={`flex gap-3 rounded-xl p-3 ${awarded ? "border border-good/30 bg-good-soft/60" : "bg-subtle/60"}`}
                                   >
                                     <span className="shrink-0 text-xs font-extrabold text-brand">
                                       {result.assessment ? `${awarded ?? 0}/${step.points}` : `+${step.points}`} pkt

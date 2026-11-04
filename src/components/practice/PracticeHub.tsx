@@ -18,6 +18,11 @@ const CATEGORIES: (Category | "Wszystkie")[] = ["Wszystkie", "Liczby", "Algebra"
 
 type View = "zadania" | "lekcje";
 
+/** Do wyszukiwania: małe litery, bez polskich znaków („potegi” znajduje „Potęgi”). */
+function fold(text: string): string {
+  return text.toLocaleLowerCase("pl-PL").normalize("NFD").replace(/\p{M}/gu, "").replace(/ł/g, "l");
+}
+
 /** Widok w adresie (?widok=lekcje) – skróty z ekranu głównego i Profilu otwierają od razu lekcje, „wstecz” wraca do nich. */
 function useView(): [View, (view: View) => void] {
   const router = useRouter();
@@ -33,8 +38,12 @@ export default function PracticeHub() {
   const progress = useProgress();
   const [view, setView] = useView();
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("Wszystkie");
+  const [query, setQuery] = useState("");
   const { level } = useActiveLevel(progress);
-  const fits = (t: Topic) => practiceTasks(t).length > 0 && (category === "Wszystkie" || t.category === category);
+  const needle = fold(query.trim());
+  // szukanie przeszukuje wszystkie kategorie – uczeń szuka działu po nazwie, nie po grupie
+  const fits = (t: Topic) =>
+    practiceTasks(t).length > 0 && (needle ? fold(`${t.title} ${t.category}`).includes(needle) : category === "Wszystkie" || t.category === category);
   // rozszerzenie: najpierw działy rozszerzenia, pod nimi podstawa (arkusz rozszerzony sprawdza też wymagania podstawowe)
   const groups: { title: string | null; list: Topic[] }[] =
     level === "rozszerzony"
@@ -48,7 +57,7 @@ export default function PracticeHub() {
     <Page>
       <PageHeader
         title="Zadania"
-        subtitle="Zadania maturalne i lekcje z każdego działu – z brudnopisem i kalkulatorem."
+        subtitle="Zadania i lekcje z każdego działu – z brudnopisem i kalkulatorem."
         action={
           <Link
             href="/wzory"
@@ -88,20 +97,43 @@ export default function PracticeHub() {
         <LearningPath progress={progress} level={level} />
       ) : (
         <>
-          <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Kategorie">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                aria-pressed={category === c}
-                className={`min-h-11 shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                  category === c ? "border-brand bg-brand text-on-brand shadow-float" : "border-line bg-card text-muted hover:text-ink"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </nav>
+          <label className="relative block sm:max-w-sm">
+            <span className="sr-only">Szukaj działu</span>
+            <Icon name="search" className="pointer-events-none absolute top-1/2 left-3.5 h-4.5 w-4.5 -translate-y-1/2 text-muted" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Szukaj działu, np. logarytmy"
+              enterKeyHint="search"
+              className="min-h-11 w-full rounded-2xl border border-line bg-card py-2.5 pr-4 pl-10 text-ink placeholder:text-muted focus:border-brand focus:outline-none"
+            />
+          </label>
+          {!needle && (
+            <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Kategorie">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  aria-pressed={category === c}
+                  className={`min-h-11 shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                    category === c ? "border-brand bg-brand text-on-brand shadow-float" : "border-line bg-card text-muted hover:text-ink"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </nav>
+          )}
+          {needle && groups.every((g) => g.list.length === 0) && (
+            <p className="card p-5 text-center text-sm text-muted">
+              Nie ma działu „{query.trim()}”. Spróbuj innej nazwy albo zajrzyj do{" "}
+              <Link href="/wzory" className="font-bold text-brand">
+                wzorów
+              </Link>
+              .
+            </p>
+          )}
 
           {groups
             .filter((g) => g.list.length > 0)
@@ -139,9 +171,7 @@ function TopicTasksCard({ topic, progress }: { topic: Topic; progress: Progress 
       <div className="flex items-center gap-3">
         <CategoryTile topic={topic} />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-muted">
-            {topic.lesson} · {topic.category}
-          </p>
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">{topic.category}</p>
           <p className="leading-snug font-extrabold text-ink">{topic.title}</p>
         </div>
         <Icon name="chevron" className="h-5 w-5 shrink-0 text-faint transition-transform group-hover:translate-x-0.5" />
@@ -152,7 +182,7 @@ function TopicTasksCard({ topic, progress }: { topic: Topic; progress: Progress 
       </div>
       <div>
         <div className="h-1.5 overflow-hidden rounded-full bg-subtle">
-          <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${(solved / tasks.length) * 100}%` }} />
+          <div className="h-full rounded-full bg-good transition-all duration-500" style={{ width: `${(solved / tasks.length) * 100}%` }} />
         </div>
         <p className="mt-1 text-xs font-semibold text-muted">
           Rozwiązane: {solved}/{tasks.length}

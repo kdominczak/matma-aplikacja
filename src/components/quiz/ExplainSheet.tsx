@@ -49,7 +49,7 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
 
   const fallback = (
     <div className="flex flex-col gap-3">
-      <p className="text-xs font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+      <p className="text-xs font-extrabold uppercase tracking-widest text-good">
         Poprawna odpowiedź: {displayKey(question, question.correct)}
       </p>
       <p className="leading-relaxed text-body">
@@ -64,8 +64,8 @@ export default function ExplainSheet({ question, chosen, onClose }: Props) {
         <div className="rounded-2xl bg-subtle p-4 text-sm font-semibold text-body">
           <MathText text={question.prompt} />
           <p className="mt-2 text-xs font-bold text-muted">
-            Twoja odpowiedź: <span className="text-rose-500">{displayKey(question, chosen)}</span> · poprawna:{" "}
-            <span className="text-emerald-600 dark:text-emerald-400">{displayKey(question, question.correct)}</span>
+            Twoja odpowiedź: <span className="text-bad">{displayKey(question, chosen)}</span> · poprawna:{" "}
+            <span className="text-good">{displayKey(question, question.correct)}</span>
           </p>
         </div>
 

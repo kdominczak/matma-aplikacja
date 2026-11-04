@@ -7,7 +7,7 @@ import { EXAMS, examHref, getExam } from "@/data/exams";
 import { findTask, practiceTasks } from "@/data/topics";
 import { lastRandomExamCode, loadSession } from "@/lib/exam";
 import { hapticTap } from "@/lib/haptics";
-import { dayKey, formatDay, parseDay } from "@/lib/stats";
+import { dayKey, formatDayShort, parseDay } from "@/lib/stats";
 import type { Progress } from "@/types/progress";
 
 /** Ile dni wstecz proponujemy powrót do ostatnio ćwiczonego działu. */
@@ -54,7 +54,7 @@ function recentPractice(progress: Progress): Resume | null {
   const target = [...tasks.keys()].map((k) => (last + k) % tasks.length).find(unsolved) ?? last;
   return {
     href: `/zadania/${ref.topic.id}?zadanie=${encodeURIComponent(tasks[target].id)}`,
-    kicker: days === 0 ? "Ćwiczone dziś" : days === 1 ? "Ćwiczone wczoraj" : `Ćwiczone ${formatDay(record.lastAt)}`,
+    kicker: days === 0 ? "Ćwiczone dziś" : days === 1 ? "Ćwiczone wczoraj" : `Ćwiczone ${formatDayShort(record.lastAt)}`,
     title: `${ref.topic.title} · zadanie ${target + 1}`,
     detail: `Do rozwiązania: ${left} z ${tasks.length}`,
   };

@@ -78,7 +78,7 @@ function PlacementSummary({ result, outcome }: SummaryProps) {
 
         <section className="card p-5">
           <h2 className="flex items-center gap-2 font-extrabold text-ink">
-            <Icon name="checkCircle" className="h-5 w-5 text-emerald-500" />
+            <Icon name="checkCircle" className="h-5 w-5 text-good" />
             Zaliczone na start
           </h2>
           {creditedTopics.length === 0 ? (
@@ -90,7 +90,7 @@ function PlacementSummary({ result, outcome }: SummaryProps) {
                 {creditedTopics.map(({ topic, level }) => (
                   <li key={topic.id} className="flex items-center justify-between gap-3 rounded-2xl bg-subtle px-3 py-2 text-sm">
                     <span className="font-bold text-ink">{topic.title}</span>
-                    <span className="shrink-0 text-xs font-extrabold uppercase text-emerald-600 dark:text-emerald-400">do: {level}</span>
+                    <span className="shrink-0 text-xs font-extrabold uppercase text-good">do: {level}</span>
                   </li>
                 ))}
               </ul>
@@ -100,7 +100,7 @@ function PlacementSummary({ result, outcome }: SummaryProps) {
 
         {score.total - score.correct > 0 && (
           <p className="flex items-center gap-2 text-sm text-muted">
-            <Icon name="archive" className="h-4 w-4 shrink-0 text-rose-500" />
+            <Icon name="archive" className="h-4 w-4 shrink-0 text-bad" />
             {score.total - score.correct} {score.total - score.correct === 1 ? "zadanie trafiło" : "zadania trafiły"} do Pudełka porażek.
           </p>
         )}

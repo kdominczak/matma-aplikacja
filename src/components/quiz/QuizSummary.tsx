@@ -32,7 +32,7 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
   return (
     <div className="flex min-h-dvh animate-fade-in flex-col bg-surface px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:justify-center lg:py-10">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-2xl lg:flex-none">
-        <p className={`text-center text-xs font-extrabold uppercase tracking-widest ${passed ? "text-brand" : "text-rose-500"}`}>
+        <p className={`text-center text-xs font-extrabold uppercase tracking-widest ${passed ? "text-brand" : "text-bad"}`}>
           {kicker} · {passed ? "zaliczony" : "niezaliczony"}
         </p>
 
@@ -58,10 +58,10 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
 
         <div
           className={`mt-6 flex items-center justify-between rounded-2xl border p-4 ${
-            passed ? "border-emerald-500/30 bg-emerald-500/10" : "border-rose-500/30 bg-rose-500/10"
+            passed ? "border-good/30 bg-good-soft" : "border-bad/30 bg-bad-soft"
           }`}
         >
-          <p className={`flex items-center gap-2 font-bold ${passed ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
+          <p className={`flex items-center gap-2 font-bold ${passed ? "text-good" : "text-bad"}`}>
             <Icon name={passed ? "checkCircle" : "target"} />
             Wynik {result.correct}/{result.total} · {percent}%
           </p>
@@ -124,25 +124,25 @@ export default function QuizSummary({ result, outcome, title, kicker, exitHref, 
 function Trophy({ passed }: { passed: boolean }) {
   return (
     <div className="relative mx-auto my-6 flex h-40 w-40 items-center justify-center">
-      <div className={`absolute inset-0 rounded-full ${passed ? "bg-brand-soft" : "bg-rose-500/10"}`} />
-      <div className={`absolute inset-5 rounded-full ${passed ? "bg-brand/15" : "bg-rose-500/15"}`} />
+      <div className={`absolute inset-0 rounded-full ${passed ? "bg-brand-soft" : "bg-bad-soft"}`} />
+      <div className={`absolute inset-5 rounded-full ${passed ? "bg-brand/15" : "bg-bad-soft"}`} />
       {passed && (
         <>
           <span className="absolute top-5 left-3 h-2 w-4 rotate-[30deg] rounded-full bg-orange-400" />
-          <span className="absolute top-2 right-8 h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="absolute top-2 right-8 h-2 w-2 rounded-full bg-good" />
           <span className="absolute right-1 bottom-12 h-2 w-4 -rotate-[20deg] rounded-full bg-brand" />
           <span className="absolute bottom-4 left-6 h-2 w-2 rounded-full bg-amber-400" />
         </>
       )}
       <div
         className={`relative flex h-24 w-24 -rotate-6 animate-pop items-center justify-center rounded-3xl shadow-xl ${
-          passed ? "bg-brand text-on-brand shadow-float" : "bg-rose-400 text-white shadow-rose-400/30"
+          passed ? "bg-brand text-on-brand shadow-float" : "bg-bad text-on-bad"
         }`}
       >
         <Icon name={passed ? "trophy" : "book"} className="h-11 w-11" />
       </div>
       {passed && (
-        <span className="absolute right-6 bottom-6 flex h-9 w-9 animate-pop items-center justify-center rounded-full border-4 border-surface bg-emerald-500 text-white">
+        <span className="absolute right-6 bottom-6 flex h-9 w-9 animate-pop items-center justify-center rounded-full border-4 border-surface bg-good text-on-good">
           <Icon name="check" className="h-4 w-4" />
         </span>
       )}

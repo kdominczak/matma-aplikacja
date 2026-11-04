@@ -88,9 +88,9 @@ function EstimateSection({ progress }: { progress: Progress }) {
               </p>
             ) : (
               <p className="font-display text-3xl font-extrabold tracking-tight text-brand tabular-nums">
-                <CountUp value={value} suffix="%" />{" "}
+                <CountUp value={Math.round((value / 100) * max)} />
                 <span className="text-base font-bold text-muted">
-                  · ok. {Math.round((value / 100) * max)}/{max} pkt
+                  /{max} pkt · {value}%
                 </span>
               </p>
             )}
@@ -126,7 +126,7 @@ function PassBar({ estimate, level, goal }: { estimate: number; level: Level; go
       <div className="relative h-3 rounded-full bg-subtle" aria-hidden>
         <span className="bar-grow absolute inset-y-0 left-0 rounded-full bg-brand" style={{ width: `${Math.min(estimate, 100)}%` }} />
         {pass && <span className="absolute -inset-y-1 w-0.5 rounded-full bg-ink" style={{ left: `${PASS_PERCENT}%` }} />}
-        <span className="absolute -inset-y-1 w-0.5 rounded-full bg-emerald-500" style={{ left: `${Math.min((goalPts / max) * 100, 100)}%` }} />
+        <span className="absolute -inset-y-1 w-0.5 rounded-full bg-good" style={{ left: `${Math.min((goalPts / max) * 100, 100)}%` }} />
       </div>
       <p className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
         {pass && (
@@ -136,7 +136,7 @@ function PassBar({ estimate, level, goal }: { estimate: number; level: Level; go
           </span>
         )}
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-0.5 rounded-full bg-emerald-500" aria-hidden />
+          <span className="h-3 w-0.5 rounded-full bg-good" aria-hidden />
           Twój cel: {goalPts} pkt
         </span>
       </p>
@@ -335,7 +335,12 @@ function HeroStats({ progress }: { progress: Progress }) {
   const items: { icon: IconName; value: string; label: string; tone: string }[] = [
     { icon: "flame", value: String(days), label: plural(days, "dzień serii", "dni serii", "dni serii"), tone: "text-orange-300" },
     { icon: "checkCircle", value: String(progress.stats.correct), label: "poprawne odp.", tone: "text-emerald-300" },
-    { icon: "target", value: answersToEstimate(progress) > 0 ? "–" : `${currentEstimate(progress)}%`, label: "szacowany wynik", tone: "text-sky-300" },
+    {
+      icon: "target",
+      value: answersToEstimate(progress) > 0 ? "–" : `${Math.round((currentEstimate(progress) / 100) * LEVEL_POINTS.podstawowy)}/${LEVEL_POINTS.podstawowy}`,
+      label: "pkt – szacowany wynik",
+      tone: "text-sky-300",
+    },
   ];
   return (
     <dl className="relative mt-5 grid grid-cols-3 gap-2">
@@ -362,7 +367,7 @@ function AccuracyCard({ progress }: { progress: Progress }) {
   const { answered, correct } = progress.stats;
   const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
   const week = weekSolved(progress);
-  const tone = accuracy >= 80 ? "text-emerald-500" : accuracy >= 50 ? "text-amber-500" : "text-rose-500";
+  const tone = accuracy >= 80 ? "text-good" : accuracy >= 50 ? "text-brand" : "text-bad";
 
   return (
     <section className="card flex items-center gap-5 p-5">

@@ -9,7 +9,7 @@ import type { Difficulty } from "@/types/topic";
 
 const LEVEL_SHORT: Record<Difficulty, string> = { podstawowy: "podst.", sredni: "śr.", zaawansowany: "zaaw." };
 const LEVEL_NAME: Record<Difficulty, string> = { podstawowy: "podstawowy", sredni: "średni", zaawansowany: "zaawansowany" };
-const STATE_DOT: Record<LevelState, string> = { mastered: "bg-emerald-500", progress: "bg-amber-400", none: "bg-line" };
+const STATE_DOT: Record<LevelState, string> = { mastered: "bg-good", progress: "bg-amber-400", none: "bg-line" };
 const STATE_TEXT: Record<LevelState, string> = { mastered: "opanowany", progress: "w toku", none: "bez zadań" };
 
 /** Zasada opanowania – ta sama w Profilu i na ekranie „Opanowane działy”. */
@@ -27,7 +27,7 @@ export function MasterySummary({ rows }: { rows: TopicMasteryRow[] }) {
         <span className="font-bold text-muted">z {rows.length} działów opanowanych</span>
       </p>
       <span className="block h-2 overflow-hidden rounded-full bg-subtle" aria-hidden>
-        <span className="bar-grow block h-full rounded-full bg-emerald-500" style={{ width: `${Math.max(percent, done ? 3 : 0)}%` }} />
+        <span className="bar-grow block h-full rounded-full bg-good" style={{ width: `${Math.max(percent, done ? 3 : 0)}%` }} />
       </span>
       <p className="text-xs text-faint">
         Opanowane poziomy: {levels} z {rows.length * 3}. {MASTERY_RULE}
@@ -49,7 +49,7 @@ export function MasteryRows({ rows }: { rows: TopicMasteryRow[] }) {
                 <span className="flex items-center gap-2">
                   <span className="min-w-0 truncate text-sm font-bold text-ink">{topic.title}</span>
                   {mastered && (
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-good-soft px-2 py-0.5 text-xs font-bold text-good">
                       <Icon name="checkCircle" className="h-3.5 w-3.5" />
                       Opanowany
                     </span>

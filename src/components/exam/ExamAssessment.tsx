@@ -146,7 +146,7 @@ function AssessCard({
       {task.task.answers.length > 0 && (
         <p className="text-sm text-body">
           Twój wynik: <strong className="text-ink">{result.given ?? "– (brak)"}</strong> · poprawny:{" "}
-          <strong className="text-emerald-600 dark:text-emerald-400">{task.task.answers[0].replace(";", "; ")}</strong>
+          <strong className="text-good">{task.task.answers[0].replace(";", "; ")}</strong>
         </p>
       )}
       {AI_ENABLED && <PhotoGrading task={task.task} level={level} onGraded={graded} />}
@@ -159,10 +159,10 @@ function AssessCard({
             <li key={i}>
               <label
                 className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
-                  steps[i] > 0 ? "border-emerald-500/40 bg-emerald-500/5" : "border-line"
+                  steps[i] > 0 ? "border-good/40 bg-good-soft/60" : "border-line"
                 }`}
               >
-                <input type="checkbox" checked={steps[i] > 0} onChange={() => toggle(i)} className="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600" />
+                <input type="checkbox" checked={steps[i] > 0} onChange={() => toggle(i)} className="mt-0.5 h-5 w-5 shrink-0 accent-good" />
                 <span className="min-w-0 flex-1">
                   <MathText text={step.step} className="text-sm text-body" />
                   {byAi && assessment?.reasons?.[i] && <span className="mt-1 block text-xs text-muted">AI: {assessment.reasons[i]}</span>}

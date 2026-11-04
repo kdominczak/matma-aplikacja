@@ -46,9 +46,9 @@ function status(record: PracticeRecord | undefined) {
 
 const PILL: Record<ReturnType<typeof status>, string> = {
   new: "bg-subtle text-muted",
-  solved: "bg-emerald-500 text-white",
+  solved: "bg-good text-on-good",
   partial: "bg-amber-400 text-amber-950",
-  wrong: "bg-rose-500 text-white",
+  wrong: "bg-bad text-on-bad",
 };
 
 export interface SessionTask {
@@ -217,7 +217,10 @@ export default function TaskSession({ title, exitHref, exitLabel, tasks: session
 
       <main
         key={task.id}
-        className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 pb-28 sm:px-6 lg:pb-10 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8"
+        className={`mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8 lg:pb-10 ${
+          // zamknięte: przyklejony pasek „Sprawdź/Następne” kończy ekran (brudnopis stoi nad nim); otwarte: miejsce na przycisk brudnopisu
+          task.kind === "closed" ? "pb-0" : "pb-28"
+        }`}
       >
         {/* telefon: kolumna rozpada się na elementy siatki – odpowiedź zaraz pod treścią, brudnopis na końcu */}
         <div className="flex flex-col gap-4 max-lg:contents">
@@ -238,7 +241,7 @@ export default function TaskSession({ title, exitHref, exitLabel, tasks: session
             )}
             {entry.note && <span className="normal-case tracking-normal text-muted">{entry.note}</span>}
             {status(progress?.practice[task.id]) === "solved" && (
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <span className="flex items-center gap-1 text-good">
                 <Icon name="checkCircle" className="h-3.5 w-3.5" /> Rozwiązane
               </span>
             )}

@@ -29,7 +29,7 @@ function Session({ progress }: { progress: Progress }) {
   if (questions.length === 0) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-surface p-6 text-center">
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-good-soft text-good">
           <Icon name="checkCircle" className="h-7 w-7" />
         </span>
         <p className="text-2xl font-extrabold text-ink">Pudełko jest puste</p>

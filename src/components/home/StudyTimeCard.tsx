@@ -41,7 +41,7 @@ export default function StudyTimeCard({ className = "" }: { className?: string }
         aria-valuenow={Math.min(value, DAILY_GOAL_MIN)}
       >
         <div
-          className={`h-full rounded-full transition-all duration-700 ${done ? "bg-emerald-500" : "bg-brand"}`}
+          className={`h-full rounded-full transition-all duration-700 ${done ? "bg-good" : "bg-brand"}`}
           style={{ width: `${Math.min(100, (value / DAILY_GOAL_MIN) * 100)}%` }}
         />
       </div>

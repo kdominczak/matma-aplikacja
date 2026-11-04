@@ -65,7 +65,7 @@ export default function MistakeSheetView() {
 
         {empty ? (
           <section className="card flex flex-col items-center gap-3 p-8 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-good-soft text-good">
               <Icon name="checkCircle" className="h-7 w-7" />
             </span>
             <h2 className="text-lg font-extrabold text-ink">{allTime ? "Nie ma czego poprawiać" : `Brak błędów z ostatnich ${SHEET_DAYS} dni`}</h2>

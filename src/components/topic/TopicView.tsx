@@ -200,7 +200,7 @@ function TaskSummary({ topic, progress, onOpen }: { topic: Topic; progress: Prog
         <span className="ml-1 text-sm font-bold text-muted">rozwiązanych</span>
       </p>
       <div className="h-2 overflow-hidden rounded-full bg-subtle">
-        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${total ? (solved / total) * 100 : 0}%` }} />
+        <div className="h-full rounded-full bg-good" style={{ width: `${total ? (solved / total) * 100 : 0}%` }} />
       </div>
     </button>
   );
@@ -243,7 +243,7 @@ function NextStep({ label, onClick }: { label: string; onClick: () => void }) {
 }
 
 const LEVEL_STYLE = {
-  podstawowy: { bar: "bg-emerald-500", text: "Proste, na rozgrzewkę" },
+  podstawowy: { bar: "bg-good", text: "Proste, na rozgrzewkę" },
   sredni: { bar: "bg-brand", text: "Typowe zadania maturalne" },
   zaawansowany: { bar: "bg-violet-500", text: "Trudniejsze – na wyższy wynik" },
 } as const;

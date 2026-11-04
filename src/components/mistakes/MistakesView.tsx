@@ -66,7 +66,7 @@ export default function MistakesView() {
 
       {entries.length === 0 ? (
         <section className="rounded-3xl border border-dashed border-line glass-card p-8 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-good-soft text-good">
             <Icon name="checkCircle" className="h-7 w-7" />
           </span>
           <h2 className="mt-3 text-lg font-extrabold text-ink">Pudełko jest puste</h2>
@@ -100,10 +100,10 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
           </p>
           <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted">
             <span>
-              Twoja odpowiedź: <span className="text-rose-500">{displayKey(question, mistake.chosen)}</span>
+              Twoja odpowiedź: <span className="text-bad">{displayKey(question, mistake.chosen)}</span>
             </span>
             <span>{daysAgo(mistake.lastWrong)}</span>
-            {mistake.count > 1 && <span className="text-rose-500">pomyłek: {mistake.count}</span>}
+            {mistake.count > 1 && <span className="text-bad">pomyłek: {mistake.count}</span>}
           </p>
         </div>
       </div>
@@ -116,9 +116,9 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
                 key={key}
                 className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
                   key === question.correct
-                    ? "border-emerald-500/40 bg-emerald-500/10 font-bold text-emerald-700 dark:text-emerald-300"
+                    ? "border-good/40 bg-good-soft font-bold text-good"
                     : key === mistake.chosen
-                      ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                      ? "border-bad/40 bg-bad-soft text-bad"
                       : "border-line text-muted"
                 }`}
               >

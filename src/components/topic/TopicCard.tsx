@@ -27,7 +27,7 @@ export default function TopicCard({ topic, progress }: { topic: Topic; progress:
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
             {tasks && (
               <div className="h-1.5 w-20 overflow-hidden rounded-full bg-subtle" aria-label={`Rozwiązane zadania: ${tasks.solved} z ${tasks.total}`}>
-                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${tasks.total ? (tasks.solved / tasks.total) * 100 : 0}%` }} />
+                <div className="h-full rounded-full bg-good" style={{ width: `${tasks.total ? (tasks.solved / tasks.total) * 100 : 0}%` }} />
               </div>
             )}
             <span className="text-xs font-semibold text-muted">
