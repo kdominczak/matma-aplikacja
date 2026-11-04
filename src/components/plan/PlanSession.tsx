@@ -10,11 +10,11 @@ import { AI_ENABLED } from "@/lib/ai-config";
 import { useAppSettings } from "@/lib/app-settings";
 import { activeLevel } from "@/lib/level";
 import { celebrate } from "@/lib/celebrate";
-import { buildPlan, planStreak, type DailyPlan } from "@/lib/planner";
+import { buildPlan, type DailyPlan } from "@/lib/planner";
 import { readProgress, savePlanResult, useProgress } from "@/lib/progress";
 import { plural } from "@/lib/plural";
 import { reviewsDueOn } from "@/lib/reviews";
-import { dayKey, shiftDays } from "@/lib/stats";
+import { dayKey, shiftDays, streak } from "@/lib/stats";
 import type { Progress } from "@/types/progress";
 import type { Level } from "@/types/topic";
 
@@ -77,7 +77,8 @@ function PlanSummary({ result, outcome }: SummaryProps) {
   const progress = outcome?.progress;
   const tomorrow = dayKey(shiftDays(new Date(), 1));
   const reviewsTomorrow = progress ? reviewsDueOn(progress, tomorrow) : 0;
-  const streakDays = progress ? planStreak(progress) : 0;
+  // ta sama seria co na ekranie głównym („N-dniowa passa”) – jedna liczba, nie dwie różne serie
+  const streakDays = progress ? streak(progress) : 0;
   const correctIds = new Set(result.answers.filter((a) => a.correct).map((a) => a.questionId));
   const reviewsPassed = plan.items.filter((item) => item.kind === "review" && correctIds.has(item.question.id)).length;
   const wrong = result.answered - result.correct;
@@ -105,7 +106,7 @@ function PlanSummary({ result, outcome }: SummaryProps) {
           <div aria-hidden className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-brand/40 blur-3xl" />
           <p className="relative flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-white/60">
             <Icon name="flame" className="h-4 w-4 text-orange-400" />
-            Plan dzień po dniu
+            Seria nauki
           </p>
           <p className="relative mt-1 text-4xl font-extrabold">
             {streakDays} {plural(streakDays, "dzień", "dni", "dni")}
