@@ -15,8 +15,8 @@ import {
   drawSnapIndicator,
   drawStrokeTail,
   PALETTE,
+  placeShape,
   markLabelPosition,
-  shapeFromDrag,
   type DrawContext,
 } from "@/components/scratch/scratch-draw";
 import Icon, { type IconName } from "@/components/ui/Icon";
@@ -39,7 +39,9 @@ const Calculator = dynamic(() => import("@/components/scratch/Calculator"), { ss
 export type { ScratchItem } from "@/types/scratch";
 export type { ScratchTemplate } from "@/components/scratch/ScratchBackground";
 
-type Tool = "pen" | "eraser" | "line" | "shape" | "angle" | "mark" | "select" | "pan";
+type Tool = "pen" | "eraser" | "line" | "angle" | "mark" | "select" | "pan";
+/** Panel nad paskiem narzędzi: siatka figur i brył albo kolory. */
+type Panel = "shapes" | "colors";
 
 const TEMPLATES: { id: ScratchTemplate; label: string; icon: IconName }[] = [
   { id: "grid", label: "Kratka", icon: "grid" },
@@ -55,7 +57,6 @@ const ERASER_SCALE = 5;
 const DRAG_THRESHOLD = 6;
 const SNAP_RADIUS = 18;
 const HIT_TOLERANCE = 12;
-const MIN_DRAG = 24;
 const ROTATE_HANDLE_OFFSET = 34;
 const DUPLICATE_SHIFT = 0.04;
 const MIN_LINE = 10;
@@ -88,7 +89,6 @@ type Gesture =
   | { kind: "stroke"; item: StrokeItem }
   | { kind: "line"; id: string; from: SnapTarget | null; start: Vec }
   | { kind: "angle-vertex"; shapeId: string; vertex: number; start: Vec }
-  | { kind: "new-shape"; from: Vec; id: string }
   | { kind: "move"; base: ShapeItem; start: Vec; moved: boolean }
   | { kind: "scale"; base: ShapeItem }
   | { kind: "rotate"; base: ShapeItem }
@@ -146,8 +146,7 @@ export default function ScratchBoard(props: Props) {
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState<PenColor>("ink");
   const [width, setWidth] = useState(3);
-  const [shapeTab, setShapeTab] = useState<"plane" | "solid">("plane");
-  const [shapeKind, setShapeKind] = useState<ShapeKind>("triangle");
+  const [panel, setPanel] = useState<Panel | null>(null);
   const [angleLabel, setAngleLabel] = useState(ANGLE_LABELS[0]);
   const [anglePoints, setAnglePoints] = useState<Vec[]>([]);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -314,6 +313,7 @@ export default function ScratchBoard(props: Props) {
 
   function selectTool(next: Tool) {
     setTool(next);
+    setPanel(null);
     setAnglePoints([]);
     setSelectedFormula(null);
     setSnap(null);
@@ -344,6 +344,30 @@ export default function ScratchBoard(props: Props) {
     // razem z figurą znikają przypięte do niej kąty; przypięte linie zostają w miejscu
     history.commit(removeShapeFrom(items, id, scene));
     setSelectedShape(null);
+  }
+
+  /**
+   * Figura z siatki: od razu na środku widocznej części kartki, w rozmiarze stałym na ekranie (niezależnie od
+   * przybliżenia), zaznaczona – można ją przesunąć, przeskalować, obrócić. Kolejne nie lądują jedna na drugiej.
+   */
+  function insertShape(kind: ShapeKind) {
+    const taken = [...shapes.values()].map((s) => s.center);
+    const shape: ShapeItem = {
+      id: scratchId(),
+      kind: "shape",
+      shape: kind,
+      ...placeShape(kind, units([size.width / 2, size.height / 2]), view.zoom, taken, DUPLICATE_SHIFT),
+      rotation: 0,
+      color,
+      width: Math.max(1.5, width * 0.6),
+      labels: freshLabels(kind, usedLabels()),
+      showLabels: true,
+    };
+    history.commit([...items, shape]);
+    setPanel(null);
+    setTool("select");
+    setSelectedLine(null);
+    setSelectedShape(shape.id);
   }
 
   function duplicateShape(shape: ShapeItem) {
@@ -421,6 +445,11 @@ export default function ScratchBoard(props: Props) {
 
   function handleDown(e: ReactPointerEvent<HTMLCanvasElement>) {
     setSelectedFormula(null);
+    // otwarty panel (figury, kolory): stuknięcie w kartkę tylko go zamyka – bez przypadkowej kreski
+    if (panel) {
+      setPanel(null);
+      return;
+    }
     const p = boardPoint(e.clientX, e.clientY);
     const u = units(p);
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -495,10 +524,6 @@ export default function ScratchBoard(props: Props) {
     }
 
     e.currentTarget.setPointerCapture(e.pointerId);
-    if (tool === "shape") {
-      gesture.current = { kind: "new-shape", from: u, id: scratchId() };
-      return;
-    }
     if (tool === "line") {
       const from = snapAt(u);
       gesture.current = { kind: "line", id: scratchId(), from, start: from?.point ?? u };
@@ -510,21 +535,6 @@ export default function ScratchBoard(props: Props) {
     gesture.current = { kind: "stroke", item: stroke };
     const ctx = e.currentTarget.getContext("2d")!;
     withView(ctx, () => drawItem(ctx, stroke, { isDark, width: W, scene }));
-  }
-
-  function newShape(id: string, from: Vec, to: Vec): ShapeItem {
-    const box = shapeFromDrag(shapeKind, from, to, MIN_DRAG / Z);
-    return {
-      id,
-      kind: "shape",
-      shape: shapeKind,
-      ...box,
-      rotation: 0,
-      color,
-      width: Math.max(1.5, width * 0.6),
-      labels: freshLabels(shapeKind, usedLabels()),
-      showLabels: true,
-    };
   }
 
   function handleMove(e: ReactPointerEvent<HTMLCanvasElement>) {
@@ -564,8 +574,6 @@ export default function ScratchBoard(props: Props) {
       // dorysowujemy tylko ostatni odcinek – płynniej niż przerysowanie całości
       const ctx = e.currentTarget.getContext("2d")!;
       withView(ctx, () => drawStrokeTail(ctx, [last[0] * W, last[1] * W], [u[0] * W, u[1] * W], colorOf(color, isDark), g.item.width, g.item.erase));
-    } else if (g.kind === "new-shape") {
-      setDraft(newShape(g.id, g.from, u));
     } else if (g.kind === "move") {
       g.moved ||= distance(pixels(g.start), p) > DRAG_THRESHOLD;
       if (g.moved) setDraft(moveShape(g.base, sub(u, g.start)));
@@ -608,12 +616,6 @@ export default function ScratchBoard(props: Props) {
     }
     if (g.kind === "stroke") {
       history.commit([...items, g.item]);
-    } else if (g.kind === "new-shape") {
-      const shape = newShape(g.id, g.from, units(boardPoint(e.clientX, e.clientY)));
-      history.commit([...items, shape]);
-      // po wstawieniu od razu zaznaczona – można ją przesunąć, przeskalować, obrócić
-      setTool("select");
-      setSelectedShape(shape.id);
     } else if (g.kind === "move" && g.moved && draft) {
       replaceShape(draft);
     }
@@ -748,13 +750,15 @@ export default function ScratchBoard(props: Props) {
       ? anglePoints.length === 0
         ? `Kąt ${angleLabel}: stuknij wierzchołek (ponownie – inne ramiona) albo przeciągnij w głąb kąta`
         : `Kąt ${angleLabel}: dotknij – ${ANGLE_STEPS[anglePoints.length]} (${anglePoints.length + 1}/3)`
-      : tool === "shape"
-        ? "Przeciągnij, aby narysować figurę, albo dotknij"
-        : tool === "mark" && !selectedEdge
-          ? "Stuknij bok figury, krawędź bryły albo linię, żeby ją oznaczyć"
-          : tool === "select" && !selected && !selectedLine
+      : tool === "mark" && !selectedEdge
+        ? "Stuknij bok figury, krawędź bryły albo linię, żeby ją oznaczyć"
+        : tool === "select" && !selected && !selectedLine
           ? "Stuknij figurę albo linię, aby ją przesunąć, przeskalować, obrócić lub usunąć"
-          : null;
+          : tool === "select" && selected
+            ? isSolid(selected.shape)
+              ? "Przeciągnij bryłę · narożniki zmieniają rozmiar"
+              : "Przeciągnij figurę · narożniki – rozmiar, kółko – obrót"
+            : null;
 
   const board = (
     <div
@@ -1000,6 +1004,25 @@ export default function ScratchBoard(props: Props) {
             <Calculator onInsert={(value) => addFormula(value.replace(",", "{,}"))} onClose={() => setCalcOpen(false)} />
           </div>
         )}
+
+        {panel && (
+          <div className="absolute inset-x-2 bottom-2 z-30 max-h-[calc(100%-1rem)] animate-fade-in overflow-y-auto rounded-2xl border border-line bg-card p-3 shadow-float">
+            {panel === "shapes" ? (
+              <ShapeGrid onPick={insertShape} />
+            ) : (
+              <ColorPicker
+                value={color}
+                isDark={isDark}
+                onPick={(c) => {
+                  setColor(c);
+                  setPanel(null);
+                  if (tool === "eraser") selectTool("pen");
+                  if (selected && tool === "select") replaceShape({ ...selected, color: c });
+                }}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       <footer
@@ -1012,26 +1035,20 @@ export default function ScratchBoard(props: Props) {
           {/* jeden rząd: narzędzia przewijane w poziomie (na telefonie zawijane zajmowały 3 rzędy), cofnij/ponów/wyczyść stale po prawej */}
           <div className={`flex min-w-0 items-center gap-0.5 ${full ? "short:flex-1" : ""}`}>
             <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto pr-4 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] [&::-webkit-scrollbar]:hidden">
-              {(Object.keys(PALETTE) as PenColor[]).map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    setColor(c);
-                    if (tool === "eraser") selectTool("pen");
-                    if (selected && tool === "select") replaceShape({ ...selected, color: c });
-                  }}
-                  aria-label={PALETTE[c].label}
-                  aria-pressed={color === c && tool !== "eraser"}
-                  className={`${toolButton} ${color === c && tool !== "eraser" ? active : ""}`}
-                >
-                  <span className="h-4 w-4 rounded-full border border-line" style={{ background: colorOf(c, isDark) }} />
-                </button>
-              ))}
-              <span className="mx-0.5 h-6 w-px shrink-0 bg-line" aria-hidden />
-              <ToolButton icon="pencil" label="Długopis" selected={tool === "pen"} onClick={() => selectTool("pen")} />
-              <ToolButton icon="eraser" label="Gumka (ściera pismo – figurę usuniesz po zaznaczeniu)" selected={tool === "eraser"} onClick={() => selectTool("eraser")} />
-              <ToolButton icon="line" label="Linia (z magnesem)" selected={tool === "line"} onClick={() => selectTool("line")} />
-              <ToolButton icon="shapes" label="Figury i bryły" selected={tool === "shape"} onClick={() => selectTool("shape")} />
+              {/* najczęstsze na początku – na telefonie widać je bez przewijania paska */}
+              <ToolButton icon="pencil" label="Długopis" selected={tool === "pen" && !panel} onClick={() => selectTool("pen")} />
+              <ToolButton icon="shapes" label="Figury i bryły" selected={panel === "shapes"} onClick={() => setPanel(panel === "shapes" ? null : "shapes")} />
+              <ToolButton icon="eraser" label="Gumka (ściera pismo – figurę usuniesz po zaznaczeniu)" selected={tool === "eraser" && !panel} onClick={() => selectTool("eraser")} />
+              <button
+                onClick={() => setPanel(panel === "colors" ? null : "colors")}
+                aria-label={`Kolor: ${PALETTE[color].label}`}
+                title="Kolor"
+                aria-expanded={panel === "colors"}
+                className={`${toolButton} ${panel === "colors" ? active : "hover:bg-subtle"}`}
+              >
+                <span className="h-5 w-5 rounded-full border-2 border-card ring-1 ring-line" style={{ background: colorOf(color, isDark) }} />
+              </button>
+              <ToolButton icon="line" label="Linia (z magnesem)" selected={tool === "line" && !panel} onClick={() => selectTool("line")} />
               <ToolButton icon="angle" label="Kąt" selected={tool === "angle"} onClick={() => selectTool("angle")} />
               <ToolButton icon="mark" label="Oznacz bok (długość, równe odcinki, środek, wysokość)" selected={tool === "mark"} onClick={() => selectTool("mark")} />
               <ToolButton icon="pointer" label="Zaznacz i przesuń figurę" selected={tool === "select"} onClick={() => selectTool("select")} />
@@ -1068,9 +1085,6 @@ export default function ScratchBoard(props: Props) {
                   />
                 </span>
               </label>
-            )}
-            {tool === "shape" && (
-              <ShapePicker tab={shapeTab} onTab={setShapeTab} value={shapeKind} onChange={setShapeKind} activeClass={active} />
             )}
             {tool === "angle" && (
               <div className="flex items-center gap-1" role="radiogroup" aria-label="Oznaczenie kąta">
@@ -1202,58 +1216,49 @@ function ShapeIcon({ kind }: { kind: ShapeKind }) {
   );
 }
 
-function ShapePicker({
-  tab,
-  onTab,
-  value,
-  onChange,
-  activeClass,
-}: {
-  tab: "plane" | "solid";
-  onTab: (tab: "plane" | "solid") => void;
-  value: ShapeKind;
-  onChange: (kind: ShapeKind) => void;
-  activeClass: string;
-}) {
-  const list = tab === "plane" ? PLANE_SHAPES : SOLID_SHAPES;
-  return (
-    <div className="flex min-w-0 flex-1 items-center gap-2">
-      <div className="flex shrink-0 gap-0.5 rounded-xl bg-subtle p-0.5" role="radiogroup" aria-label="Rodzaj figur">
-        {(
-          [
-            ["plane", "Płaskie"],
-            ["solid", "Bryły"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            role="radio"
-            aria-checked={tab === id}
-            onClick={() => {
-              onTab(id);
-              onChange(id === "plane" ? PLANE_SHAPES[0] : SOLID_SHAPES[0]);
-            }}
-            className={`min-h-9 rounded-lg px-2.5 text-xs font-bold ${tab === id ? "bg-card text-ink shadow-card" : "text-muted"}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <div className="flex min-w-0 gap-1 overflow-x-auto" role="radiogroup" aria-label="Figura">
+/** Siatka wszystkich figur i brył naraz – stuknięcie stawia figurę na kartce (bez zakładek i przewijania w bok). */
+function ShapeGrid({ onPick }: { onPick: (kind: ShapeKind) => void }) {
+  const section = (title: string, list: readonly ShapeKind[]) => (
+    <div>
+      <p className="mb-1.5 text-xs font-bold text-muted">{title}</p>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(3.25rem,1fr))] gap-1">
         {list.map((kind) => (
           <button
             key={kind}
-            role="radio"
-            aria-checked={value === kind}
+            onClick={() => onPick(kind)}
             aria-label={SHAPES[kind].label}
             title={SHAPES[kind].label}
-            onClick={() => onChange(kind)}
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${value === kind ? activeClass : "text-muted hover:bg-subtle"}`}
+            className="press flex h-12 items-center justify-center rounded-xl border border-line text-ink transition-colors hover:border-brand/60 hover:bg-subtle dark:hover:border-brand/40 [&_svg]:h-7 [&_svg]:w-7"
           >
             <ShapeIcon kind={kind} />
           </button>
         ))}
       </div>
+    </div>
+  );
+  return (
+    <div className="flex flex-col gap-3">
+      {section("Bryły", SOLID_SHAPES)}
+      {section("Figury płaskie", PLANE_SHAPES)}
+    </div>
+  );
+}
+
+function ColorPicker({ value, isDark, onPick }: { value: PenColor; isDark: boolean; onPick: (color: PenColor) => void }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Kolor">
+      {(Object.keys(PALETTE) as PenColor[]).map((c) => (
+        <button
+          key={c}
+          role="radio"
+          aria-checked={value === c}
+          onClick={() => onPick(c)}
+          className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-bold ${value === c ? "border-brand bg-subtle text-ink" : "border-line text-muted hover:bg-subtle"}`}
+        >
+          <span className="h-5 w-5 rounded-full border border-line" style={{ background: colorOf(c, isDark) }} />
+          {PALETTE[c].label}
+        </button>
+      ))}
     </div>
   );
 }

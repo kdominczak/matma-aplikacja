@@ -341,6 +341,7 @@ export default function QuizScreen(props: Props) {
       </main>
 
       <footer
+        data-bottom-bar
         aria-live="polite"
         className={`fixed inset-x-0 bottom-0 z-20 border-t px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-lg sm:px-6 lg:px-10 ${
           !checked

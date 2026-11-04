@@ -381,7 +381,7 @@ function ExamInProgress({
         </div>
       </main>
 
-      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-card/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-lg sm:px-6">
+      <footer data-bottom-bar className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-card/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-lg sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center gap-3 lg:px-4">
           <button
             onClick={() => go(index - 1)}

@@ -1,7 +1,7 @@
 // Brudnopis: zapis notatek na urządzeniu, kąty przypięte do figur i wstawianie figur.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { angleArms as sceneAngleArms, buildScene } from "@/components/scratch/scene";
-import { shapeFromDrag } from "@/components/scratch/scratch-draw";
+import { placeShape } from "@/components/scratch/scratch-draw";
 import { interiorAngle } from "@/lib/geometry/angle";
 import { SHAPES } from "@/lib/geometry/shapes";
 import { moveShape } from "@/lib/geometry/transform";
@@ -39,22 +39,24 @@ describe("kąty przypięte do figur", () => {
   });
 });
 
-describe("wstawianie figury", () => {
-  it("stuknięcie – domyślny rozmiar wokół punktu", () => {
-    expect(shapeFromDrag("rectangle", [0.4, 0.4], [0.401, 0.4], 0.05)).toEqual({ center: [0.4, 0.4], size: SHAPES.rectangle.defaultSize });
+describe("wstawianie figury z siatki", () => {
+  it("na środku widoku, w domyślnym rozmiarze", () => {
+    expect(placeShape("cube", [0.5, 0.3], 1, [], 0.04)).toEqual({ center: [0.5, 0.3], size: SHAPES.cube.defaultSize });
   });
 
-  it("przeciągnięcie w dowolną stronę – pudełko od punktu startu", () => {
-    const { center, size } = shapeFromDrag("rectangle", [0.6, 0.6], [0.2, 0.4], 0.05);
-    expect(size[0]).toBeCloseTo(0.4, 9);
-    expect(size[1]).toBeCloseTo(0.2, 9);
-    expect(center[0]).toBeCloseTo(0.4, 9);
-    expect(center[1]).toBeCloseTo(0.5, 9);
+  it("przy przybliżeniu ten sam rozmiar na ekranie", () => {
+    const { size } = placeShape("rectangle", [0.5, 0.3], 2, [], 0.04);
+    expect(size[0]).toBeCloseTo(SHAPES.rectangle.defaultSize[0] / 2, 9);
+    expect(size[1]).toBeCloseTo(SHAPES.rectangle.defaultSize[1] / 2, 9);
   });
 
-  it("figury foremne zachowują proporcje także przy rysowaniu", () => {
-    const { size } = shapeFromDrag("square", [0.1, 0.1], [0.5, 0.2], 0.05);
-    expect(size[0]).toBeCloseTo(size[1], 9);
+  it("kolejna figura nie ląduje na poprzedniej", () => {
+    const first = placeShape("cube", [0.5, 0.3], 1, [], 0.04).center;
+    const second = placeShape("cube", [0.5, 0.3], 1, [first], 0.04).center;
+    const third = placeShape("cube", [0.5, 0.3], 1, [first, second], 0.04).center;
+    expect(second).not.toEqual(first);
+    expect(third).not.toEqual(second);
+    expect(third).not.toEqual(first);
   });
 });
 

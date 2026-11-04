@@ -331,19 +331,16 @@ export function drawSelection(ctx: CanvasRenderingContext2D, s: ShapeItem, w: nu
   ctx.restore();
 }
 
-/** Pudełko nowej figury z przeciągnięcia (w jednostkach); samo stuknięcie – domyślny rozmiar wokół punktu. */
-export function shapeFromDrag(kind: ShapeKind, from: Vec, to: Vec, minDrag: number): { center: Vec; size: Vec } {
-  let w = Math.abs(to[0] - from[0]);
-  let h = Math.abs(to[1] - from[1]);
-  if (w < minDrag || h < minDrag) return { center: from, size: SHAPES[kind].defaultSize };
-  const aspect = SHAPES[kind].aspect;
-  if (aspect) {
-    const k = Math.max(w, h / aspect);
-    w = k;
-    h = k * aspect;
-  }
-  const center: Vec = [from[0] + (Math.sign(to[0] - from[0]) * w) / 2, from[1] + (Math.sign(to[1] - from[1]) * h) / 2];
-  return { center, size: [w, h] };
+/**
+ * Pudełko figury wstawianej z siatki: środek widocznej części kartki (`at`), rozmiar domyślny stały na ekranie
+ * (dzielony przez przybliżenie). Gdy w tym miejscu już leży figura – przesunięcie po skosie, żeby się nie nakładały.
+ */
+export function placeShape(kind: ShapeKind, at: Vec, zoom: number, taken: Vec[], shift: number): { center: Vec; size: Vec } {
+  const [w, h] = SHAPES[kind].defaultSize;
+  const step = shift / zoom;
+  let center = at;
+  for (let i = 0; i < 8 && taken.some((c) => Math.hypot(c[0] - center[0], c[1] - center[1]) < step / 2); i++) center = [center[0] + step, center[1] + step];
+  return { center, size: [w / zoom, h / zoom] };
 }
 
 // ── Elementy rysunku ──

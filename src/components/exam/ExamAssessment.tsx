@@ -75,7 +75,7 @@ export default function ExamAssessment({
         </ol>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-lg">
+      <div data-bottom-bar className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-lg">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-4 pt-3 sm:flex-row sm:px-6">
           <button
             onClick={() => {

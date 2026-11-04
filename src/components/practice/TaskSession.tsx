@@ -217,7 +217,7 @@ export default function TaskSession({ title, exitHref, exitLabel, tasks: session
 
       <main
         key={task.id}
-        className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 pb-10 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8"
+        className="mx-auto grid w-full max-w-6xl flex-1 animate-fade-in grid-cols-1 content-start gap-5 px-4 pt-5 pb-28 sm:px-6 lg:pb-10 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pt-8"
       >
         {/* telefon: kolumna rozpada się na elementy siatki – odpowiedź zaraz pod treścią, brudnopis na końcu */}
         <div className="flex flex-col gap-4 max-lg:contents">

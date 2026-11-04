@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import type { ScratchItem, ScratchTemplate } from "@/components/scratch/ScratchBoard";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
@@ -24,38 +25,76 @@ type Props = {
   formulaGroups: FormulaGroup[];
 };
 
+const noop = () => () => {};
+
+/** Szeroki ekran (Tailwind `lg`) – tam brudnopis stoi obok zadania; na telefonie tylko pełny ekran. */
+const DESKTOP = "(min-width: 64rem)";
+function subscribeDesktop(onChange: () => void) {
+  const query = window.matchMedia(DESKTOP);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/** Dolny pasek ekranu (np. „Sprawdź”, „Następne”) – pływający przycisk brudnopisu stoi nad nim. */
+const BOTTOM_BAR_ATTR = "data-bottom-bar";
+
+/** Wysokość widocznych dolnych pasków ekranu – na bieżąco (pasek po sprawdzeniu odpowiedzi rośnie). */
+function useBottomBarHeight() {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    const measure = () => {
+      const bars = [...document.querySelectorAll<HTMLElement>(`[${BOTTOM_BAR_ATTR}]`)];
+      setHeight(Math.max(0, ...bars.map((b) => b.getBoundingClientRect().height)));
+    };
+    // paski są częścią ekranu zadania (montują się razem z nim) – obserwujemy tylko zmianę ich wysokości
+    const resize = new ResizeObserver(measure);
+    document.querySelectorAll(`[${BOTTOM_BAR_ATTR}]`).forEach((b) => resize.observe(b));
+    measure();
+    return () => resize.disconnect();
+  }, []);
+  return height;
+}
+
 /**
- * Brudnopis przy zadaniu: na komputerze zawsze widoczny pod treścią,
- * na telefonie rozwijany przyciskiem; z obu można przejść do pełnego ekranu (te same notatki).
+ * Brudnopis przy zadaniu: na komputerze zawsze widoczny obok treści; na telefonie pływający przycisk
+ * (zawsze w zasięgu kciuka, bez przewijania) otwiera go od razu na pełnym ekranie. Te same notatki w obu.
  */
 export default function TaskScratch(props: Props) {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [full, setFull] = useState(false);
+  // portal tylko w przeglądarce (static export – przy prerenderze nie ma document)
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
+  const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(DESKTOP).matches, () => false);
+  const barHeight = useBottomBarHeight();
 
   return (
     <>
-      <button
-        onClick={() => {
-          hapticTap();
-          setMobileOpen(!mobileOpen);
-        }}
-        aria-expanded={mobileOpen}
-        className="flex items-center justify-between gap-2 rounded-2xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm font-bold text-orange-700 lg:hidden dark:text-orange-400"
-      >
-        <span className="flex items-center gap-2">
-          <Icon name="pencil" className="h-4 w-4" />
-          Brudnopis · kalkulator · wzory
-          {props.items.length > 0 && <span className="h-2 w-2 rounded-full bg-orange-500" aria-label="masz notatki" />}
-        </span>
-        <Icon name="chevron" className={`h-4 w-4 transition-transform ${mobileOpen ? "-rotate-90" : "rotate-90"}`} />
-      </button>
-
-      <div className={`${mobileOpen ? "block" : "hidden"} animate-fade-in lg:block`}>
-        {/* awaria brudnopisu (np. canvas) nie blokuje rozwiązywania zadania */}
+      {desktop && (
+        // awaria brudnopisu (np. canvas) nie blokuje rozwiązywania zadania
         <ErrorBoundary>
           <ScratchBoard variant="inline" {...props} onExpand={() => setFull(true)} />
         </ErrorBoundary>
-      </div>
+      )}
+
+      {mounted &&
+        !desktop &&
+        !full &&
+        createPortal(
+          <button
+            onClick={() => {
+              hapticTap();
+              setFull(true);
+            }}
+            style={{ bottom: `calc(${barHeight}px + 0.75rem${barHeight ? "" : " + env(safe-area-inset-bottom)"})` }}
+            className="press fixed right-4 z-30 flex min-h-12 animate-fade-in items-center gap-2 rounded-full border border-white/15 bg-navy py-2.5 pr-4 pl-3.5 text-sm font-bold text-white shadow-float"
+          >
+            <span className="relative">
+              <Icon name="pencil" className="h-5 w-5 text-orange-400" />
+              {props.items.length > 0 && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-orange-400 ring-2 ring-navy" aria-label="masz notatki" />}
+            </span>
+            Brudnopis
+          </button>,
+          document.body,
+        )}
 
       {full && (
         <ErrorBoundary>

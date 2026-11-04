@@ -10,10 +10,8 @@ async function openScratch(page: Page) {
   const zoomOut = page.getByRole("button", { name: "Oddal kartkę" });
   if (!(await zoomOut.isVisible())) await page.getByRole("button", { name: /Brudnopis/ }).first().click();
   await expect(zoomOut).toBeVisible();
-  // na telefonie brudnopis jest pod odpowiedzią – przewijamy do kartki, jak uczeń
-  const board = page.getByLabel("Pole do rysowania");
-  await board.scrollIntoViewIfNeeded();
-  return board;
+  // na telefonie pływający przycisk otwiera brudnopis od razu na pełnym ekranie
+  return page.getByLabel("Pole do rysowania");
 }
 
 async function drawLine(page: Page, from: [number, number], to: [number, number]) {
@@ -73,4 +71,16 @@ test.describe("dotyk", () => {
     // gest dwoma palcami nie rysuje
     await expect(page.getByRole("button", { name: "Cofnij" }).first()).toBeDisabled();
   });
+});
+
+test("bryła w dwóch stuknięciach: Figury → Sześcian stawia ją zaznaczoną na środku kartki", async ({ page }) => {
+  await openScratch(page);
+  await page.getByRole("button", { name: "Figury i bryły" }).click();
+  await page.getByRole("button", { name: "Sześcian" }).click();
+  await expect(page.getByText("Przeciągnij bryłę · narożniki zmieniają rozmiar")).toBeVisible();
+  await expect(page.getByRole("slider", { name: "Zmień rozmiar figury" })).toHaveCount(4);
+  await page.screenshot({ path: "screenshots/brudnopis-bryla.png" });
+  // cofnij usuwa bryłę jednym stuknięciem
+  await page.getByRole("button", { name: "Cofnij" }).first().click();
+  await expect(page.getByRole("slider", { name: "Zmień rozmiar figury" })).toHaveCount(0);
 });
