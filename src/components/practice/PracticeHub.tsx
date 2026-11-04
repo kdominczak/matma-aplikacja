@@ -11,6 +11,7 @@ import LevelSwitch, { useActiveLevel } from "@/components/progress/LevelSwitch";
 import { extendedTopics, practiceTasks, topics } from "@/data/topics";
 import { hapticTap } from "@/lib/haptics";
 import { useProgress } from "@/lib/progress";
+import { matchesQuery } from "@/lib/search";
 import type { Progress } from "@/types/progress";
 import type { Category, Topic } from "@/types/topic";
 
@@ -18,10 +19,6 @@ const CATEGORIES: (Category | "Wszystkie")[] = ["Wszystkie", "Liczby", "Algebra"
 
 type View = "zadania" | "lekcje";
 
-/** Do wyszukiwania: małe litery, bez polskich znaków („potegi” znajduje „Potęgi”). */
-function fold(text: string): string {
-  return text.toLocaleLowerCase("pl-PL").normalize("NFD").replace(/\p{M}/gu, "").replace(/ł/g, "l");
-}
 
 /** Widok w adresie (?widok=lekcje) – skróty z ekranu głównego i Profilu otwierają od razu lekcje, „wstecz” wraca do nich. */
 function useView(): [View, (view: View) => void] {
@@ -40,10 +37,10 @@ export default function PracticeHub() {
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("Wszystkie");
   const [query, setQuery] = useState("");
   const { level } = useActiveLevel(progress);
-  const needle = fold(query.trim());
+  const needle = query.trim();
   // szukanie przeszukuje wszystkie kategorie – uczeń szuka działu po nazwie, nie po grupie
   const fits = (t: Topic) =>
-    practiceTasks(t).length > 0 && (needle ? fold(`${t.title} ${t.category}`).includes(needle) : category === "Wszystkie" || t.category === category);
+    practiceTasks(t).length > 0 && (needle ? matchesQuery(`${t.title} ${t.category}`, needle) : category === "Wszystkie" || t.category === category);
   // rozszerzenie: najpierw działy rozszerzenia, pod nimi podstawa (arkusz rozszerzony sprawdza też wymagania podstawowe)
   const groups: { title: string | null; list: Topic[] }[] =
     level === "rozszerzony"

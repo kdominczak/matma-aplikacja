@@ -10,7 +10,7 @@ import MathText from "@/components/ui/MathText";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { getDifficulty } from "@/data/topics";
 import { daysAgo, mistakeEntries, TRAINING_SIZE, type MistakeEntry } from "@/lib/mistakes";
-import { displayedOptions, displayKey } from "@/lib/options";
+import { displayedOptions } from "@/lib/options";
 import { useProgress } from "@/lib/progress";
 
 export default function MistakesView() {
@@ -100,7 +100,8 @@ function MistakeCard({ entry }: { entry: MistakeEntry }) {
           </p>
           <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted">
             <span>
-              Twoja odpowiedź: <span className="text-bad">{displayKey(question, mistake.chosen)}</span>
+              {/* treść odpowiedzi, nie litera – litery ABCD są mieszane na ekranie, „B” nic uczniowi nie mówi */}
+              Twoja odpowiedź: <MathText text={question.options[mistake.chosen]} className="text-bad" />
             </span>
             <span>{daysAgo(mistake.lastWrong)}</span>
             {mistake.count > 1 && <span className="text-bad">pomyłek: {mistake.count}</span>}
