@@ -798,7 +798,7 @@ export default function ScratchBoard(props: Props) {
       )}
       <header className={`flex items-center justify-between gap-2 border-b border-line ${full ? "px-4 py-3 short:py-1 lg:px-8" : "px-3 py-2"}`}>
         <div className="flex min-w-0 items-center gap-2">
-          <span className={`flex shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-500 ${full ? "h-9 w-9" : "h-7 w-7"}`}>
+          <span className={`flex shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand ${full ? "h-9 w-9" : "h-7 w-7"}`}>
             <Icon name="pencil" className="h-4 w-4" />
           </span>
           <h2 className={`truncate font-extrabold text-ink ${full ? "hidden sm:block" : "hidden text-sm min-[400px]:block"}`}>Brudnopis</h2>
@@ -1034,7 +1034,7 @@ export default function ScratchBoard(props: Props) {
         >
           {/* jeden rząd: narzędzia przewijane w poziomie (na telefonie zawijane zajmowały 3 rzędy), cofnij/ponów/wyczyść stale po prawej */}
           <div className={`flex min-w-0 items-center gap-0.5 ${full ? "short:flex-1" : ""}`}>
-            <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto pr-4 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto py-1 pr-4 pl-1 [scrollbar-width:none] [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] [&::-webkit-scrollbar]:hidden">
               {/* najczęstsze na początku – na telefonie widać je bez przewijania paska */}
               <ToolButton icon="pencil" label="Długopis" selected={tool === "pen" && !panel} onClick={() => selectTool("pen")} />
               <ToolButton icon="shapes" label="Figury i bryły" selected={panel === "shapes"} onClick={() => setPanel(panel === "shapes" ? null : "shapes")} />

@@ -134,10 +134,11 @@ function ExamIntro({ exam, onStart }: { exam: ExamSheet; onStart: () => void }) 
           <Icon name="back" className="h-4 w-4" /> Arkusze
         </Link>
         <p className="mt-3 text-xs font-extrabold uppercase tracking-widest text-brand">
-          {examKindLabel(exam)} · poziom podstawowy
+          {examKindLabel(exam)} · poziom {exam.level === "rozszerzony" ? "rozszerzony" : "podstawowy"}
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-ink">{exam.title}</h1>
-        <p className="mt-1 text-muted">{exam.subtitle}</p>
+        {/* arkusz CKE: rodzaj i poziom są już w nagłówku, a źródło niżej – z opisu zostaje tylko inna formuła */}
+        {exam.kind !== "cke" ? <p className="mt-1 text-muted">{exam.subtitle}</p> : exam.year !== undefined && exam.year <= 2022 ? <p className="mt-1 text-muted">Formuła 2015</p> : null}
         <p className="mt-2 flex items-start gap-1.5 text-xs font-semibold text-muted">
           <Icon name="file" className="mt-px h-3.5 w-3.5 shrink-0" />
           {examSource(exam)}

@@ -195,19 +195,20 @@ export default function TaskSession({ title, exitHref, exitLabel, tasks: session
                 </button>
               ))}
             </div>
-            <nav className="-mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5" aria-label="Zadania">
+            <nav className="-mx-1.5 flex gap-2 overflow-x-auto px-1.5 py-1.5 [scrollbar-width:none]" aria-label="Zadania">
               {tasks.map((t, i) => (
                 <button
                   key={t.id}
                   onClick={() => go(t)}
                   aria-current={t.id === task.id ? "step" : undefined}
                   aria-label={`Zadanie ${i + 1} (${t.kind === "closed" ? "zamknięte" : "otwarte"})`}
-                  className={`flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition-all ${
+                  className={`relative flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition-all ${
                     PILL[status(progress?.practice[t.id])]
                   } ${t.id === task.id ? "ring-2 ring-brand ring-offset-2 ring-offset-surface" : ""}`}
                 >
                   {i + 1}
-                  {t.kind === "open" && <span className="ml-0.5 text-xs opacity-80">O</span>}
+                  {/* kropka zamiast dopisku „O” – „1O” czytało się jak dziesięć */}
+                  {t.kind === "open" && <span aria-hidden className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-current" />}
                 </button>
               ))}
             </nav>

@@ -12,7 +12,7 @@ import MathText from "@/components/ui/MathText";
 import RichText from "@/components/ui/RichText";
 import { useAccount } from "@/lib/account";
 import { streamAi, takeTutorDraft, type ChatMessage } from "@/lib/ai";
-import { AI_ENABLED, VISION_MODEL_LABEL } from "@/lib/ai-config";
+import { AI_ENABLED } from "@/lib/ai-config";
 import { TUTOR_STYLES, type TutorStyle } from "@/lib/ai-prompts";
 import {
   imageCount,
@@ -412,7 +412,7 @@ function Chat() {
         </form>
       )}
       <p className="-mt-2 text-center text-xs text-muted">
-        Korepetytor może się pomylić – sprawdzaj obliczenia. Zdjęcia czyta model {VISION_MODEL_LABEL} (do {MAX_IMAGES} na wiadomość).
+        Korepetytor może się pomylić – sprawdzaj obliczenia. Do {MAX_IMAGES} zdjęć na wiadomość.
       </p>
     </div>
   );

@@ -4,6 +4,8 @@ const config: CapacitorConfig = {
   appId: 'pl.matma.app',
   appName: 'Matma',
   webDir: 'out',
+  // grafit pod WebView – bez białego błysku przy starcie i przy przejściach
+  backgroundColor: '#0b0f19',
   plugins: {
     // przypomnienia o planie (src/lib/reminders.ts): biała ikona Σ w pasku stanu, kolor marki
     LocalNotifications: {

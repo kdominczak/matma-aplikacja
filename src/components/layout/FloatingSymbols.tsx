@@ -14,7 +14,7 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform, type
  * Głębię daje przezroczystość zamiast `filter: blur` (filtr na 9 ruchomych warstwach był kosztowny).
  */
 const SYMBOLS: { glyph: string; top: string; left: string; size: number; depth: number; duration: number; delay: number }[] = [
-  { glyph: "π", top: "8%", left: "12%", size: 72, depth: 1, duration: 14, delay: 0 },
+  { glyph: "π", top: "20%", left: "12%", size: 72, depth: 1, duration: 14, delay: 0 },
   { glyph: "∑", top: "18%", left: "78%", size: 96, depth: 0.6, duration: 18, delay: -4 },
   { glyph: "√", top: "42%", left: "6%", size: 56, depth: 0.35, duration: 16, delay: -9 },
   { glyph: "∫", top: "55%", left: "88%", size: 84, depth: 1, duration: 20, delay: -2 },
@@ -22,7 +22,7 @@ const SYMBOLS: { glyph: string; top: string; left: string; size: number; depth: 
   { glyph: "Δ", top: "32%", left: "48%", size: 48, depth: 0.35, duration: 22, delay: -12 },
   { glyph: "x²", top: "84%", left: "64%", size: 60, depth: 0.6, duration: 17, delay: -5 },
   { glyph: "÷", top: "64%", left: "46%", size: 44, depth: 0.35, duration: 19, delay: -14 },
-  { glyph: "α", top: "4%", left: "52%", size: 52, depth: 0.6, duration: 21, delay: -10 },
+  { glyph: "α", top: "12%", left: "52%", size: 52, depth: 0.6, duration: 21, delay: -10 },
 ];
 
 export default function FloatingSymbols() {

@@ -18,17 +18,17 @@ function readPreference(): ThemePreference {
 function apply(preference: ThemePreference) {
   const dark = preference === "dark" || (preference === "system" && matchMedia(DARK_QUERY).matches);
   document.documentElement.classList.toggle("dark", dark);
-  syncStatusBar(dark);
+  syncStatusBar();
 }
 
 /**
- * Ikony paska stanu w aplikacji na telefonie (godzina, bateria): jasne na ciemnym motywie, ciemne na jasnym.
- * Bez tego Android rysuje czarne ikony na grafitowym tle. W przeglądarce nic nie robi.
+ * Ikony paska stanu w aplikacji na telefonie (godzina, bateria): zawsze jasne – pod nimi w obu motywach leży
+ * grafitowy pasek z root layoutu (`status-strip`). W przeglądarce nic nie robi.
  */
-export function syncStatusBar(dark = document.documentElement.classList.contains("dark")) {
+export function syncStatusBar() {
   if (!Capacitor.isNativePlatform()) return;
   void import("@capacitor/status-bar")
-    .then(({ StatusBar, Style }) => StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }))
+    .then(({ StatusBar, Style }) => StatusBar.setStyle({ style: Style.Dark }))
     .catch((error) => console.warn("Pasek stanu:", error));
 }
 

@@ -36,6 +36,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full font-sans">
         <BackgroundServices />
+        {/* pasek stanu telefonu: grafit w obu motywach, treść przewija się pod nim, a nie pod godziną (w przeglądarce wysokość 0) */}
+        <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[env(safe-area-inset-top)] bg-[#0b0f19]" />
         {children}
         <PremiumUnlockedHost />
       </body>

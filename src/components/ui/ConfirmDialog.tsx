@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Icon, { type IconName } from "@/components/ui/Icon";
+import { useCloseOnBack } from "@/lib/back-button";
 
 type Props = {
   title: string;
@@ -18,6 +19,7 @@ type Props = {
 
 /** Modal potwierdzenia akcji niszczącej (np. reset postępów). */
 export default function ConfirmDialog({ title, children, confirmLabel, confirmWord, onConfirm, onCancel, tone = "danger", icon = "alert" }: Props) {
+  useCloseOnBack(onCancel);
   const brand = tone === "brand";
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);

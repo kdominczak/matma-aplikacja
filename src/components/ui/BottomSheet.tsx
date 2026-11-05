@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
+import { useCloseOnBack } from "@/lib/back-button";
 
 type Props = {
   title: string;
@@ -11,6 +12,7 @@ type Props = {
 
 /** Na telefonie panel wysuwany od dołu, na desktopie wyśrodkowane okno. */
 export default function BottomSheet({ title, onClose, children }: Props) {
+  useCloseOnBack(onClose);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);

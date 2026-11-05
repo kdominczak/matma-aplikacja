@@ -13,6 +13,8 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- grafit jak ekran startowy: bez białego błysku, zanim WebView narysuje pierwszą stronę -->
+        <item name="android:windowBackground">@color/splash_background</item>
     </style>
 
 

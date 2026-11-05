@@ -1,5 +1,6 @@
 "use client";
 
+import { useCloseOnBack } from "@/lib/back-button";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
@@ -80,6 +81,7 @@ export default function TaskScratch(props: Props) {
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(DESKTOP).matches, () => false);
   const barHeight = useBottomBarHeight();
+  useCloseOnBack(() => setFull(false), full);
 
   return (
     <>
@@ -103,8 +105,8 @@ export default function TaskScratch(props: Props) {
             className="press fixed right-4 z-30 flex min-h-12 animate-fade-in items-center gap-2 rounded-full border border-white/15 bg-navy py-2.5 pr-4 pl-3.5 text-sm font-bold text-white shadow-float"
           >
             <span className="relative">
-              <Icon name="pencil" className="h-5 w-5 text-orange-400" />
-              {props.items.length > 0 && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-orange-400 ring-2 ring-navy" aria-label="masz notatki" />}
+              <Icon name="pencil" className="h-5 w-5 text-[#d4af37]" />
+              {props.items.length > 0 && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#d4af37] ring-2 ring-navy" aria-label="masz notatki" />}
             </span>
             Brudnopis
           </button>,

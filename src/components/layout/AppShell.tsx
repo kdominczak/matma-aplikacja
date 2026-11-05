@@ -44,7 +44,7 @@ function useActiveHref() {
 /** Zakładka dolnego paska (telefon): Wzory są częścią „Zadań”, opanowane działy i ustawienia – „Profilu”. */
 function bottomTab(active: string): string {
   if (active === "/wzory") return "/zadania";
-  if (active === "/opanowane" || active === "/ustawienia") return "/profil";
+  if (active === "/opanowane" || active === "/ustawienia" || active === "/premium") return "/profil";
   return active;
 }
 

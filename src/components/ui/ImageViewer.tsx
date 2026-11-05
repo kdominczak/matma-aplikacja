@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Icon from "@/components/ui/Icon";
+import { useCloseOnBack } from "@/lib/back-button";
 
 type Props = {
   src: string;
@@ -12,6 +13,7 @@ type Props = {
 
 /** Zdjęcie na cały ekran (portal do `body`); stuknięcie w zdjęcie przybliża 2×, a przybliżone można przesuwać. */
 export default function ImageViewer({ src, alt, onClose }: Props) {
+  useCloseOnBack(onClose);
   const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {

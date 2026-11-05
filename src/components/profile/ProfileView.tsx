@@ -345,7 +345,7 @@ function HeroStats({ progress }: { progress: Progress }) {
     {
       icon: "target",
       value: answersToEstimate(progress) > 0 ? "–" : `${Math.round((currentEstimate(progress) / 100) * LEVEL_POINTS.podstawowy)}/${LEVEL_POINTS.podstawowy}`,
-      label: "pkt – szacowany wynik",
+      label: "szacowany wynik",
       tone: "text-sky-300",
     },
   ];
