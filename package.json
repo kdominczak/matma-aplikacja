@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "android:assets": "node scripts/android-assets.mjs",
+    "android:demo": "tsx scripts/android-demo.ts",
     "mobile:sync": "next build && cap sync",
     "android": "npm run mobile:sync && cap open android",
     "ios": "npm run mobile:sync && cap open ios",

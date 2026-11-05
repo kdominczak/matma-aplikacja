@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import AnswerTools from "@/components/practice/AnswerTools";
+import { revealAboveKeyboard } from "@/lib/keyboard";
 import Icon from "@/components/ui/Icon";
 import MathText from "@/components/ui/MathText";
 import type { OpenQuestion } from "@/types/quiz";
@@ -59,6 +60,7 @@ export default function OpenAnswer({ task, state, onChange, onCheck, onReveal, o
               disabled={state.verdict === "wrong"}
               autoComplete="off"
               spellCheck={false}
+              onFocus={revealAboveKeyboard}
               placeholder="np. 3/2, 1,5 albo -2; 3"
               className="min-w-0 flex-1 bg-transparent py-3.5 text-lg font-bold text-ink placeholder:font-medium placeholder:text-faint focus:outline-none disabled:opacity-70"
             />

@@ -158,7 +158,7 @@ export default function TaskSession({ title, exitHref, exitLabel, tasks: session
 
   return (
     <div className="flex min-h-dvh animate-fade-in flex-col bg-surface pt-[env(safe-area-inset-top)]">
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur-lg">
+      <header className="sticky top-[env(safe-area-inset-top)] z-20 border-b border-line bg-surface/90 backdrop-blur-lg">
         <div className="mx-auto w-full max-w-6xl px-4 pt-3 pb-3 sm:px-6 lg:px-10">
           <div className="flex items-center gap-3">
             <Link href={exitHref} aria-label={exitLabel} className="-ml-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-faint hover:text-ink">

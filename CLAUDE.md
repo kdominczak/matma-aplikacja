@@ -26,6 +26,7 @@ API przeglądarki (`window`, `localStorage`, `navigator`) tylko w handlerach lub
 - `npm run blueprint:coverage` – ile różnych arkuszy w układzie prawdziwej matury da się złożyć z puli i gdzie brakuje zadań
 - `npm run mobile:sync` – build + kopiowanie do projektów natywnych
 - `npm run android` – sync + otwarcie Android Studio
+- `npm run android:assets` – ikona i ekran startowy Androida (PNG ze wzoru; wektory w `res/drawable*`); `npm run android:demo` – przykładowy postęp w działającej aplikacji do pokazu (`-- --reset` cofa, odmawia na zalogowanym koncie)
 
 ## Konwencje
 - Komponenty: `src/components/<obszar>/` (quiz, gamification, ui)
@@ -56,5 +57,6 @@ API przeglądarki (`window`, `localStorage`, `navigator`) tylko w handlerach lub
 - Generator arkuszy (`src/lib/exam-generator.ts`): wypełnia pozycje szablonu zadaniami z puli, z drabiną zastępstw (typ → pokrewny dział → rozbicie otwartego → dowolny dział → brak), każde zastępstwo zapisane i pokazane uczniowi. Kod arkusza = rok układu + ziarno (np. `26k3f9a`), arkusz losowy ma id `los-<kod>` i stronę `/arkusz/losowy/?kod=`. Matura rozszerzona: kod z „r” (`r26k3f9a`), układ z `EXTENDED_BLUEPRINTS`, pula `examPool("rozszerzony")` = działy rozszerzenia + zadania otwarte z podstawy (pozycje z wymaganiem „R” najpierw z rozszerzenia); zakładka Arkusze ma przełącznik poziomu (domyślnie aktywny poziom ucznia) Wagi działów na maturze (50 pkt) – `src/lib/exam-weights.ts`, liczone z szablonów, nie wpisywane ręcznie
 - Szacowany wynik (`src/lib/estimate.ts`): Σ punkty działu na maturze × oczekiwany odsetek punktów (`expectedScore` w `src/lib/mastery.ts` – ostrożna skuteczność ze wszystkich zadań + zaliczone testy). Wykres odtwarzany z dziennej historii `statsByDay` (sumy = `topicStats`). Każda odpowiedź do statystyk działu idzie przez `countAnswer()` w `src/lib/progress.ts`; samoocena zadań otwartych nie liczy się jako poprawna
 - Szablony parametryczne zadań: `src/data/templates/` (rejestr w `index.ts`, poradnik `docs/szablony-zadan.md`). Warianty mają stałe id `<szablon>-<n>` – nie zmieniaj id ani kolejności istniejących szablonów. Każdy szablon ma sprawdzenie siłowe w `tests/templates.test.ts` / `tests/templates-dzialy.test.ts` / `tests/templates-2015.test.ts` (także: każdy dystraktor błędny)
+- Android: lokalny serwer Capacitora na twarde wejście w głębszy adres oddaje `index.html` ekranu głównego – nawiguj przez `next/link`/router, nie `location` (wyjątek: powrót do `/`). Przycisk wstecz `src/lib/back-button.ts`: każda nakładka pełnoekranowa woła `useCloseOnBack`. Pasek stanu: grafitowy pas w root layoucie, ikony zawsze jasne; przyklejone nagłówki `top-[env(safe-area-inset-top)]`. Sprawdzaj na emulatorze – przeglądarka tego nie pokaże
 - Typy: `src/types/`, logika: `src/lib/`, dane testowe: `src/data/`
 - Teksty UI po polsku

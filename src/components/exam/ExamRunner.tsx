@@ -15,6 +15,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import ErrorState from "@/components/ui/ErrorState";
 import FunctionPlot from "@/components/ui/FunctionPlot";
 import Icon from "@/components/ui/Icon";
+import { revealAboveKeyboard } from "@/lib/keyboard";
 import MathText from "@/components/ui/MathText";
 import { examKindLabel, examMaxPoints, examSource, getExam, taskSource } from "@/data/exams";
 import CkeNotice from "@/components/legal/CkeNotice";
@@ -283,7 +284,7 @@ function ExamInProgress({
 
   return (
     <div className="flex min-h-dvh animate-fade-in flex-col bg-surface pt-[env(safe-area-inset-top)]">
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur-lg">
+      <header className="sticky top-[env(safe-area-inset-top)] z-20 border-b border-line bg-surface/90 backdrop-blur-lg">
         <div className="mx-auto w-full max-w-6xl px-4 pt-2 pb-2 sm:px-6 lg:px-10">
           <div className="flex items-center gap-2">
             <Link
@@ -563,6 +564,7 @@ function AnswerInput({ task, session, update }: { task: ExamTask; session: ExamS
           onChange={(e) => setInput(e.target.value)}
           autoComplete="off"
           spellCheck={false}
+          onFocus={revealAboveKeyboard}
           inputMode="text"
           placeholder={interval ? "np. [-4, 4) albo x ≥ 2" : "np. 3/2, 1,5 albo -2; 3"}
           className="min-h-12 min-w-0 flex-1 bg-transparent py-3 text-lg font-bold text-ink placeholder:font-medium placeholder:text-faint focus:outline-none"

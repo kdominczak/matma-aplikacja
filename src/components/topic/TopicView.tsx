@@ -70,7 +70,7 @@ export default function TopicView({ topicId }: { topicId: string }) {
         </aside>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <div className="sticky top-0 z-20 -mx-4 bg-surface/90 px-4 pt-3 pb-3 backdrop-blur-lg sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+          <div className="sticky top-[env(safe-area-inset-top)] z-20 -mx-4 bg-surface/90 px-4 pt-3 pb-3 backdrop-blur-lg sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
             <div className="grid max-w-md grid-cols-3 rounded-2xl border border-line bg-card p-1 shadow-card" role="tablist">
               {TABS.map((t) => (
                 <button

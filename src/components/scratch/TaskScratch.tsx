@@ -71,6 +71,13 @@ function useBottomBarHeight() {
   return height;
 }
 
+/** Czy klawiatura ekranowa jest wysunięta (widok wyraźnie niższy od ekranu) – wtedy pływający przycisk zasłaniałby pole i klawisze. */
+function subscribeResize(onChange: () => void) {
+  window.addEventListener("resize", onChange);
+  return () => window.removeEventListener("resize", onChange);
+}
+const keyboardOpen = () => window.innerHeight < window.screen.height * 0.72;
+
 /**
  * Brudnopis przy zadaniu: na komputerze zawsze widoczny obok treści; na telefonie pływający przycisk
  * (zawsze w zasięgu kciuka, bez przewijania) otwiera go od razu na pełnym ekranie. Te same notatki w obu.
@@ -81,6 +88,7 @@ export default function TaskScratch(props: Props) {
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(DESKTOP).matches, () => false);
   const barHeight = useBottomBarHeight();
+  const typing = useSyncExternalStore(subscribeResize, keyboardOpen, () => false);
   useCloseOnBack(() => setFull(false), full);
 
   return (
@@ -95,6 +103,7 @@ export default function TaskScratch(props: Props) {
       {mounted &&
         !desktop &&
         !full &&
+        !typing &&
         createPortal(
           <button
             onClick={() => {
