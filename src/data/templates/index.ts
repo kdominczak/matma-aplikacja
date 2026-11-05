@@ -42,6 +42,20 @@ import {
   sequenceLimit,
   sineLaw,
 } from "@/data/templates/rozszerzenie";
+import {
+  cubeFromDiagonal,
+  doubleCone,
+  fourTermSum,
+  geometricRatio,
+  integersInIntersection,
+  medianMissing,
+  originSymmetryLength,
+  quadraticMonotonic,
+  restorePrice,
+  squareAtRoot,
+  squareSequenceDifference,
+  tangentFromRatio,
+} from "@/data/templates/matura-2015";
 import { chooseRoles, digitsNoZero, digitsWithZero, parityDigits } from "@/data/templates/kombinatoryka";
 import {
   arithmeticSum,
@@ -68,7 +82,12 @@ const TF = 6;
 const OPEN = 6;
 
 const SETS: Record<string, { closed?: [ClosedTemplate, number][]; open?: [OpenTemplate, number][] }> = {
-  "potegi-i-pierwiastki": { closed: [[powersTrueFalse, TF]] },
+  "potegi-i-pierwiastki": {
+    closed: [
+      [powersTrueFalse, TF],
+      [restorePrice, ABCD],
+    ],
+  },
   logarytmy: { closed: [[logDifference, ABCD]], open: [[logSum, OPEN]] },
   "wartosc-bezwzgledna": {
     closed: [
@@ -76,8 +95,20 @@ const SETS: Record<string, { closed?: [ClosedTemplate, number][]; open?: [OpenTe
       [absInequality, ABCD],
     ],
   },
-  "wzory-skroconego-mnozenia": { closed: [[squareOfSum, ABCD]], open: [[rootIdentity, OPEN]] },
-  "nierownosci-liniowe": { closed: [[linearInequality, ABCD]], open: [[smallestInteger, OPEN]] },
+  "wzory-skroconego-mnozenia": {
+    closed: [
+      [squareOfSum, ABCD],
+      [squareAtRoot, ABCD],
+    ],
+    open: [[rootIdentity, OPEN]],
+  },
+  "nierownosci-liniowe": {
+    closed: [
+      [linearInequality, ABCD],
+      [integersInIntersection, ABCD],
+    ],
+    open: [[smallestInteger, OPEN]],
+  },
   "nierownosci-kwadratowe": { closed: [[quadraticInequality, ABCD]], open: [[quadraticIntegers, OPEN]] },
   "rownania-wymierne": { closed: [[rationalRootCount, ABCD]], open: [[rationalEquation, OPEN]] },
   "przeksztalcenia-wykresow": { closed: [[shiftVector, ABCD]], open: [[shiftedValue, OPEN]] },
@@ -116,18 +147,38 @@ const SETS: Record<string, { closed?: [ClosedTemplate, number][]; open?: [OpenTe
     ],
   },
   ciagi: {
-    closed: [[sequenceTrueFalse, TF]],
+    closed: [
+      [sequenceTrueFalse, TF],
+      [squareSequenceDifference, ABCD],
+      [fourTermSum, ABCD],
+    ],
     open: [
       [arithmeticTerm, OPEN],
       [arithmeticSum, OPEN],
+      [geometricRatio, OPEN],
     ],
   },
   "okrag-i-kolo": { open: [[inscribedAngle, OPEN]] },
-  "punkty-i-proste": { closed: [[segmentTrueFalse, TF]] },
-  statystyka: { closed: [[statsTrueFalse, TF]], open: [[gradesMean, OPEN]] },
-  "funkcja-kwadratowa": { open: [[quadraticFromVertex, OPEN]] },
-  trygonometria: { closed: [[trigTrueFalse, TF]] },
+  "punkty-i-proste": {
+    closed: [
+      [segmentTrueFalse, TF],
+      [originSymmetryLength, ABCD],
+    ],
+  },
+  statystyka: {
+    closed: [
+      [statsTrueFalse, TF],
+      [medianMissing, ABCD],
+    ],
+    open: [[gradesMean, OPEN]],
+  },
+  "funkcja-kwadratowa": { closed: [[quadraticMonotonic, ABCD]], open: [[quadraticFromVertex, OPEN]] },
+  trygonometria: { closed: [[trigTrueFalse, TF]], open: [[tangentFromRatio, OPEN]] },
   "geometria-przestrzenna": {
+    closed: [
+      [cubeFromDiagonal, ABCD],
+      [doubleCone, ABCD],
+    ],
     open: [
       [prismDiagonal, OPEN],
       [prismSurface, OPEN],
